@@ -5,7 +5,6 @@ namespace Ark4ne\OpenApi\Documentation\Request\Body;
 use Ark4ne\OpenApi\Documentation\Request\Body\Concerns\Typable;
 use Ark4ne\OpenApi\Documentation\Request\Body\Concerns\HasCondition;
 use Ark4ne\OpenApi\Support\Date;
-use DateTime;
 use DateTimeInterface;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Parameter as OASParameter;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Schema;
@@ -91,9 +90,6 @@ class Parameter
 
     protected ?bool $exclusiveMin;
     protected ?bool $exclusiveMax;
-
-    /** @var array<string> */
-    protected ?array $additional;
 
     protected ?string $title;
     protected ?string $typeDescription;
@@ -199,12 +195,6 @@ class Parameter
         return $this;
     }
 
-    public function additional(string $rule): static
-    {
-        $this->additional[] = $rule;
-        return $this;
-    }
-
     public function convert(string $for): OASParameter
     {
         $uid = uniqid('', false);
@@ -251,13 +241,13 @@ class Parameter
 
     protected function schemaDescription(): ?string
     {
-        $more = [$this->typeDescription ?? null];
+        $more = [$this->typeDescription ?? null, ...$this->conditions];
 
         if (in_array($this->format ?? null, [self::FORMAT_DATE, self::FORMAT_DATETIME], true)) {
             $more[] = $this->dateSchemaDescription();
         }
 
-        return implode("\n", array_filter($more));
+        return implode("  \n", array_map('\strval', array_filter($more)));
     }
 
     protected function dateSchemaDescription(): ?string

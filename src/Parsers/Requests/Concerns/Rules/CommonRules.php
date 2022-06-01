@@ -4,7 +4,6 @@ namespace Ark4ne\OpenApi\Parsers\Requests\Concerns\Rules;
 
 use Ark4ne\OpenApi\Documentation\Request\Body\Parameter;
 use Ark4ne\OpenApi\Support\Date;
-use DateTime;
 
 trait CommonRules
 {
@@ -78,7 +77,7 @@ trait CommonRules
      */
     public function parseBail(Parameter $parameter, array $parameters): void
     {
-        // TODO not a rule
+        // ignore: not a rule
     }
 
     /**
@@ -105,7 +104,7 @@ trait CommonRules
      */
     public function parseConfirmed(Parameter $parameter, array $parameters): void
     {
-        // TODO not a rule
+        // TODO desc
     }
 
     /**
@@ -241,7 +240,7 @@ trait CommonRules
      */
     public function parseDifferent(Parameter $parameter, array $parameters): void
     {
-        // TODO
+        $parameter->different(array_shift($parameters));
     }
 
     /**
@@ -330,7 +329,7 @@ trait CommonRules
      */
     public function parseExclude(Parameter $parameter, array $parameters): void
     {
-        // TODO not a rules
+        // ignore: not a rules
     }
 
     /**
@@ -339,7 +338,7 @@ trait CommonRules
      */
     public function parseExcludeIf(Parameter $parameter, array $parameters): void
     {
-        // TODO not a rules
+        // ignore: not a rules
     }
 
     /**
@@ -348,7 +347,7 @@ trait CommonRules
      */
     public function parseExcludeUnless(Parameter $parameter, array $parameters): void
     {
-        // TODO not a rules
+        // ignore: not a rules
     }
 
     /**
@@ -357,7 +356,7 @@ trait CommonRules
      */
     public function parseExcludeWithout(Parameter $parameter, array $parameters): void
     {
-        // TODO not a rules
+        // ignore: not a rules
     }
 
     /**
@@ -400,7 +399,7 @@ trait CommonRules
      */
     public function parseGt(Parameter $parameter, array $parameters): void
     {
-        $parameter->additional('greater-then:' . implode(',', $parameters));
+        $parameter->greater(array_shift($parameters));
     }
 
     /**
@@ -409,7 +408,7 @@ trait CommonRules
      */
     public function parseGte(Parameter $parameter, array $parameters): void
     {
-        $parameter->additional('greater-or-equal-then:' . implode(',', $parameters));
+        $parameter->greaterOrEquals(array_shift($parameters));
     }
 
     /**
@@ -514,7 +513,7 @@ trait CommonRules
      */
     public function parseLt(Parameter $parameter, array $parameters): void
     {
-        $parameter->additional("less-than:$parameters[0]");
+        $parameter->less(array_shift($parameters));
     }
 
     /**
@@ -523,7 +522,7 @@ trait CommonRules
      */
     public function parseLte(Parameter $parameter, array $parameters): void
     {
-        $parameter->additional("less-or-equal-than:$parameters[0]");
+        $parameter->lessOrEquals(array_shift($parameters));
     }
 
     /**
@@ -620,9 +619,9 @@ trait CommonRules
      * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parsePresent(Parameter $parameter, array $parameters): void
+    public function parsePresent(Parameter $parameter): void
     {
-        // todo
+        $parameter->required()->nullable();
     }
 
     /**
@@ -631,7 +630,7 @@ trait CommonRules
      */
     public function parseProhibited(Parameter $parameter, array $parameters): void
     {
-        // TODO exclude
+        // TODO condition
     }
 
     /**
@@ -640,7 +639,7 @@ trait CommonRules
      */
     public function parseProhibitedIf(Parameter $parameter, array $parameters): void
     {
-        // TODO exclude
+        $parameter->if(array_shift($parameters), $parameters ?? [], 'prohibited');
     }
 
     /**
@@ -649,7 +648,7 @@ trait CommonRules
      */
     public function parseProhibitedUnless(Parameter $parameter, array $parameters): void
     {
-        // TODO exclude
+        $parameter->unless(array_shift($parameters), $parameters ?? [], 'prohibited');
     }
 
     /**
@@ -685,7 +684,7 @@ trait CommonRules
      */
     public function parseRequiredIf(Parameter $parameter, array $parameters): void
     {
-        // TODO
+        $parameter->if(array_shift($parameters), $parameters ?? [], 'required');
     }
 
     /**
@@ -694,7 +693,7 @@ trait CommonRules
      */
     public function parseRequiredUnless(Parameter $parameter, array $parameters): void
     {
-        // TODO
+        $parameter->unless(array_shift($parameters), $parameters ?? [], 'required');
     }
 
     /**
@@ -703,7 +702,7 @@ trait CommonRules
      */
     public function parseRequiredWith(Parameter $parameter, array $parameters): void
     {
-        // TODO
+        $parameter->with($parameters, 'required');
     }
 
     /**
@@ -712,7 +711,7 @@ trait CommonRules
      */
     public function parseRequiredWithAll(Parameter $parameter, array $parameters): void
     {
-        // TODO
+        $parameter->withAll($parameters, 'required');
     }
 
     /**
@@ -721,7 +720,7 @@ trait CommonRules
      */
     public function parseRequiredWithout(Parameter $parameter, array $parameters): void
     {
-        // TODO
+        $parameter->without($parameters, 'required');
     }
 
     /**
@@ -730,7 +729,7 @@ trait CommonRules
      */
     public function parseRequiredWithoutAll(Parameter $parameter, array $parameters): void
     {
-        // TODO
+        $parameter->withoutAll($parameters, 'required');
     }
 
     /**
@@ -739,7 +738,7 @@ trait CommonRules
      */
     public function parseSame(Parameter $parameter, array $parameters): void
     {
-        // TODO
+        $parameter->same(array_shift($parameters));
     }
 
     /**
