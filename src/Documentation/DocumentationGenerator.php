@@ -58,8 +58,8 @@ class DocumentationGenerator
                     ->operationId("$method:{$entry->getName()}")
                     ->tags($this->tag($entry->getControllerName()))
                     ->parameters(
-                        ...collect($entry->getPathParameters())
-                        ->map(fn(string $name) => OASParameter::path()->name($name))
+                        ...collect($request['parameters'] ?? [])
+                        ->map(fn(Request\Body\Parameter $param) => $param->convert(OASParameter::IN_PATH))
                         ->values()
                         ->all(),
                         ...collect($request['headers'] ?? [])
@@ -113,7 +113,12 @@ class DocumentationGenerator
      * @param \Ark4ne\OpenApi\Documentation\DocumentationEntry $entry
      *
      * @throws \Exception
-     * @return null|array{headers?: array<string, Request\Body\Parameter>, body?: array<string, Request\Body\Parameter>, queries?: array<string, Request\Body\Parameter>}
+     * @return null|array{
+     *     parameters?: array<string, Request\Body\Parameter>,
+     *     headers?: array<string, Request\Body\Parameter>,
+     *     body?: array<string, Request\Body\Parameter>,
+     *     queries?: array<string, Request\Body\Parameter>
+     * }
      */
     protected function request(DocumentationEntry $entry): ?array
     {
@@ -125,7 +130,15 @@ class DocumentationGenerator
         return $this->parse(config('openapi.parsers.responses'), $entry->getResponseClass(), $entry);
     }
 
-    protected function parse(array $parsers, mixed $element, DocumentationEntry $entry)
+    /**
+     * @param array<class-string>                              $parsers
+     * @param mixed                                            $element
+     * @param \Ark4ne\OpenApi\Documentation\DocumentationEntry $entry
+     *
+     * @throws \Illuminate\Contracts\Container\BindingResolutionException
+     * @return mixed
+     */
+    protected function parse(array $parsers, mixed $element, DocumentationEntry $entry): mixed
     {
         if (empty($element)) {
             return null;

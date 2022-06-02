@@ -10,12 +10,12 @@ class Reflection
 {
 
     /**
-     * @template T of class-string
+     * @template T
      *
-     * @param \ReflectionType $type
-     * @param null|T          $for
+     * @param \ReflectionType      $type
+     * @param class-string<T>|null $for
      *
-     * @return array<class-string|T>
+     * @return class-string<T>|class-string|null
      */
     public static function parseTypeHint(\ReflectionType $type, ?string $for = null): ?string
     {

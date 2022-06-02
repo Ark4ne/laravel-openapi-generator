@@ -664,15 +664,6 @@ trait CommonRules
      * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseRegex(Parameter $parameter, array $parameters): void
-    {
-        $parameter->string()->pattern("match:$parameters[0]");
-    }
-
-    /**
-     * @param Parameter     $parameter
-     * @param array<string> $parameters
-     */
     public function parseRequired(Parameter $parameter, array $parameters): void
     {
         $parameter->required();
@@ -809,10 +800,9 @@ trait CommonRules
 
     /**
      * @param Parameter     $parameter
-     * @param array<string> $parameters
      */
-    public function parseUuid(Parameter $parameter, array $parameters): void
+    public function parseUuid(Parameter $parameter): void
     {
-        $parameter->string()->pattern('uuid');
+        $parameter->uuid();
     }
 }

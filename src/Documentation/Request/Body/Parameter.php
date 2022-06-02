@@ -51,6 +51,8 @@ class Parameter
     public const FORMAT_DATETIME = 'datetime';
     /** password    A hint to UIs to obscure input. */
     public const FORMAT_PASSWORD = 'password';
+    /** uuid    */
+    public const FORMAT_UUID = 'uuid';
 
     public const PATTERNS = [
         self::FORMAT_DATE => 'Y-m-d',
@@ -68,7 +70,8 @@ class Parameter
             self::FORMAT_BINARY,
             self::FORMAT_DATE,
             self::FORMAT_DATETIME,
-            self::FORMAT_PASSWORD
+            self::FORMAT_PASSWORD,
+            self::FORMAT_UUID
         ],
     ];
 

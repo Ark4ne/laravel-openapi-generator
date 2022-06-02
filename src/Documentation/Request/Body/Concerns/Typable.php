@@ -117,4 +117,9 @@ trait Typable
     {
         return $this->type(self::TYPE_STRING, $force)->format(self::FORMAT_PASSWORD, $force);
     }
+
+    public function uuid(bool $force = true): static
+    {
+        return $this->type(self::TYPE_STRING, $force)->format(self::FORMAT_UUID, $force);
+    }
 }

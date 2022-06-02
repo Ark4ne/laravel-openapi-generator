@@ -4,7 +4,8 @@ namespace Ark4ne\OpenApi\Documentation;
 
 use Ark4ne\OpenApi\Contracts\Entry;
 use Ark4ne\OpenApi\Support\Reflection;
-use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Str;
 use ReflectionClass;
@@ -48,7 +49,7 @@ class DocumentationEntry implements Entry
 
     /**
      * @throws \ReflectionException
-     * @return array<string>
+     * @return array<string, null|string>
      */
     public function getPathParameters(): array
     {
@@ -59,7 +60,15 @@ class DocumentationEntry implements Entry
         /** @var \Symfony\Component\Routing\CompiledRoute $compileRoute */
         $compileRoute = Reflection::call($this->route, 'compileRoute');
 
-        return $this->parameters = $compileRoute->getPathVariables();
+        $parameters = $compileRoute->getPathVariables();
+
+        $parameters = array_merge(
+            array_fill_keys($parameters, null),
+            $this->route->action['wheres'] ?? [],
+            $this->route->wheres
+        );
+
+        return $this->parameters = $parameters;
     }
 
     public function getController(): mixed
@@ -93,7 +102,10 @@ class DocumentationEntry implements Entry
         return $this->action = $action;
     }
 
-    public function getResponseClass(): ?string
+    /**
+     * @return class-string<Response>
+     */
+    public function getResponseClass(): string
     {
         if (isset($this->response)) {
             return $this->response;
@@ -104,17 +116,17 @@ class DocumentationEntry implements Entry
 
         $method = $class->getMethod($action);
 
-        if ($return = $method->getReturnType()) {
-            return $this->response = Reflection::parseTypeHint($return);
+        if (($return = $method->getReturnType()) && $response = Reflection::parseTypeHint($return)) {
+            return $this->response = $response;
         }
 
-        return null;
+        return Response::class;
     }
 
     /**
-     * @return null|class-string<FormRequest>
+     * @return class-string<Request>
      */
-    public function getRequestClass(): ?string
+    public function getRequestClass(): string
     {
         if (isset($this->request)) {
             return $this->request;
@@ -125,11 +137,11 @@ class DocumentationEntry implements Entry
                 continue;
             }
 
-            if ($type = Reflection::parseTypeHint($type, FormRequest::class)) {
+            if ($type = Reflection::parseTypeHint($type, Request::class)) {
                 return $this->request = $type;
             }
         }
 
-        return null;
+        return Request::class;
     }
 }
