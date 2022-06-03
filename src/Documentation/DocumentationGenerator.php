@@ -2,7 +2,11 @@
 
 namespace Ark4ne\OpenApi\Documentation;
 
+use Ark4ne\OpenApi\Documentation\Request\Parameters;
+use Ark4ne\OpenApi\Support\Http;
 use Illuminate\Routing\Router;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\{Info,
     MediaType,
     Operation,
@@ -13,6 +17,7 @@ use GoldSpecDigital\ObjectOrientedOAS\Objects\{Info,
     Tag
 };
 use GoldSpecDigital\ObjectOrientedOAS\OpenApi;
+use RuntimeException;
 
 class DocumentationGenerator
 {
@@ -54,28 +59,27 @@ class DocumentationGenerator
 
                 /** @var Operation $operation */
                 $operation = Operation::$method();
-                $operations[] = $operation
+                $operation = $operation
                     ->operationId("$method:{$entry->getName()}")
+                    ->summary(Str::studly($entry->getName()))
                     ->tags($this->tag($entry->getControllerName()))
                     ->parameters(
-                        ...collect($request['parameters'] ?? [])
-                        ->map(fn(Request\Body\Parameter $param) => $param->convert(OASParameter::IN_PATH))
-                        ->values()
-                        ->all(),
-                        ...collect($request['headers'] ?? [])
-                        ->map(fn(Request\Body\Parameter $param) => $param->convert(OASParameter::IN_HEADER))
-                        ->values()
-                        ->all(),
-                        ...collect($request['queries'] ?? [])
-                        ->map(fn(Request\Body\Parameter $param) => $param->convert(OASParameter::IN_QUERY))
-                        ->values()
-                        ->all(),
-                        ...collect($request['body'] ?? [])
-                        ->map(fn(Request\Body\Parameter $param) => $param->convert(OASParameter::IN_QUERY))
-                        ->values()
-                        ->all()
+                        ...(new Parameters($request['parameters'] ?? []))->convert(OASParameter::IN_PATH),
+                        ...(new Parameters($request['headers'] ?? []))->convert(OASParameter::IN_HEADER),
+                        ...(new Parameters($request['queries'] ?? []))->convert(OASParameter::IN_QUERY),
+                        ...(
+                    !Http::acceptBody($method)
+                        ? (new Parameters($request['body'] ?? []))->convert(OASParameter::IN_QUERY)
+                        : []
+                    ),
                     )
                     ->responses(Response::ok());
+
+                if (Http::acceptBody($method)) {
+                    $operation = $operation->requestBody((new Parameters($request['body'] ?? []))->convert('body'));
+                }
+
+                $operations[] = $operation;
             }
 
             $paths[] = PathItem::create()
@@ -95,7 +99,7 @@ class DocumentationGenerator
             ->tags(...array_values($this->tags));
 
         if (!is_dir($dir = config("openapi.output-dir")) && !mkdir($dir, 0777, true) && !is_dir($dir)) {
-            throw new \RuntimeException(sprintf('Directory "%s" was not created', $dir));
+            throw new RuntimeException(sprintf('Directory "%s" was not created', $dir));
         }
 
         file_put_contents(
@@ -114,10 +118,10 @@ class DocumentationGenerator
      *
      * @throws \Exception
      * @return null|array{
-     *     parameters?: array<string, Request\Body\Parameter>,
-     *     headers?: array<string, Request\Body\Parameter>,
-     *     body?: array<string, Request\Body\Parameter>,
-     *     queries?: array<string, Request\Body\Parameter>
+     *     parameters?: array<string, Request\Parameter>,
+     *     headers?: array<string, Request\Parameter>,
+     *     body?: array<string, Request\Parameter>,
+     *     queries?: array<string, Request\Parameter>
      * }
      */
     protected function request(DocumentationEntry $entry): ?array

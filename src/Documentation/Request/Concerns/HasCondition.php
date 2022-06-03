@@ -1,8 +1,8 @@
 <?php
 
-namespace Ark4ne\OpenApi\Documentation\Request\Body\Concerns;
+namespace Ark4ne\OpenApi\Documentation\Request\Concerns;
 
-use Ark4ne\OpenApi\Documentation\Request\Body\Condition;
+use Ark4ne\OpenApi\Documentation\Request\Condition;
 
 trait HasCondition
 {

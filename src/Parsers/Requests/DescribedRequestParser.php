@@ -4,7 +4,7 @@ namespace Ark4ne\OpenApi\Parsers\Requests;
 
 use Ark4ne\OpenApi\Contracts\Entry;
 use Ark4ne\OpenApi\Contracts\Parser;
-use Ark4ne\OpenApi\Documentation\Request\Body\Parameter;
+use Ark4ne\OpenApi\Documentation\Request\Parameter;
 use Ark4ne\OpenApi\Parsers\Requests\Concerns\RegexParser;
 use Ark4ne\OpenApi\Parsers\Requests\Concerns\RulesParser;
 
@@ -17,10 +17,10 @@ class DescribedRequestParser implements Parser
      * @param \Ark4ne\OpenApi\Contracts\Entry                                                                                                     $entry
      *
      * @return array{
-     *     parameters: array<string, \Ark4ne\OpenApi\Documentation\Request\Body\Parameter>,
-     *     headers: array<string, \Ark4ne\OpenApi\Documentation\Request\Body\Parameter>,
-     *     body: array<string, \Ark4ne\OpenApi\Documentation\Request\Body\Parameter>,
-     *     queries: array<string, \Ark4ne\OpenApi\Documentation\Request\Body\Parameter>
+     *     parameters: array<string, \Ark4ne\OpenApi\Documentation\Request\Parameter>,
+     *     headers: array<string, \Ark4ne\OpenApi\Documentation\Request\Parameter>,
+     *     body: array<string, \Ark4ne\OpenApi\Documentation\Request\Parameter>,
+     *     queries: array<string, \Ark4ne\OpenApi\Documentation\Request\Parameter>
      * }
      */
     public function parse(mixed $element, Entry $entry): array

@@ -57,9 +57,9 @@ return [
 
     'format' => [
         'date' => [
-            'Y-m-d' => Documentation\Request\Body\Parameter::FORMAT_DATE,
-            'Y-m-d H:i:s' => Documentation\Request\Body\Parameter::FORMAT_DATETIME,
-            DateTimeInterface::ATOM => Documentation\Request\Body\Parameter::FORMAT_DATETIME,
+            'Y-m-d' => Documentation\Request\Parameter::FORMAT_DATE,
+            'Y-m-d H:i:s' => Documentation\Request\Parameter::FORMAT_DATETIME,
+            DateTimeInterface::ATOM => Documentation\Request\Parameter::FORMAT_DATETIME,
         ],
     ],
 ];

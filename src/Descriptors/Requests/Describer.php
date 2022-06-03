@@ -2,7 +2,7 @@
 
 namespace Ark4ne\OpenApi\Descriptors\Requests;
 
-use Ark4ne\OpenApi\Documentation\Request\Body\Parameter;
+use Ark4ne\OpenApi\Documentation\Request\Parameter;
 
 class Describer
 {

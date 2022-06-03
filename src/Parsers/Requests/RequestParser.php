@@ -4,7 +4,7 @@ namespace Ark4ne\OpenApi\Parsers\Requests;
 
 use Ark4ne\OpenApi\Contracts\Entry;
 use Ark4ne\OpenApi\Contracts\Parser;
-use Ark4ne\OpenApi\Documentation\Request\Body\Parameter;
+use Ark4ne\OpenApi\Documentation\Request\Parameter;
 use Ark4ne\OpenApi\Parsers\Requests\Concerns\RegexParser;
 use Ark4ne\OpenApi\Parsers\Requests\Concerns\RulesParser;
 
@@ -17,8 +17,8 @@ class RequestParser implements Parser
      * @param \Ark4ne\OpenApi\Contracts\Entry                                 $entry
      *
      * @return  array{
-     *     parameters: array<string, \Ark4ne\OpenApi\Documentation\Request\Body\Parameter>,
-     *     body?: array<string, \Ark4ne\OpenApi\Documentation\Request\Body\Parameter>,
+     *     parameters: array<string, \Ark4ne\OpenApi\Documentation\Request\Parameter>,
+     *     body?: array<string, \Ark4ne\OpenApi\Documentation\Request\Parameter>,
      * }
      */
     public function parse(mixed $element, Entry $entry): array
@@ -27,14 +27,18 @@ class RequestParser implements Parser
 
         $parsed = [
             'parameters' => collect($entry->getPathParameters())
-                ->map(fn(?string $pattern, string $name) => tap(new Parameter($name), fn($param) => $pattern
-                    ? $this->parseRegex($param, $pattern)
-                    : null))
+                ->map(function (?string $pattern, string $name) {
+                    $param = new Parameter($name);
+                    if ($pattern) {
+                        $this->parseRegex($param, $pattern);
+                    }
+                    return $param;
+                })
                 ->all(),
         ];
 
         if (method_exists($element, 'rules')) {
-            $parsed['body'] = $this->rules($element->rules());
+            $parsed['body'] = $this->rules($element->rules())->all();
         }
 
         return $parsed;

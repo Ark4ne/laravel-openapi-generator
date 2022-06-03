@@ -2,7 +2,7 @@
 
 namespace Ark4ne\OpenApi\Parsers\Requests\Concerns\Rules;
 
-use Ark4ne\OpenApi\Documentation\Request\Body\Parameter;
+use Ark4ne\OpenApi\Documentation\Request\Parameter;
 use Ark4ne\OpenApi\Support\Date;
 
 trait CommonRules
@@ -132,7 +132,7 @@ trait CommonRules
     public function parseAfterOrEqual(Parameter $parameter, array $parameters): void
     {
         $this->parseDate($parameter);
-        if ($pattern = $this->dateFindPattern($parameters[0])) {
+        if (!isset($parameter->pattern) && $pattern = $this->dateFindPattern($parameters[0])) {
             $parameter->pattern($pattern);
         }
         $parameter->min(strtotime($parameters[0]));
@@ -155,7 +155,7 @@ trait CommonRules
     public function parseBeforeOrEqual(Parameter $parameter, array $parameters): void
     {
         $this->parseDate($parameter);
-        if ($pattern = $this->dateFindPattern($parameters[0])) {
+        if (!isset($parameter->pattern) && $pattern = $this->dateFindPattern($parameters[0])) {
             $parameter->pattern($pattern);
         }
         $parameter->max(strtotime($parameters[0]));

@@ -2,7 +2,7 @@
 
 namespace Ark4ne\OpenApi\Parsers\Requests\Concerns\Rules;
 
-use Ark4ne\OpenApi\Documentation\Request\Body\Parameter;
+use Ark4ne\OpenApi\Documentation\Request\Parameter;
 use Illuminate\Contracts\Validation\Rule;
 
 trait CustomRules

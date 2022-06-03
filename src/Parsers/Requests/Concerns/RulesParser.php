@@ -4,7 +4,7 @@ namespace Ark4ne\OpenApi\Parsers\Requests\Concerns;
 
 use Ark4ne\OpenApi\Parsers\Requests\Concerns\Rules\CommonRules;
 use Ark4ne\OpenApi\Parsers\Requests\Concerns\Rules\CustomRules;
-use Ark4ne\OpenApi\Documentation\Request\Body\Parameter;
+use Ark4ne\OpenApi\Documentation\Request\Parameter;
 use Closure;
 use Illuminate\Contracts\Validation\Rule;
 use Illuminate\Validation\ValidationRuleParser;
@@ -28,10 +28,10 @@ trait RulesParser
     }
 
     /**
-     * @param \Ark4ne\OpenApi\Documentation\Request\Body\Parameter               $parameter
+     * @param \Ark4ne\OpenApi\Documentation\Request\Parameter                    $parameter
      * @param string|array<mixed>|\Illuminate\Contracts\Validation\Rule|\Closure $ruleRaw
      *
-     * @return \Ark4ne\OpenApi\Documentation\Request\Body\Parameter
+     * @return \Ark4ne\OpenApi\Documentation\Request\Parameter
      */
     protected function rule(Parameter $parameter, string|array|Rule|Closure $ruleRaw): Parameter
     {

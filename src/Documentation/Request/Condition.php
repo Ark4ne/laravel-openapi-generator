@@ -1,6 +1,6 @@
 <?php
 
-namespace Ark4ne\OpenApi\Documentation\Request\Body;
+namespace Ark4ne\OpenApi\Documentation\Request;
 
 class Condition
 {

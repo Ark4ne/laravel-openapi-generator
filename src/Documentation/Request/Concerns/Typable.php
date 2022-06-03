@@ -1,6 +1,6 @@
 <?php
 
-namespace Ark4ne\OpenApi\Documentation\Request\Body\Concerns;
+namespace Ark4ne\OpenApi\Documentation\Request\Concerns;
 
 use InvalidArgumentException;
 use Throwable;

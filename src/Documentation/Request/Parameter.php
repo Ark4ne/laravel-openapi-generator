@@ -1,9 +1,9 @@
 <?php
 
-namespace Ark4ne\OpenApi\Documentation\Request\Body;
+namespace Ark4ne\OpenApi\Documentation\Request;
 
-use Ark4ne\OpenApi\Documentation\Request\Body\Concerns\Typable;
-use Ark4ne\OpenApi\Documentation\Request\Body\Concerns\HasCondition;
+use Ark4ne\OpenApi\Documentation\Request\Concerns\Typable;
+use Ark4ne\OpenApi\Documentation\Request\Concerns\HasCondition;
 use Ark4ne\OpenApi\Support\Date;
 use DateTimeInterface;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Parameter as OASParameter;
@@ -198,12 +198,10 @@ class Parameter
         return $this;
     }
 
-    public function convert(string $for): OASParameter
+    public function oasSchema(): Schema
     {
-        $uid = uniqid('', false);
-
         /** @var Schema $schema */
-        $schema = Schema::{$this->type}("$uid:type");
+        $schema = Schema::{$this->type}($this->name);
 
         $schema = $schema
             ->title($this->title ?? null)
@@ -229,8 +227,15 @@ class Parameter
             $schema = $schema->maximum($this->max);
         }
 
+        return $schema;
+    }
+
+    public function oasParameters(string $for): OASParameter
+    {
+        $schema = $this->oasSchema();
+
         /** @var OASParameter $params */
-        $params = OASParameter::$for($uid);
+        $params = OASParameter::$for($schema->objectId);
         $params = $params
             ->name($this->name)
             ->required($this->required)
