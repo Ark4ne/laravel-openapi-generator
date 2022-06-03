@@ -24,6 +24,9 @@ class DocumentationGenerator
     /** @var array<string, Tag> */
     protected array $tags = [];
 
+    /** @var array<string, Tag[]> */
+    protected array $groups = [];
+
     public function __construct(
         private Router $router
     ) {
@@ -47,6 +50,7 @@ class DocumentationGenerator
         $config = config("openapi.versions.$version");
 
         $routes = $this->getRoutes($config['routes']);
+        $groupBy = $config['groupBy'] ?? null;
 
         $paths = [];
 
@@ -79,6 +83,19 @@ class DocumentationGenerator
                     $operation = $operation->requestBody((new Parameters($request['body'] ?? []))->convert('body'));
                 }
 
+                if ($groupBy) {
+                    $by = null;
+
+                    switch ($groupBy['by']) {
+                        case 'ControllerClass' :
+                            $by = $entry->getControllerClass();
+                    }
+
+                    if ($by && preg_match($groupBy['regex'], $by, $match)) {
+                        $this->groups($match[1], $operation->tags);
+                    }
+                }
+
                 $operations[] = $operation;
             }
 
@@ -98,6 +115,10 @@ class DocumentationGenerator
             ->paths(...$paths)
             ->tags(...array_values($this->tags));
 
+        if (!empty($this->groups)) {
+            $openApi = $openApi->x('tagGroups', array_values($this->groups));
+        }
+
         if (!is_dir($dir = config("openapi.output-dir")) && !mkdir($dir, 0777, true) && !is_dir($dir)) {
             throw new RuntimeException(sprintf('Directory "%s" was not created', $dir));
         }
@@ -111,6 +132,14 @@ class DocumentationGenerator
     protected function tag(string $name): Tag
     {
         return $this->tags[strtolower($name)] ??= Tag::create($name)->name($name);
+    }
+
+    protected function groups(string $name, array $tags): void
+    {
+        $key = strtolower($name);
+
+        $this->groups[$key]['name'] = $name;
+        $this->groups[$key]['tags'] = array_unique(array_merge($this->groups[$key]['tags'] ?? [], $tags));
     }
 
     /**

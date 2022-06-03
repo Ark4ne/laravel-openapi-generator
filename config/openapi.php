@@ -17,6 +17,11 @@ return [
             'routes' => [
                 'api/*'
             ],
+
+            'groupBy' => [
+                'by' => 'ControllerClass',
+                'regex' => '/^Modules\\\\(\w+)/'
+            ]
         ],
     ],
 
