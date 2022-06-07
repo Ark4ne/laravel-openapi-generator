@@ -3,9 +3,13 @@
 namespace Ark4ne\OpenApi\Descriptors\Requests;
 
 use Ark4ne\OpenApi\Documentation\Request\Parameter;
+use Ark4ne\OpenApi\Documentation\Request\Security;
 
 class Describer
 {
+    /** @var array<string, Security> */
+    protected array $securities = [];
+
     /** @var array<string, Parameter> */
     protected array $headers = [];
 
@@ -37,6 +41,15 @@ class Describer
     public function getQueries(): array
     {
         return array_combine(array_column($this->body, 'name'), array_column($this->body, 'raw'));
+    }
+
+
+    /**
+     * @return array<string, Security>
+     */
+    public function getSecurities(): array
+    {
+        return $this->securities;
     }
 
     /**
@@ -79,6 +92,51 @@ class Describer
     }
 
     /**
+     * @param string $type
+     *
+     * @return \Ark4ne\OpenApi\Documentation\Request\Security
+     */
+    public function security(string $type): Security
+    {
+        return $this->securities[strtolower($type)] = (new Security($type))->type($type);
+    }
+
+    public function apiKey(string $in = Security::IN_HEADER): Security
+    {
+        return $this->security(Security::TYPE_API_KEY)->in($in);
+    }
+
+    public function basic(): Security
+    {
+        return $this->security(Security::TYPE_HTTP);
+    }
+
+    public function oauth2(): Security
+    {
+        return $this->security(Security::TYPE_OAUTH2);
+    }
+
+    public function openId(): Security
+    {
+        return $this->security(Security::TYPE_OPEN_ID_CONNECT);
+    }
+
+    /**
+     * Define requirement of XSRF-Token
+     *
+     * @return $this
+     */
+    public function xsrf(): self
+    {
+        $this
+            ->header('XSRF-Token')
+            ->required()
+            ->pattern("{csrf-token}");
+
+        return $this;
+    }
+
+    /**
      * Define acceptable format
      *
      * @param array<string>|string $accept
@@ -108,36 +166,6 @@ class Describer
             ->header('Accept-Encoding')
             ->required()
             ->enum((array)$encoding);
-
-        return $this;
-    }
-
-    /**
-     * Authentication via token (Bearer, or anything else)
-     *
-     * @return $this
-     */
-    public function token(string $type = 'Bearer'): self
-    {
-        $this
-            ->header('Authorization')
-            ->required()
-            ->pattern("$type {token}");
-
-        return $this;
-    }
-
-    /**
-     * Define requirement of XSRF-Token
-     *
-     * @return $this
-     */
-    public function xsrf(): self
-    {
-        $this
-            ->header('XSRF-Token')
-            ->required()
-            ->pattern("{csrf-token}");
 
         return $this;
     }

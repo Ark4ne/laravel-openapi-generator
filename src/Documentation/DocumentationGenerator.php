@@ -3,9 +3,9 @@
 namespace Ark4ne\OpenApi\Documentation;
 
 use Ark4ne\OpenApi\Documentation\Request\Parameters;
+use Ark4ne\OpenApi\Documentation\Request\Security;
 use Ark4ne\OpenApi\Support\Http;
 use Illuminate\Routing\Router;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\{Info,
     MediaType,
@@ -14,6 +14,7 @@ use GoldSpecDigital\ObjectOrientedOAS\Objects\{Info,
     PathItem,
     Response,
     Schema,
+    SecurityRequirement,
     Tag
 };
 use GoldSpecDigital\ObjectOrientedOAS\OpenApi;
@@ -26,6 +27,9 @@ class DocumentationGenerator
 
     /** @var array<string, Tag[]> */
     protected array $groups = [];
+
+    /** @var array<string, mixed> */
+    protected array $config;
 
     public function __construct(
         private Router $router
@@ -47,10 +51,9 @@ class DocumentationGenerator
 
     public function generate(string $version): void
     {
-        $config = config("openapi.versions.$version");
+        $this->config = config("openapi.versions.$version");
 
-        $routes = $this->getRoutes($config['routes']);
-        $groupBy = $config['groupBy'] ?? null;
+        $routes = $this->getRoutes($this->config['routes']);
 
         $paths = [];
 
@@ -58,45 +61,9 @@ class DocumentationGenerator
             $entry = new DocumentationEntry($route);
 
             $operations = [];
+
             foreach ($entry->getMethods() as $method) {
-                $request = $this->request($entry);
-
-                /** @var Operation $operation */
-                $operation = Operation::$method();
-                $operation = $operation
-                    ->operationId("$method:{$entry->getName()}")
-                    ->summary(Str::studly($entry->getName()))
-                    ->tags($this->tag($entry->getControllerName()))
-                    ->parameters(
-                        ...(new Parameters($request['parameters'] ?? []))->convert(OASParameter::IN_PATH),
-                        ...(new Parameters($request['headers'] ?? []))->convert(OASParameter::IN_HEADER),
-                        ...(new Parameters($request['queries'] ?? []))->convert(OASParameter::IN_QUERY),
-                        ...(
-                    !Http::acceptBody($method)
-                        ? (new Parameters($request['body'] ?? []))->convert(OASParameter::IN_QUERY)
-                        : []
-                    ),
-                    )
-                    ->responses(Response::ok());
-
-                if (Http::acceptBody($method)) {
-                    $operation = $operation->requestBody((new Parameters($request['body'] ?? []))->convert('body'));
-                }
-
-                if ($groupBy) {
-                    $by = null;
-
-                    switch ($groupBy['by']) {
-                        case 'ControllerClass' :
-                            $by = $entry->getControllerClass();
-                    }
-
-                    if ($by && preg_match($groupBy['regex'], $by, $match)) {
-                        $this->groups($match[1], $operation->tags);
-                    }
-                }
-
-                $operations[] = $operation;
+                $operations[] = $this->operation($entry, $method);
             }
 
             $paths[] = PathItem::create()
@@ -105,9 +72,9 @@ class DocumentationGenerator
         }
 
         $info = Info::create()
-            ->title($config['title'])
+            ->title($this->config['title'])
             ->version($version)
-            ->description($config['title']);
+            ->description($this->config['description']);
 
         $openApi = OpenApi::create()
             ->openapi(OpenApi::OPENAPI_3_0_2)
@@ -124,17 +91,98 @@ class DocumentationGenerator
         }
 
         file_put_contents(
-            "$dir/{$config['output-file']}",
+            "$dir/{$this->config['output-file']}",
             $openApi->toJson()
         );
     }
 
-    protected function tag(string $name): Tag
+    /**
+     * @param \Ark4ne\OpenApi\Documentation\DocumentationEntry $entry
+     * @param string                                           $method
+     *
+     * @throws \GoldSpecDigital\ObjectOrientedOAS\Exceptions\InvalidArgumentException
+     * @return \GoldSpecDigital\ObjectOrientedOAS\Objects\Operation
+     */
+    protected function operation(DocumentationEntry $entry, string $method): Operation
     {
-        return $this->tags[strtolower($name)] ??= Tag::create($name)->name($name);
+        $request = $entry->request();
+
+        /** @var Operation $operation */
+        $operation = Operation::$method();
+        $operation = $operation
+            ->operationId("$method:{$entry->getName()}")
+            ->summary(Str::studly($entry->getName()))
+            ->tags($this->tag($entry->getControllerName()))
+            ->parameters(
+                ...(new Parameters($request->parameters()))->convert(OASParameter::IN_PATH),
+                ...(new Parameters($request->headers()))->convert(OASParameter::IN_HEADER),
+                ...(new Parameters($request->queries()))->convert(OASParameter::IN_QUERY),
+                ...(
+            !Http::acceptBody($method)
+                ? (new Parameters($request->body()))->convert(OASParameter::IN_QUERY)
+                : []
+            ),
+            )
+            ->responses(Response::ok());
+
+        if (Http::acceptBody($method)) {
+            $operation = $operation->requestBody((new Parameters($request->body()))->convert('body'));
+        }
+
+        if (!empty($request->securities())) {
+            $operation->security(
+                ...collect($request->securities())
+                ->map(fn(Security $security) => $security->oasRequirement())
+                ->all()
+            );
+        }
+
+        $this->group($entry, $operation->tags);
+
+        return $operation;
     }
 
-    protected function groups(string $name, array $tags): void
+    /**
+     * @param \Ark4ne\OpenApi\Documentation\DocumentationEntry $entry
+     * @param string[]                                         $tags
+     *
+     * @return void
+     */
+    protected function group(DocumentationEntry $entry, array $tags): void
+    {
+        if (!($group = $this->config['groupBy'] ?? null)) {
+            return;
+        }
+
+        if (is_callable($group)) {
+            $by = $group($entry);
+
+            if ($by) {
+                $this->groupBy($by, $tags);
+            }
+
+            return;
+        }
+
+        $by = match ($group['by'] ?? null) {
+            'uri' => $entry->getUri(),
+            'name' => $entry->getName(),
+            'controller' => $entry->getControllerClass(),
+            default => null
+        };
+
+        if ($by && preg_match($group['regex'], $by, $match)) {
+            $this->groupBy($match[1], $tags);
+        }
+    }
+
+    /**
+     * @param string   $name
+     * @param string[] $tags
+     *
+     * @return void
+     */
+    protected function groupBy(string $name, array $tags): void
     {
         $key = strtolower($name);
 
@@ -142,47 +190,8 @@ class DocumentationGenerator
         $this->groups[$key]['tags'] = array_unique(array_merge($this->groups[$key]['tags'] ?? [], $tags));
     }
 
-    /**
-     * @param \Ark4ne\OpenApi\Documentation\DocumentationEntry $entry
-     *
-     * @throws \Exception
-     * @return null|array{
-     *     parameters?: array<string, Request\Parameter>,
-     *     headers?: array<string, Request\Parameter>,
-     *     body?: array<string, Request\Parameter>,
-     *     queries?: array<string, Request\Parameter>
-     * }
-     */
-    protected function request(DocumentationEntry $entry): ?array
+    protected function tag(string $name): Tag
     {
-        return $this->parse(config('openapi.parsers.requests'), $entry->getRequestClass(), $entry);
-    }
-
-    protected function response(DocumentationEntry $entry)
-    {
-        return $this->parse(config('openapi.parsers.responses'), $entry->getResponseClass(), $entry);
-    }
-
-    /**
-     * @param array<class-string>                              $parsers
-     * @param mixed                                            $element
-     * @param \Ark4ne\OpenApi\Documentation\DocumentationEntry $entry
-     *
-     * @throws \Illuminate\Contracts\Container\BindingResolutionException
-     * @return mixed
-     */
-    protected function parse(array $parsers, mixed $element, DocumentationEntry $entry): mixed
-    {
-        if (empty($element)) {
-            return null;
-        }
-
-        foreach ($parsers as $for => $parser) {
-            if (is_a($element, $for, true)) {
-                return app()->make($parser)->parse($element, $entry);
-            }
-        }
-
-        throw new \Exception("TODO: Can't parse $element");
+        return $this->tags[strtolower($name)] ??= Tag::create($name)->name($name);
     }
 }

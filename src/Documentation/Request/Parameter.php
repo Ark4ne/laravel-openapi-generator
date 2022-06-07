@@ -8,9 +8,11 @@ use Ark4ne\OpenApi\Support\Date;
 use DateTimeInterface;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Parameter as OASParameter;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Schema;
+use Illuminate\Support\Arr;
 
 /**
  * @property-read string $type
+ * @property-read string $name
  */
 class Parameter
 {
@@ -98,6 +100,8 @@ class Parameter
     protected ?string $typeDescription;
     protected ?string $description;
     protected mixed $example;
+
+    protected bool $undotName = false;
 
     public function __construct(
         protected string $name,
@@ -198,13 +202,22 @@ class Parameter
         return $this;
     }
 
+    public function undot(bool $undot = true): static
+    {
+        $this->undotName = $undot;
+        return $this;
+    }
+
     public function oasSchema(): Schema
     {
+        $name = $this->undotName
+            ? Arr::last(explode('.', $this->name))
+            : $this->name;
+
         /** @var Schema $schema */
-        $schema = Schema::{$this->type}($this->name);
+        $schema = Schema::{$this->type}($name);
 
         $schema = $schema
-            ->title($this->title ?? null)
             ->description($this->schemaDescription())
             ->example($this->example ?? null)
             ->nullable($this->nullable)

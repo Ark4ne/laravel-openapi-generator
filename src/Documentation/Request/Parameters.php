@@ -21,33 +21,93 @@ class Parameters
             case OASParameter::IN_COOKIE:
             case OASParameter::IN_HEADER:
             case OASParameter::IN_PATH:
-            case OASParameter::IN_QUERY:
                 return collect($this->parameters)
                     ->map(static fn(Parameter $param) => $param->oasParameters($type))
                     ->values()
                     ->all();
-            case 'body':
-                /*
-                $params = collect($this->parameters)
-                    ->map(static fn(Parameter $param) => [$param->name, $param])
-                    ->all();
+            case OASParameter::IN_QUERY:
+                $params = $this->undot();
 
-                $params = array_combine(
-                    array_column($params, 0),
-                    array_column($params, 1)
-                );
+                return collect($params)
+                    ->map(function (array|Parameter $param, $name) use ($type) {
+                        if ($param instanceof Parameter) {
+                            return $param->undot()->oasParameters($type);
+                        }
 
-                $params = Arr::undot($params);
-                */
+                        /** @var OASParameter $parameter */
+                        $parameter = OASParameter::$type($name);
 
-                $schema = Schema::create()->properties(...collect($this->parameters)
-                    ->map(static fn(Parameter $param) => $param->oasSchema())
+                        return $parameter->name($name)->schema($this->arrayToSchema($param, $name));
+                    })
                     ->values()
-                    ->all());
+                    ->all();
+            case 'body':
+                $params = $this->undot();
+
+                $schema = Schema::create()->properties(...$this->arrayToProperties($params));
 
                 $content = MediaType::json()->schema($schema);
 
                 return RequestBody::create()->content($content);
         }
+    }
+
+    /**
+     * @return array<Parameter|array<Parameter>>
+     */
+    protected function undot(): array
+    {
+        $params = collect($this->parameters)
+            ->map(static fn(Parameter $param) => [$param->name, $param])
+            ->all();
+
+        $params = array_combine(
+            array_column($params, 0),
+            array_column($params, 1)
+        );
+
+        return Arr::undot($params);
+    }
+
+    /**
+     * @param array<Parameter|array<Parameter>> $properties
+     *
+     * @return array<Schema>
+     */
+    protected function arrayToProperties(array $properties): array
+    {
+        return collect($properties)
+            ->map(function (array|Parameter $param, $name) {
+                if ($param instanceof Parameter) {
+                    return $param->undot()->oasSchema();
+                }
+
+                return $this->arrayToSchema($param, $name);
+            })
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param array<Parameter|array<Parameter>> $params
+     * @param string                            $name
+     *
+     * @return \GoldSpecDigital\ObjectOrientedOAS\Objects\Schema
+     */
+    protected function arrayToSchema(array $params, string $name): Schema
+    {
+        if (array_keys($params) === ['*']) {
+            if (is_array($params['*'])) {
+                $items = Schema::object($name)->properties(...$this->arrayToProperties($params['*']));
+            } else {
+                $items = $params['*']->oasSchema();
+            }
+
+            return Schema::array($name)->items($items);
+        }
+
+        return Schema::object($name)->properties(
+            ...$this->arrayToProperties($params)
+        );
     }
 }

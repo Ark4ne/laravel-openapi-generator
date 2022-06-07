@@ -19,7 +19,7 @@ return [
             ],
 
             'groupBy' => [
-                'by' => 'ControllerClass',
+                'by' => 'controller', // 'controller', 'uri, 'name'
                 'regex' => '/^Modules\\\\(\w+)/'
             ]
         ],
