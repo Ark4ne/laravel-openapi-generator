@@ -11,8 +11,9 @@ use GoldSpecDigital\ObjectOrientedOAS\Objects\Schema;
 use Illuminate\Support\Arr;
 
 /**
- * @property-read string $type
- * @property-read string $name
+ * @property-read array<int|string> $enum
+ * @property-read string            $type
+ * @property-read string            $name
  */
 class Parameter
 {

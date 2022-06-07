@@ -4,6 +4,7 @@ namespace Ark4ne\OpenApi\Descriptors\Requests;
 
 use Ark4ne\OpenApi\Documentation\Request\Parameter;
 use Ark4ne\OpenApi\Documentation\Request\Security;
+use GoldSpecDigital\ObjectOrientedOAS\Objects\MediaType;
 
 class Describer
 {
@@ -146,7 +147,7 @@ class Describer
     public function accept(array|string $accept): self
     {
         $this
-            ->header('Accept')
+            ->header('Content-Type')
             ->required()
             ->enum((array)$accept);
 
@@ -163,7 +164,7 @@ class Describer
     public function encoding(array|string $encoding): self
     {
         $this
-            ->header('Accept-Encoding')
+            ->header('Content-Encoding')
             ->required()
             ->enum((array)$encoding);
 
@@ -218,7 +219,7 @@ class Describer
     public function json(iterable $rules): self
     {
         return $this
-            ->accept('application/json')
+            ->accept(MediaType::MEDIA_TYPE_APPLICATION_JSON)
             ->body($rules);
     }
 
@@ -232,7 +233,7 @@ class Describer
     public function form(iterable $rules): self
     {
         return $this
-            ->accept(['application/x-www-form-urlencoded', 'multipart/form-data'])
+            ->accept(MediaType::MEDIA_TYPE_APPLICATION_X_WWW_FORM_URLENCODED)
             ->body($rules);
     }
 
@@ -246,7 +247,7 @@ class Describer
     public function xml(iterable $rules): self
     {
         return $this
-            ->accept('application/xml')
+            ->accept(MediaType::MEDIA_TYPE_TEXT_XML)
             ->body($rules);
     }
 }

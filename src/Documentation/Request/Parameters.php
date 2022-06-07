@@ -2,6 +2,7 @@
 
 namespace Ark4ne\OpenApi\Documentation\Request;
 
+use InvalidArgumentException;
 use Illuminate\Support\Arr;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\{MediaType, Parameter as OASParameter, RequestBody, Schema};
 
@@ -15,7 +16,13 @@ class Parameters
     ) {
     }
 
-    public function convert(string $type)
+    /**
+     * @param string               $type
+     * @param null|string|string[] $format
+     *
+     * @return array<OASParameter>|\GoldSpecDigital\ObjectOrientedOAS\Objects\RequestBody
+     */
+    public function convert(string $type, null|string|array $format = null): array|RequestBody
     {
         switch ($type) {
             case OASParameter::IN_COOKIE:
@@ -46,10 +53,28 @@ class Parameters
 
                 $schema = Schema::create()->properties(...$this->arrayToProperties($params));
 
-                $content = MediaType::json()->schema($schema);
+                $mediaType = MediaType::MEDIA_TYPE_APPLICATION_JSON;
+                $mediaTypes = [
+                    MediaType::MEDIA_TYPE_APPLICATION_JSON,
+                    MediaType::MEDIA_TYPE_TEXT_XML,
+                    MediaType::MEDIA_TYPE_APPLICATION_X_WWW_FORM_URLENCODED
+                ];
+
+                foreach ($mediaTypes as $acceptable) {
+                    if (in_array($acceptable, (array)$format, true)) {
+                        $mediaType = $acceptable;
+                        break;
+                    }
+                }
+
+                $content = (new MediaType)
+                    ->mediaType($mediaType)
+                    ->schema($schema);
 
                 return RequestBody::create()->content($content);
         }
+
+        throw new InvalidArgumentException("unknown $type.");
     }
 
     /**

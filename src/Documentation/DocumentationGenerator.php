@@ -126,7 +126,10 @@ class DocumentationGenerator
             ->responses(Response::ok());
 
         if (Http::acceptBody($method)) {
-            $operation = $operation->requestBody((new Parameters($request->body()))->convert('body'));
+            $operation = $operation->requestBody((new Parameters($request->body()))->convert(
+                'body',
+                ($request->headers()['Content-Type'] ?? null)?->enum
+            ));
         }
 
         if (!empty($request->securities())) {
