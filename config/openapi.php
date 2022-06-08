@@ -20,7 +20,7 @@ return [
 
             'groupBy' => [
                 'by' => 'controller', // 'controller', 'uri, 'name'
-                'regex' => '/^Modules\\\\(\w+)/'
+                'regex' => '/^App\\\\Http\\\\(\w+)/'
             ]
         ],
     ],
@@ -67,4 +67,8 @@ return [
             DateTimeInterface::ATOM => Documentation\Request\Parameter::FORMAT_DATETIME,
         ],
     ],
+
+    'connections' => [
+        'use-transaction' => true
+    ]
 ];

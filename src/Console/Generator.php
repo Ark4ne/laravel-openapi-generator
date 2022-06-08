@@ -3,7 +3,9 @@
 namespace Ark4ne\OpenApi\Console;
 
 use Ark4ne\OpenApi\Documentation\DocumentationGenerator;
+use Closure;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 
 class Generator extends Command
 {
@@ -30,13 +32,66 @@ class Generator extends Command
 
     public function handle(): int
     {
-        foreach (config('openapi.versions') as $version => $config) {
-            /** @var DocumentationGenerator $generator */
-            $generator = app()->make(DocumentationGenerator::class);
+        try {
+            $this->beginTransaction();
 
-            $generator->generate($version);
+            foreach (config('openapi.versions') as $version => $config) {
+                /** @var DocumentationGenerator $generator */
+                $generator = app()->make(DocumentationGenerator::class);
+
+                $generator->generate($version);
+            }
+        } finally {
+            $this->rollback();
         }
 
         return 0;
+    }
+
+    protected function beginTransaction(): bool
+    {
+        if (!config('openapi.use-transaction')) {
+            return false;
+        }
+        $connections = array_keys(config('database.connections'));
+
+        foreach ($connections as $connection) {
+            try {
+                $connect = DB::connection($connection);
+            } catch (\Throwable $e) {
+                $this->info("$connection unreachable");
+                continue;
+            }
+            try {
+                $connect->beginTransaction();
+            } catch (\Throwable $e) {
+                $this->info("$connection can't start transaction");
+            }
+        }
+
+        return true;
+    }
+
+    protected function rollback(): bool
+    {
+        if (!config('openapi.use-transaction')) {
+            return false;
+        }
+        $connections = array_keys(config('database.connections'));
+
+        foreach (array_reverse($connections) as $connection) {
+            try {
+                $connect = DB::connection($connection);
+            } catch (\Throwable $e) {
+                continue;
+            }
+            try {
+                $connect->rollBack();
+            } catch (\Throwable $e) {
+                $this->info("$connection can't rollback transaction");
+            }
+        }
+
+        return true;
     }
 }
