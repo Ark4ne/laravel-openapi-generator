@@ -3,162 +3,147 @@
 namespace Ark4ne\OpenApi\Parsers\Requests\Concerns\Rules;
 
 use Ark4ne\OpenApi\Documentation\Request\Parameter;
+use Ark4ne\OpenApi\Parsers\Requests\Concerns\RegexParser;
 use Ark4ne\OpenApi\Support\Date;
 
 trait CommonRules
 {
-    /**
-     * @param Parameter $parameter
-     */
-    public function parseAccepted(Parameter $parameter): void
+    use RegexParser {
+        parseRegex as _parseRegex;
+    }
+
+    public function parseAccepted(): void
     {
-        $parameter->string()->enum(['yes', 'on', '1', 'true']);
+        $this->parameter->string()->enum(['yes', 'on', '1', 'true']);
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseAcceptedIf(Parameter $parameter, array $parameters): void
+    public function parseAcceptedIf(array $parameters): void
     {
-        $this->parseAccepted($parameter);
-        $parameter->if(...$parameters);
+        $this->parseAccepted();
+        $this->parameter->if(...$parameters);
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseActiveUrl(Parameter $parameter, array $parameters): void
+    public function parseActiveUrl(array $parameters): void
     {
-        $parameter->string()->pattern('url'); // TODO description
+        $this->parameter->string()->pattern('url'); // TODO description
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseAlpha(Parameter $parameter, array $parameters): void
+    public function parseAlpha(array $parameters): void
     {
-        $parameter->string()->pattern('alpha:/[a-zA-Z]+/');
+        $this->parameter->string()->pattern('alpha:/[a-zA-Z]+/');
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseAlphaDash(Parameter $parameter, array $parameters): void
+    public function parseAlphaDash(array $parameters): void
     {
-        $parameter->string()->pattern('alpha-dash:/[\w_-]+/');
+        $this->parameter->string()->pattern('alpha-dash:/[\w_-]+/');
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseAlphaNum(Parameter $parameter, array $parameters): void
+    public function parseAlphaNum(array $parameters): void
     {
-        $parameter->string()->pattern('alpha-num:/[\w]+/');
+        $this->parameter->string()->pattern('alpha-num:/[\w]+/');
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseArray(Parameter $parameter, array $parameters): void
+    public function parseArray(array $parameters): void
     {
         // TODO : handle params
-        $parameter->array();
+        $this->parameter->array();
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseBail(Parameter $parameter, array $parameters): void
+    public function parseBail(array $parameters): void
     {
         // ignore: not a rule
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseBetween(Parameter $parameter, array $parameters): void
+    public function parseBetween(array $parameters): void
     {
-        $parameter->number()->min((float)$parameters[0])->max((float)$parameters[1]);
+        $this->parameter->number()->min((float)$parameters[0])->max((float)$parameters[1]);
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseBoolean(Parameter $parameter, array $parameters): void
+    public function parseBoolean(array $parameters): void
     {
-        $parameter->bool();
+        $this->parameter->bool();
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseConfirmed(Parameter $parameter, array $parameters): void
+    public function parseConfirmed(array $parameters): void
     {
         // TODO desc
     }
 
-    /**
-     * @param Parameter $parameter
-     */
-    public function parseCurrentPassword(Parameter $parameter): void
+    public function parseCurrentPassword(): void
     {
-        $parameter->password(); // TODO desc
+        $this->parameter->password(); // TODO desc
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseAfter(Parameter $parameter, array $parameters): void
+    public function parseAfter(array $parameters): void
     {
-        $this->parseAfterOrEqual($parameter, $parameters);
-        $parameter->exclusiveMin();
+        $this->parseAfterOrEqual($parameters);
+        $this->parameter->exclusiveMin();
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseAfterOrEqual(Parameter $parameter, array $parameters): void
+    public function parseAfterOrEqual(array $parameters): void
     {
-        $this->parseDate($parameter);
-        if (!isset($parameter->pattern) && $pattern = $this->dateFindPattern($parameters[0])) {
-            $parameter->pattern($pattern);
+        $this->parseDate();
+        if (!isset($this->parameter->pattern) && $pattern = $this->dateFindPattern($parameters[0])) {
+            $this->parameter->pattern($pattern);
         }
-        $parameter->min(strtotime($parameters[0]));
+        $this->parameter->min($this->strToTime($parameters[0]));
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseBefore(Parameter $parameter, array $parameters): void
+    public function parseBefore(array $parameters): void
     {
-        $this->parseBeforeOrEqual($parameter, $parameters);
-        $parameter->exclusiveMax();
+        $this->parseBeforeOrEqual($parameters);
+        $this->parameter->exclusiveMax();
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseBeforeOrEqual(Parameter $parameter, array $parameters): void
+    public function parseBeforeOrEqual(array $parameters): void
     {
-        $this->parseDate($parameter);
-        if (!isset($parameter->pattern) && $pattern = $this->dateFindPattern($parameters[0])) {
-            $parameter->pattern($pattern);
+        $this->parseDate();
+        if (!isset($this->parameter->pattern) && $pattern = $this->dateFindPattern($parameters[0])) {
+            $this->parameter->pattern($pattern);
         }
-        $parameter->max(strtotime($parameters[0]));
+        $this->parameter->max($this->strToTime($parameters[0]));
     }
 
     protected function dateFindPattern(string $date): ?string
@@ -177,142 +162,158 @@ trait CommonRules
         return null;
     }
 
-    /**
-     * @param Parameter $parameter
-     */
-    public function parseDate(Parameter $parameter): void
+    protected function getDateFormat(): ?string
     {
-        $parameter->dateTime();
+        foreach ($this->rules as $entry) {
+            if ($entry['rule'] === 'DateFormat') {
+                return $entry['parameters'][0] ?? null;
+            }
+        }
+
+        return null;
+    }
+
+    protected function getDatePattern(): ?string
+    {
+        if ($format = $this->getDateFormat()) {
+            $patterns = config('openapi.format.date');
+
+            return $patterns[$format] ?? null;
+        }
+
+        return null;
+    }
+
+    protected function strToTime(string $datetime): int
+    {
+        return ($format = $this->getDateFormat())
+            ? \DateTime::createFromFormat($format, $datetime)->getTimestamp()
+            : strtotime($datetime);
+    }
+
+    public function parseDate(): void
+    {
+        if ($pattern = $this->getDatePattern()) {
+            $this->parameter->$pattern();
+        } else {
+            $this->parameter->dateTime();
+        }
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseDateEquals(Parameter $parameter, array $parameters): void
+    public function parseDateEquals(array $parameters): void
     {
-        $this->parseDate($parameter);
-        $parameter
-            ->min(strtotime($parameters[0]))
-            ->max(strtotime($parameters[0]))
+        $this->parseDate();
+        $this->parameter
+            ->min($this->strToTime($parameters[0]))
+            ->max($this->strToTime($parameters[0]))
             ->exclusiveMin()
             ->exclusiveMax();
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseDateFormat(Parameter $parameter, array $parameters): void
+    public function parseDateFormat(array $parameters): void
     {
         $patterns = array_flip(Parameter::PATTERNS);
         if (isset($patterns[$parameters[0]])) {
-            $parameter->{$patterns[$parameters[0]]}();
+            $this->parameter->{$patterns[$parameters[0]]}();
         } elseif (isset(config('openapi.format.date')[$parameters[0]])) {
-            $parameter->{config('openapi.format.date')[$parameters[0]]}();
+            $this->parameter->{config('openapi.format.date')[$parameters[0]]}();
         } else {
-            $parameter->string();
-            $parameter->pattern($parameters[0]);
+            $this->parameter->string();
+            $this->parameter->pattern($parameters[0]);
         }
     }
 
-    /**
-     * @param Parameter $parameter
-     */
-    public function parseDeclined(Parameter $parameter): void
+    public function parseDeclined(): void
     {
-        $parameter->string()->enum(['no', 'off', '0', 'false']);
+        $this->parameter->string()->enum(['no', 'off', '0', 'false']);
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseDeclinedIf(Parameter $parameter, array $parameters): void
+    public function parseDeclinedIf(array $parameters): void
     {
-        $this->parseDeclined($parameter);
-        $parameter->if(...$parameters);
+        $this->parseDeclined();
+        $this->parameter->if(...$parameters);
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseDifferent(Parameter $parameter, array $parameters): void
+    public function parseDifferent(array $parameters): void
     {
-        $parameter->different(array_shift($parameters));
+        $this->parameter->different(array_shift($parameters));
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseDigits(Parameter $parameter, array $parameters): void
+    public function parseDigits(array $parameters): void
     {
-        $parameter->string()->pattern('digits:/[0-9]+/');
+        $this->parameter->string()->pattern('digits:/[0-9]+/');
 
         if (isset($parameters[0])) {
-            $parameter->min((int)$parameters[0]);
+            $this->parameter->min((int)$parameters[0]);
         }
         if (isset($parameters[1])) {
-            $parameter->max((int)$parameters[1]);
+            $this->parameter->max((int)$parameters[1]);
         }
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseDigitsBetween(Parameter $parameter, array $parameters): void
+    public function parseDigitsBetween(array $parameters): void
     {
-        $parameter->string()
+        $this->parameter->string()
             ->pattern("digits:/[0-9]+/\{$parameters[0], $parameters[1]}")
             ->min((int)$parameters[0])
             ->max((int)$parameters[1]);
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseDimensions(Parameter $parameter, array $parameters): void
+    public function parseDimensions(array $parameters): void
     {
         // TODO
         // @see https://laravel.com/docs/9.x/validation#rule-dimensions
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseDistinct(Parameter $parameter, array $parameters): void
+    public function parseDistinct(array $parameters): void
     {
         // TODO
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseEmail(Parameter $parameter, array $parameters): void
+    public function parseEmail(array $parameters): void
     {
-        $parameter->string()->pattern('email'); // TODO format (rfc, strict, dns, spoof, filter)
+        $this->parameter->string()->pattern('email'); // TODO format (rfc, strict, dns, spoof, filter)
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseEndsWith(Parameter $parameter, array $parameters): void
+    public function parseEndsWith(array $parameters): void
     {
-        $parameter->string()->pattern("ends-with:$parameters[0]");
+        $this->parameter->string()->pattern("ends-with:$parameters[0]");
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseEnum(Parameter $parameter, array $parameters): void
+    public function parseEnum(array $parameters): void
     {
         $isNumber = array_reduce(
             $parameters,
@@ -320,50 +321,45 @@ trait CommonRules
             true
         );
 
-        $parameter->{$isNumber ? 'string' : 'number'}()->enum($parameters);
+        $this->parameter->{$isNumber ? 'string' : 'number'}()->enum($parameters);
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseExclude(Parameter $parameter, array $parameters): void
+    public function parseExclude(array $parameters): void
     {
         // ignore: not a rules
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseExcludeIf(Parameter $parameter, array $parameters): void
+    public function parseExcludeIf(array $parameters): void
     {
         // ignore: not a rules
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseExcludeUnless(Parameter $parameter, array $parameters): void
+    public function parseExcludeUnless(array $parameters): void
     {
         // ignore: not a rules
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseExcludeWithout(Parameter $parameter, array $parameters): void
+    public function parseExcludeWithout(array $parameters): void
     {
         // ignore: not a rules
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseExists(Parameter $parameter, array $parameters): void
+    public function parseExists(array $parameters): void
     {
         $conditions = [];
         if (isset($parameters[0])) {
@@ -372,437 +368,394 @@ trait CommonRules
         if (isset($parameters[1])) {
             $conditions[] = "through($parameters[1])";
         }
-        $parameter->string()->pattern('exists-in:' . implode(',', $conditions));
+        $this->parameter->string()->pattern('exists-in:' . implode(',', $conditions));
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseFile(Parameter $parameter, array $parameters): void
+    public function parseFile(array $parameters): void
     {
-        $parameter->binary();
+        $this->parameter->binary();
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseFilled(Parameter $parameter, array $parameters): void
+    public function parseFilled(array $parameters): void
     {
-        $parameter->nullable(false);
+        $this->parameter->nullable(false);
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseGt(Parameter $parameter, array $parameters): void
+    public function parseGt(array $parameters): void
     {
-        $parameter->greater(array_shift($parameters));
+        $this->parameter->greater(array_shift($parameters));
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseGte(Parameter $parameter, array $parameters): void
+    public function parseGte(array $parameters): void
     {
-        $parameter->greaterOrEquals(array_shift($parameters));
+        $this->parameter->greaterOrEquals(array_shift($parameters));
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseImage(Parameter $parameter, array $parameters): void
+    public function parseImage(array $parameters): void
     {
-        $parameter->binary()->pattern("type:jpg, jpeg, png, bmp, gif, svg, webp");
+        $this->parameter->binary()->pattern("type:jpg, jpeg, png, bmp, gif, svg, webp");
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseIn(Parameter $parameter, array $parameters): void
+    public function parseIn(array $parameters): void
     {
-        switch ($parameter->type ?? null) {
+        switch ($this->parameter->type ?? null) {
             case 'integer':
                 $parameters = array_map('intval', $parameters);
                 break;
             case 'number':
-                $mapper = $parameter->format === Parameter::FORMAT_INTEGER || $parameter->format === Parameter::FORMAT_LONG
+                $mapper = $this->parameter->format === Parameter::FORMAT_INTEGER || $this->parameter->format === Parameter::FORMAT_LONG
                     ? 'intval'
                     : 'floatval';
 
                 $parameters = array_map($mapper, $parameters);
                 break;
             default:
-                $parameter->string();
+                $this->parameter->string();
         }
 
-        $parameter->enum($parameters);
+        $this->parameter->enum($parameters);
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseInArray(Parameter $parameter, array $parameters): void
+    public function parseInArray(array $parameters): void
     {
         // TODO
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseInteger(Parameter $parameter, array $parameters): void
+    public function parseInteger(array $parameters): void
     {
-        $parameter->int();
+        $this->parameter->int();
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseIp(Parameter $parameter, array $parameters): void
+    public function parseIp(array $parameters): void
     {
-        $parameter->string()->pattern('ip');
+        $this->parameter->string()->pattern('ip');
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseIpV4(Parameter $parameter, array $parameters): void
+    public function parseIpV4(array $parameters): void
     {
-        $parameter->string()->pattern('ipv4');
+        $this->parameter->string()->pattern('ipv4');
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseIpV6(Parameter $parameter, array $parameters): void
+    public function parseIpV6(array $parameters): void
     {
-        $parameter->string()->pattern('ipv6');
+        $this->parameter->string()->pattern('ipv6');
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseMacAddress(Parameter $parameter, array $parameters): void
+    public function parseMacAddress(array $parameters): void
     {
-        $parameter->string()->pattern('mac-address');
+        $this->parameter->string()->pattern('mac-address');
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseJson(Parameter $parameter, array $parameters): void
+    public function parseJson(array $parameters): void
     {
-        $parameter->string()->pattern('json');
+        $this->parameter->string()->pattern('json');
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseLt(Parameter $parameter, array $parameters): void
+    public function parseLt(array $parameters): void
     {
-        $parameter->less(array_shift($parameters));
+        $this->parameter->less(array_shift($parameters));
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseLte(Parameter $parameter, array $parameters): void
+    public function parseLte(array $parameters): void
     {
-        $parameter->lessOrEquals(array_shift($parameters));
+        $this->parameter->lessOrEquals(array_shift($parameters));
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseMax(Parameter $parameter, array $parameters): void
+    public function parseMax(array $parameters): void
     {
-        $parameter->max((float)$parameters[0]);
+        $this->parameter->max((float)$parameters[0]);
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseMimetypes(Parameter $parameter, array $parameters): void
+    public function parseMimetypes(array $parameters): void
     {
-        $parameter->pattern('mimetypes:' . implode(', ', $parameters));
+        $this->parameter->pattern('mimetypes:' . implode(', ', $parameters));
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseMimes(Parameter $parameter, array $parameters): void
+    public function parseMimes(array $parameters): void
     {
-        $parameter->pattern('mime:' . implode(', ', $parameters));
+        $this->parameter->pattern('mime:' . implode(', ', $parameters));
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseMin(Parameter $parameter, array $parameters): void
+    public function parseMin(array $parameters): void
     {
-        $parameter->min((float)$parameters[0]);
+        $this->parameter->min((float)$parameters[0]);
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseMultipleOf(Parameter $parameter, array $parameters): void
+    public function parseMultipleOf(array $parameters): void
     {
-        $parameter->multipleOf((float)$parameters[0]);
+        $this->parameter->multipleOf((float)$parameters[0]);
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseNotIn(Parameter $parameter, array $parameters): void
+    public function parseNotIn(array $parameters): void
     {
-        $parameter->string()->pattern('not:' . implode(',', $parameters));
+        $this->parameter->string()->pattern('not:' . implode(',', $parameters));
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseNotRegex(Parameter $parameter, array $parameters): void
+    public function parseNotRegex(array $parameters): void
     {
-        $parameter->string()->pattern('not-match:' . implode(',', $parameters));
+        $this->parameter->string()->pattern('not-match:' . implode(',', $parameters));
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseNullable(Parameter $parameter, array $parameters): void
+    public function parseNullable(array $parameters): void
     {
-        $parameter->nullable();
+        $this->parameter->nullable();
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseNumeric(Parameter $parameter, array $parameters): void
+    public function parseNumeric(array $parameters): void
     {
-        $parameter->number();
+        $this->parameter->number();
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parsePassword(Parameter $parameter, array $parameters): void
+    public function parsePassword(array $parameters): void
     {
-        $parameter->password();
+        $this->parameter->password();
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parsePresent(Parameter $parameter): void
+    public function parsePresent(): void
     {
-        $parameter->required()->nullable();
+        $this->parameter->required()->nullable();
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseProhibited(Parameter $parameter, array $parameters): void
+    public function parseProhibited(array $parameters): void
     {
         // TODO condition
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseProhibitedIf(Parameter $parameter, array $parameters): void
+    public function parseProhibitedIf(array $parameters): void
     {
-        $parameter->if(array_shift($parameters), $parameters ?? [], 'prohibited');
+        $this->parameter->if(array_shift($parameters), $parameters ?? [], 'prohibited');
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseProhibitedUnless(Parameter $parameter, array $parameters): void
+    public function parseProhibitedUnless(array $parameters): void
     {
-        $parameter->unless(array_shift($parameters), $parameters ?? [], 'prohibited');
+        $this->parameter->unless(array_shift($parameters), $parameters ?? [], 'prohibited');
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseProhibits(Parameter $parameter, array $parameters): void
+    public function parseProhibits(array $parameters): void
     {
         // TODO exclude
     }
 
-    /**
-     * @param Parameter     $parameter
-     * @param array<string> $parameters
-     */
-    public function parseRequired(Parameter $parameter, array $parameters): void
+    public function parseRegex(array $parameters): static
     {
-        $parameter->required();
+        $this->_parseRegex($this->parameter, $parameters[0]);
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseRequiredIf(Parameter $parameter, array $parameters): void
+    public function parseRequired(array $parameters): void
     {
-        $parameter->if(array_shift($parameters), $parameters ?? [], 'required');
+        $this->parameter->required();
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseRequiredUnless(Parameter $parameter, array $parameters): void
+    public function parseRequiredIf(array $parameters): void
     {
-        $parameter->unless(array_shift($parameters), $parameters ?? [], 'required');
+        $this->parameter->if(array_shift($parameters), $parameters ?? [], 'required');
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseRequiredWith(Parameter $parameter, array $parameters): void
+    public function parseRequiredUnless(array $parameters): void
     {
-        $parameter->with($parameters, 'required');
+        $this->parameter->unless(array_shift($parameters), $parameters ?? [], 'required');
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseRequiredWithAll(Parameter $parameter, array $parameters): void
+    public function parseRequiredWith(array $parameters): void
     {
-        $parameter->withAll($parameters, 'required');
+        $this->parameter->with($parameters, 'required');
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseRequiredWithout(Parameter $parameter, array $parameters): void
+    public function parseRequiredWithAll(array $parameters): void
     {
-        $parameter->without($parameters, 'required');
+        $this->parameter->withAll($parameters, 'required');
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseRequiredWithoutAll(Parameter $parameter, array $parameters): void
+    public function parseRequiredWithout(array $parameters): void
     {
-        $parameter->withoutAll($parameters, 'required');
+        $this->parameter->without($parameters, 'required');
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseSame(Parameter $parameter, array $parameters): void
+    public function parseRequiredWithoutAll(array $parameters): void
     {
-        $parameter->same(array_shift($parameters));
+        $this->parameter->withoutAll($parameters, 'required');
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseSize(Parameter $parameter, array $parameters): void
+    public function parseSame(array $parameters): void
     {
-        match ($parameter->type) {
-            Parameter::TYPE_ARRAY, Parameter::TYPE_STRING => $parameter->min((int)$parameters[0])->max((int)$parameters[0]),
-            Parameter::TYPE_INTEGER, Parameter::TYPE_NUMBER => $parameter->min((float)$parameters[0])->max((float)$parameters[0]),
+        $this->parameter->same(array_shift($parameters));
+    }
+
+    /**
+     * @param array<string> $parameters
+     */
+    public function parseSize(array $parameters): void
+    {
+        match ($this->parameter->type) {
+            Parameter::TYPE_ARRAY, Parameter::TYPE_STRING => $this->parameter->min((int)$parameters[0])->max((int)$parameters[0]),
+            Parameter::TYPE_INTEGER, Parameter::TYPE_NUMBER => $this->parameter->min((float)$parameters[0])->max((float)$parameters[0]),
         };
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseSometimes(Parameter $parameter, array $parameters): void
+    public function parseSometimes(array $parameters): void
     {
         // TODO
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseStartsWith(Parameter $parameter, array $parameters): void
+    public function parseStartsWith(array $parameters): void
     {
-        $parameter->string()->pattern("starts-with:$parameters[0]");
+        $this->parameter->string()->pattern("starts-with:$parameters[0]");
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseString(Parameter $parameter, array $parameters): void
+    public function parseString(array $parameters): void
     {
-        $parameter->string();
+        $this->parameter->string();
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseTimezone(Parameter $parameter, array $parameters): void
+    public function parseTimezone(array $parameters): void
     {
-        $parameter->string()->pattern('timezone');
+        $this->parameter->string()->pattern('timezone');
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseUnique(Parameter $parameter, array $parameters): void
+    public function parseUnique(array $parameters): void
     {
         // TODO
     }
 
     /**
-     * @param Parameter     $parameter
      * @param array<string> $parameters
      */
-    public function parseUrl(Parameter $parameter, array $parameters): void
+    public function parseUrl(array $parameters): void
     {
-        $parameter->string()->pattern('url');
+        $this->parameter->string()->pattern('url');
     }
 
-    /**
-     * @param Parameter     $parameter
-     */
-    public function parseUuid(Parameter $parameter): void
+    public function parseUuid(): void
     {
-        $parameter->uuid();
+        $this->parameter->uuid();
     }
 }

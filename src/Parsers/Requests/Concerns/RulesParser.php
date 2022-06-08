@@ -2,9 +2,8 @@
 
 namespace Ark4ne\OpenApi\Parsers\Requests\Concerns;
 
-use Ark4ne\OpenApi\Parsers\Requests\Concerns\Rules\CommonRules;
-use Ark4ne\OpenApi\Parsers\Requests\Concerns\Rules\CustomRules;
 use Ark4ne\OpenApi\Documentation\Request\Parameter;
+use Ark4ne\OpenApi\Parsers\Requests\RuleParser;
 use Closure;
 use Illuminate\Contracts\Validation\Rule;
 use Illuminate\Validation\ValidationRuleParser;
@@ -13,8 +12,6 @@ use function str_contains;
 
 trait RulesParser
 {
-    use CustomRules, CommonRules;
-
     /**
      * @param iterable $rules
      *
@@ -23,20 +20,20 @@ trait RulesParser
     protected function rules(iterable $rules): iterable
     {
         return collect($rules)->map(
-            fn($rule, $attribute) => $this->rule(new Parameter($attribute), $rule)
+            fn($rule, $attribute) => (new RuleParser(new Parameter($attribute), $this->prepareRules($rule)))->parse()
         );
     }
 
     /**
-     * @param \Ark4ne\OpenApi\Documentation\Request\Parameter                    $parameter
-     * @param string|array<mixed>|\Illuminate\Contracts\Validation\Rule|\Closure $ruleRaw
+     * @param string|array|\Illuminate\Contracts\Validation\Rule|\Closure $ruleRaw
+     * @param array{rule: string|Rule, parameters:string[]}[]             $rules
      *
-     * @return \Ark4ne\OpenApi\Documentation\Request\Parameter
+     * @return array{rule: string|Rule, parameters:string[]}[]
      */
-    protected function rule(Parameter $parameter, string|array|Rule|Closure $ruleRaw): Parameter
+    protected function prepareRules(string|array|Rule|Closure $ruleRaw, array &$rules = []): array
     {
         if ($ruleRaw instanceof Closure) {
-            return $parameter;
+            return $rules;
         }
 
         if (is_string($ruleRaw) && strpos($ruleRaw, '|')) {
@@ -45,29 +42,23 @@ trait RulesParser
 
         if (is_array($ruleRaw)) {
             foreach ($ruleRaw as $rule) {
-                $this->rule($parameter, $rule);
+                $this->prepareRules($rule, $rules);
             }
-            return $parameter;
+            return $rules;
         }
 
         [$rule, $parameters] = ValidationRuleParser::parse($ruleRaw);
 
         if (empty($rule)) {
-            return $parameter;
+            return $rules;
         }
 
         if (is_string($rule) && str_contains($rule, '|')) {
-            return $this->rule($parameter, explode('|', $rule));
+            return $this->prepareRules(explode('|', $rule), $rules);
         }
 
-        if ($rule instanceof Rule) {
-            $this->parseCustomRules($parameter, $rule, $parameters);
+        $rules[] = ['rule' => $rule, 'parameters' => $parameters];
 
-            return $parameter;
-        }
-
-        $this->{"parse$rule"}($parameter, $parameters);
-
-        return $parameter;
+        return $rules;
     }
 }
