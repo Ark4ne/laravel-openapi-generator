@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Str;
-use ReflectionClass;
 
 class DocumentationEntry implements Entry
 {
@@ -114,16 +113,9 @@ class DocumentationEntry implements Entry
             return $this->responseClass;
         }
 
-        $class = new ReflectionClass($this->getController());
-        $action = $this->getAction();
+        $method = Reflection::method($this->getControllerClass(), $this->getAction());
 
-        $method = $class->getMethod($action);
-
-        if (($return = $method->getReturnType()) && $response = Reflection::parseTypeHint($return)) {
-            return $this->responseClass = $response;
-        }
-
-        return Response::class;
+        return $this->responseClass = Reflection::parseReturnType($method) ?? Response::class;
     }
 
     /**
@@ -145,7 +137,9 @@ class DocumentationEntry implements Entry
             }
         }
 
-        return Request::class;
+        $method = Reflection::method($this->getControllerClass(), $this->getAction());
+
+        return Reflection::parseParametersFromDocBlockForClass($method, Request::class) ?? Request::class;
     }
 
     public function request(): RequestEntry
@@ -159,8 +153,8 @@ class DocumentationEntry implements Entry
     }
 
     /**
-     * @param array<class-string>                              $parsers
-     * @param mixed                                            $element
+     * @param array<class-string> $parsers
+     * @param mixed               $element
      *
      * @throws \Illuminate\Contracts\Container\BindingResolutionException
      * @return mixed
