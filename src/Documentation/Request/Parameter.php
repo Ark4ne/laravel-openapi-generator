@@ -97,10 +97,18 @@ class Parameter
     protected ?bool $exclusiveMin;
     protected ?bool $exclusiveMax;
 
+    /**
+     * @var array<self>|null
+     */
+    protected ?array $properties;
+    protected ?self $items;
+
     protected ?string $title;
     protected ?string $typeDescription;
     protected ?string $description;
     protected mixed $example;
+
+    protected ?string $ref;
 
     protected bool $undotName = false;
 
@@ -129,6 +137,12 @@ class Parameter
     public function description(string $description): static
     {
         $this->description = $description;
+        return $this;
+    }
+
+    public function typeDescription(string $description): static
+    {
+        $this->typeDescription = $description;
         return $this;
     }
 
@@ -203,6 +217,24 @@ class Parameter
         return $this;
     }
 
+    public function properties(self ...$properties): static
+    {
+        $this->properties = $properties;
+        return $this;
+    }
+
+    public function items(self $items): static
+    {
+        $this->items = $items;
+        return $this;
+    }
+
+    public function ref(string $ref): static
+    {
+        $this->ref = $ref;
+        return $this;
+    }
+
     public function undot(bool $undot = true): static
     {
         $this->undotName = $undot;
@@ -215,6 +247,10 @@ class Parameter
             ? Arr::last(explode('.', $this->name))
             : $this->name;
 
+        if($this->ref ?? null) {
+            return Schema::ref($this->ref, $name);
+        }
+
         /** @var Schema $schema */
         $schema = Schema::{$this->type}($name);
 
@@ -226,8 +262,13 @@ class Parameter
             ->enum(...($this->enum ?? []))
             ->pattern($this->pattern ?? null)
             ->default($this->default ?? null)
+            ->properties(...array_map(fn(self $param) => $param->oasSchema(), $this->properties ?? []))
             ->multipleOf($this->multipleOf ?? null)// ->additionalProperties($additionalProperties)  // TODO
         ;
+
+        if ($this->items ?? null) {
+            $schema = $schema->items($this->items->oasSchema());
+        }
 
         if (($this->min ?? null) && ($this->exclusiveMin ?? null)) {
             $schema = $schema->exclusiveMinimum($this->min);
@@ -302,5 +343,38 @@ class Parameter
         }
 
         return isset($desc) ? implode(' ', $desc) : null;
+    }
+
+    public static function fromJson(mixed $data, string $name = ''): self
+    {
+        $parameter = new self($name);
+
+        if (is_null($data)) {
+            $parameter->example($data);
+        } elseif (is_bool($data)) {
+            $parameter->bool()->example($data);
+        } elseif (is_int($data)) {
+            $parameter->int()->example($data);
+        } elseif (is_float($data)) {
+            $parameter->float()->example($data);
+        } elseif (is_numeric($data)) {
+            $parameter->number()->example($data);
+        } elseif (is_string($data)) {
+            $parameter->string()->example($data);
+        } elseif (is_array($data)) {
+            if (Arr::isAssoc($data)) {
+                $parameter->object()->properties(...collect($data)->map(
+                    fn($value, $key) => self::fromJson($value, $key)
+                ));
+            } elseif (!empty($data)) {
+                $parameter->object()->properties(...collect($data)->map(
+                    fn($value, $key) => self::fromJson($value, $key)
+                ));
+            } else {
+                $parameter->array();
+            }
+        }
+
+        return $parameter;
     }
 }

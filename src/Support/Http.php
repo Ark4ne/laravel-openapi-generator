@@ -10,4 +10,11 @@ class Http
 
         return !($method === 'GET' || $method === 'HEAD' || $method === 'DELETE');
     }
+
+    public static function canAsContent(string $method): bool
+    {
+        $method = strtoupper($method);
+
+        return $method !== 'HEAD';
+    }
 }

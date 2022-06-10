@@ -21,6 +21,10 @@ return [
             'groupBy' => [
                 'by' => 'controller', // 'controller', 'uri, 'name'
                 'regex' => '/^App\\\\Http\\\\(\w+)/'
+            ],
+
+            'ignore-verbs' => [
+                'HEAD'
             ]
         ],
     ],

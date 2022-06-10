@@ -147,7 +147,7 @@ class DocumentationEntry implements Entry
         return $this->request ??= $this->parse(config('openapi.parsers.requests'), $this->getRequestClass());
     }
 
-    public function response(): mixed
+    public function response(): ResponseEntry
     {
         return $this->response ??= $this->parse(config('openapi.parsers.responses'), $this->getResponseClass());
     }

@@ -3,13 +3,13 @@
 namespace Ark4ne\OpenApi\Parsers\Requests;
 
 use Ark4ne\OpenApi\Contracts\Entry;
-use Ark4ne\OpenApi\Contracts\Parser;
+use Ark4ne\OpenApi\Contracts\RequestParserContract;
 use Ark4ne\OpenApi\Documentation\Request\Parameter;
 use Ark4ne\OpenApi\Documentation\RequestEntry;
 use Ark4ne\OpenApi\Parsers\Requests\Concerns\RegexParser;
 use Ark4ne\OpenApi\Parsers\Requests\Concerns\RulesParser;
 
-class RequestParser implements Parser
+class RequestParser implements RequestParserContract
 {
     use RegexParser, RulesParser;
 

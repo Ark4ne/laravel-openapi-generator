@@ -3,13 +3,14 @@
 namespace Ark4ne\OpenApi\Parsers\Responses;
 
 use Ark4ne\OpenApi\Contracts\Entry;
-use Ark4ne\OpenApi\Contracts\Parser;
+use Ark4ne\OpenApi\Contracts\ResponseParserContract;
+use Ark4ne\OpenApi\Documentation\ResponseEntry;
+use GoldSpecDigital\ObjectOrientedOAS\Objects\MediaType;
 
-class BinaryFileResponseParser implements Parser
+class BinaryFileResponseParser implements ResponseParserContract
 {
-    public function parse(mixed $element, Entry $entry): mixed
+    public function parse(mixed $element, Entry $entry): ResponseEntry
     {
-        // TODO: Implement parse() method.
-        return $element;
+        return new ResponseEntry('application/octet-stream', body: MediaType::create()->mediaType(MediaType::MEDIA_TYPE_TEXT_PLAIN));
     }
 }

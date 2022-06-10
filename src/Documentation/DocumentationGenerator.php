@@ -2,19 +2,20 @@
 
 namespace Ark4ne\OpenApi\Documentation;
 
+use Ark4ne\OpenApi\Documentation\Request\Component;
+use Ark4ne\OpenApi\Documentation\Request\Content;
+use Ark4ne\OpenApi\Documentation\Request\Parameter;
 use Ark4ne\OpenApi\Documentation\Request\Parameters;
 use Ark4ne\OpenApi\Documentation\Request\Security;
 use Ark4ne\OpenApi\Support\Http;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Str;
-use GoldSpecDigital\ObjectOrientedOAS\Objects\{Info,
-    MediaType,
+use GoldSpecDigital\ObjectOrientedOAS\Objects\{
+    Info,
     Operation,
     Parameter as OASParameter,
     PathItem,
     Response,
-    Schema,
-    SecurityRequirement,
     Tag
 };
 use GoldSpecDigital\ObjectOrientedOAS\OpenApi;
@@ -54,6 +55,7 @@ class DocumentationGenerator
         $this->config = config("openapi.versions.$version");
 
         $routes = $this->getRoutes($this->config['routes']);
+        $ignoreVerbs = array_map('strtoupper', $this->config['ignore-verbs'] ?? []);
 
         $paths = [];
 
@@ -63,7 +65,9 @@ class DocumentationGenerator
             $operations = [];
 
             foreach ($entry->getMethods() as $method) {
-                $operations[] = $this->operation($entry, $method);
+                if (!in_array(strtoupper($method), $ignoreVerbs, true)) {
+                    $operations[] = $this->operation($entry, $method);
+                }
             }
 
             $paths[] = PathItem::create()
@@ -80,7 +84,8 @@ class DocumentationGenerator
             ->openapi(OpenApi::OPENAPI_3_0_2)
             ->info($info)
             ->paths(...$paths)
-            ->tags(...array_values($this->tags));
+            ->tags(...array_values($this->tags))
+            ->components(Component::convert());
 
         if (!empty($this->groups)) {
             $openApi = $openApi->x('tagGroups', array_values($this->groups));
@@ -133,11 +138,29 @@ class DocumentationGenerator
         }
 
         if (!empty($request->securities())) {
-            $operation->security(
+            $operation = $operation->security(
                 ...collect($request->securities())
                 ->map(fn(Security $security) => $security->oasRequirement())
                 ->all()
             );
+        }
+
+        if (Http::canAsContent($method)) {
+            $response = $entry->response();
+
+            $res = Response::create()
+                ->statusCode($response->statusCode() ?: 200)
+                ->headers(...$response->headers());
+
+            if ($body = $response->body()) {
+                if($body instanceof Parameter) {
+                    $res = $res->content(Content::convert($body->oasSchema(), $response->format()));
+                } else {
+                    $res = $res->content($body);
+                }
+            }
+
+            $operation = $operation->responses($res);
         }
 
         $this->group($entry, $operation->tags);

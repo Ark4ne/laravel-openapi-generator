@@ -9,6 +9,7 @@ use phpDocumentor\Reflection\Types\ContextFactory;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionNamedType;
+use ReflectionProperty;
 use ReflectionType;
 use ReflectionUnionType;
 use Reflector;
@@ -36,21 +37,38 @@ class Reflection
         return $reflector->getDocComment();
     }
 
-    public static function docblock(Reflector $reflector): ?DocBlock
+    public static function parseDocComment(string $comment, Reflector $reflector): DocBlock
     {
         static $factory, $contextFactory;
-
-        if (!($doc = $reflector->getDocComment())) {
-            return null;
-        }
 
         $factory ??= DocBlockFactory::createInstance();
         $contextFactory ??= new ContextFactory();
 
+        return $factory->create($comment, $contextFactory->createFromReflector($reflector));
+    }
+
+    public static function docblock(Reflector $reflector): ?DocBlock
+    {
+        $doc = self::docComment($reflector);
 
         return $doc
-            ? $factory->create($doc, $contextFactory->createFromReflector($reflector))
+            ? self::parseDocComment($doc, $reflector)
             : null;
+    }
+
+    protected static function up(Reflector $reflector): ?ReflectionClass
+    {
+        if ($reflector instanceof ReflectionMethod) {
+            return $reflector->getDeclaringClass();
+        }
+        if ($reflector instanceof ReflectionProperty) {
+            return $reflector->getDeclaringClass();
+        }
+        if ($reflector instanceof ReflectionClass) {
+            return $reflector->getParentClass() ?: null;
+        }
+
+        return null;
     }
 
     public static function isBuiltin(string $class): bool
@@ -72,26 +90,65 @@ class Reflection
         return $type instanceof ReflectionNamedType && !$type->isBuiltin() && self::isInstantiable($type->getName());
     }
 
-    public static function parseReturnType(ReflectionMethod $method): ?string
+    public static function parseReturnType(ReflectionMethod $method, bool $allowBuiltin = false): ?string
     {
-        $type = $method->getReturnType();
+        return self::parseType(
+            $method->getReturnType(),
+            $method,
+            'return',
+            allowBuiltin: $allowBuiltin
+        );
+    }
 
-        $returnType = self::typeIsInstantiable($type)
+    public static function parseType(
+        ReflectionType $type,
+        Reflector $from,
+        string $typeName,
+        null|string $typeAccess = null,
+        bool $allowBuiltin = false
+    ): ?string {
+        $returnType = $allowBuiltin || self::typeIsInstantiable($type)
             ? $type?->getName()
             : null;
 
-        if (!($docblock = self::docblock($method))) {
+        if (!($docblock = self::docblock($from))) {
             return $returnType;
         }
 
-        $tags = $docblock->getTagsWithTypeByName('return');
-        $tag = $tags[0];
+        $tags = $docblock->getTagsWithTypeByName($typeName);
+        if (empty($tags)) {
+            return $returnType;
+        }
+        if ($typeAccess) {
+            $tag = null;
+            foreach ($tags as $tag) {
+                if ($tag->getName() === $typeAccess) {
+                    break;
+                }
+                $tag = null;
+            }
 
-        $type = $tag->getType()?->__toString();
+        } else {
+            $tag = $tags[0];
+        }
 
-        $type = trim($type ?? '', '\\');
+        if (!$tag) {
+            return $returnType;
+        }
 
-        if ($type === $returnType || !$type || self::isBuiltin($type) || !self::isInstantiable($type)) {
+        $docType = $tag->getType()?->__toString();
+
+        $docType = trim($docType ?? '', '\\');
+
+        if (!$docType || $docType === $returnType) {
+            return $returnType;
+        }
+
+        if ($allowBuiltin && self::isBuiltin($type)) {
+            return $type;
+        }
+
+        if (!self::isInstantiable($type)) {
             return $returnType;
         }
 
@@ -147,6 +204,103 @@ class Reflection
         return self::isBuiltin($type) ? null : $map($type);
     }
 
+    public static function getPropertyType(mixed $class, string $property, bool $allowBuiltin = true): ?string
+    {
+        if ($type = self::getPropertyTypeFromProperties(self::reflection($class), $property, $allowBuiltin)) {
+            return $type;
+        }
+        if ($type = self::getPropertyTypeFromClass(self::reflection($class), $property, $allowBuiltin)) {
+            return $type;
+        }
+
+        return null;
+    }
+
+    protected static function getPropertyTypeFromProperties(
+        ReflectionClass $class,
+        string $prop,
+        bool $allowBuiltin
+    ): ?string {
+        try {
+            $property = $class->getProperty($prop);
+        } catch (\ReflectionException $e) {
+            return null;
+        }
+
+        $type = $property->getType();
+
+        if ($type && (($allowBuiltin && $type->isBuiltin()) || self::typeIsInstantiable($type))) {
+            return $type->getName();
+        }
+
+        if ($type instanceof ReflectionNamedType) {
+            return $type->getName();
+        }
+
+        if ($docblock = self::docblock($property)) {
+            $tags = $docblock->getTagsWithTypeByName('var');
+            $tag = $tags[0];
+
+            if (($type = (string)$tag->getType()) && ($allowBuiltin || self::isInstantiable($type))) {
+                return $type;
+            }
+        }
+        return null;
+    }
+
+    protected static function getPropertyTypeFromClass(
+        ReflectionClass $class,
+        string $property,
+        bool $allowBuiltin
+    ): ?string {
+        if (!($docblock = self::docblock($class))) {
+            return null;
+        }
+
+        /** @var TagWithType|null $tag */
+        $tag = collect($docblock->getTagsWithTypeByName('property'))
+            ->merge($docblock->getTagsWithTypeByName('property-read'))
+            ->first(
+                fn(DocBlock\Tags\Property|DocBlock\Tags\PropertyRead $value) => $value->getVariableName() === $property
+            );
+
+        if ($tag && ($type = (string)$tag->getType()) && ($allowBuiltin || self::isInstantiable($type))) {
+            return $type;
+        }
+
+        return null;
+    }
+
+    public static function tryParseGeneric(Reflector $reflector, string $fromTag): ?string
+    {
+        do {
+            $block = self::docblock($reflector);
+
+            if (!empty($tags = $block?->getTagsByName($fromTag))) {
+                /** @var \phpDocumentor\Reflection\DocBlock\Tags\BaseTag $tag */
+                $tag = $tags[0];
+                $description = $tag->getDescription()?->getBodyTemplate() ?? '';
+
+                preg_match('/([\\\\\w]+)(?:<([\\\\\w]+)>)?/', $description, $matches);
+
+                if (isset($matches[2])) {
+                    $docblock[] = "/**";
+                    $docblock[] = " * @param {$matches[2]} \$params";
+                    $docblock[] = " */";
+
+                    $block = self::parseDocComment(implode("\n", $docblock), $reflector);
+                    $tags = $block->getTagsWithTypeByName('param');
+
+                    if (!empty($tags)) {
+                        return $tags[0]->getType()?->__toString();
+                    }
+                }
+            }
+        } while ($reflector = self::up($reflector));
+
+        return null;
+    }
+
     /**
      * @param string|object $object
      * @param string        $method
@@ -163,68 +317,11 @@ class Reflection
         return $reflected->invokeArgs(is_string($object) ? null : $object, $args);
     }
 
-    public static function getPropertyType(mixed $class, string $property, bool $onlyInstantiable = false): ?string
+    public static function read(string|object $object, string $property): mixed
     {
-        if ($type = self::getPropertyTypeFromProperties(self::reflection($class), $property, $onlyInstantiable)) {
-            return $type;
-        }
-        if ($type = self::getPropertyTypeFromClass(self::reflection($class), $property, $onlyInstantiable)) {
-            return $type;
-        }
+        $reflected = self::reflection($object)->getProperty($property);
+        $reflected->setAccessible(true);
 
-        return null;
-    }
-
-    protected static function getPropertyTypeFromProperties(
-        ReflectionClass $class,
-        string $prop,
-        bool $onlyInstantiable
-    ): ?string {
-        try {
-            $property = $class->getProperty($prop);
-        } catch (\ReflectionException $e) {
-            return null;
-        }
-
-        if ($onlyInstantiable && self::typeIsInstantiable($type = $property->getType())) {
-            return $type->getName();
-        }
-
-        if ($type instanceof ReflectionNamedType) {
-            return $type->getName();
-        }
-
-        if ($docblock = self::docblock($property)) {
-            $tags = $docblock->getTagsWithTypeByName('var');
-            $tag = $tags[0];
-
-            if (($type = (string)$tag->getType()) && (!$onlyInstantiable || self::isInstantiable($type))) {
-                return $type;
-            }
-        }
-        return null;
-    }
-
-    protected static function getPropertyTypeFromClass(
-        ReflectionClass $class,
-        string $property,
-        bool $onlyInstantiable
-    ): ?string {
-        if (!($docblock = self::docblock($class))) {
-            return null;
-        }
-
-        /** @var TagWithType|null $tag */
-        $tag = collect($docblock->getTagsWithTypeByName('property'))
-            ->merge($docblock->getTagsWithTypeByName('property-read'))
-            ->first(
-                fn(TagWithType $value) => $value->getName() === $property
-            );
-
-        if ($tag && ($type = (string)$tag->getType()) && (!$onlyInstantiable || self::isInstantiable($type))) {
-            return $type;
-        }
-
-        return null;
+        return $reflected->getValue(is_string($object) ? null : $object);
     }
 }
