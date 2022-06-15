@@ -2,6 +2,8 @@
 
 namespace Ark4ne\OpenApi\Contracts;
 
+use Ark4ne\OpenApi\Support\Reflection\Type;
+
 interface Entry
 {
     public function getUri(): string;
@@ -18,12 +20,12 @@ interface Entry
     public function getAction(): string;
 
     /**
-     * @return class-string<\Illuminate\Http\Response>
+     * @return Type<\Illuminate\Http\Response, mixed>
      */
-    public function getResponseClass(): string;
+    public function getResponseClass(): Type;
 
     /**
-     * @return class-string<\Illuminate\Http\Request>
+     * @return Type<\Illuminate\Http\Request, null>
      */
-    public function getRequestClass(): string;
+    public function getRequestClass(): Type;
 }

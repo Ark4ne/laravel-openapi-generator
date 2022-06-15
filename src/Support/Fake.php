@@ -5,12 +5,13 @@ namespace Ark4ne\OpenApi\Support;
 use ArrayAccess;
 use ArrayIterator;
 use Countable;
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
 use IteratorAggregate;
 use JsonSerializable;
 use Traversable;
 
-class Fake implements ArrayAccess, Countable, IteratorAggregate, Jsonable, JsonSerializable
+class Fake implements Arrayable, ArrayAccess, Countable, IteratorAggregate, Jsonable, JsonSerializable
 {
     private ?\ReflectionClass $class;
 
@@ -31,7 +32,7 @@ class Fake implements ArrayAccess, Countable, IteratorAggregate, Jsonable, JsonS
 
         try {
             if ($this->for) {
-                return $this->fakeValue(Reflection::getPropertyType($this->for, $name));
+                return $this->fakeValue(Reflection::getPropertyType($this->for, $name)?->getType());
             }
         } catch (\Throwable $e) {
         }
@@ -113,6 +114,11 @@ class Fake implements ArrayAccess, Countable, IteratorAggregate, Jsonable, JsonS
     public function offsetUnset(mixed $offset): void
     {
         //
+    }
+
+    public function toArray()
+    {
+        return [];
     }
 
     public function toJson($options = 0): string

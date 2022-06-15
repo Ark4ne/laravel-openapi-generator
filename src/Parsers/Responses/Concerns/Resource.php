@@ -20,20 +20,18 @@ use ReflectionClass;
 trait Resource
 {
     /**
-     * @param \Illuminate\Http\Resources\Json\JsonResource|class-string<\Illuminate\Http\Resources\Json\JsonResource> $element
-     * @param \Ark4ne\OpenApi\Contracts\Entry                                                                         $entry
+     * @param \Ark4ne\OpenApi\Support\Reflection\Type<JsonResource|ResourceCollection> $element
+     * @param \Ark4ne\OpenApi\Contracts\Entry                                          $entry
      *
      * @return ResponseEntry
      */
-    public function parse(mixed $element, Entry $entry): ResponseEntry
+    public function parse(Reflection\Type $element, Entry $entry): ResponseEntry
     {
         $status = 200;
         $headers = [];
         $parameter = null;
 
-        $reflection = Reflection::reflection($element);
-
-        if ($response = $this->getResponse($reflection)) {
+        if ($response = $this->getResponse($element, $entry)) {
             $status = $response->getStatusCode();
             $parameter = Parameter::fromJson($response->getData(true));
             foreach ($response->headers->allPreserveCase() as $name => $value) {
@@ -49,27 +47,33 @@ trait Resource
         );
     }
 
-    protected function getResponse(ReflectionClass $class): ?JsonResponse
+    protected function getResponse(Reflection\Type $type, Entry $entry): ?JsonResponse
     {
+        $class = Reflection::reflection($type->getType());
+
         $instance = $class->newInstanceWithoutConstructor();
 
         if ($instance instanceof ResourceCollection) {
-            return $this->getResponseFromCollection($instance, $class);
+            return $this->getResponseFromCollection($instance, $type);
         }
         if ($instance instanceof JsonResource) {
-            return $this->getResponseFromResource($instance, $class);
+            return $this->getResponseFromResource($instance, $type, $class);
         }
 
         return null;
     }
 
-    private function getResponseFromCollection(ResourceCollection $instance, ReflectionClass $class): ?JsonResponse
+    private function getResponseFromCollection(ResourceCollection $instance, Reflection\Type $type): ?JsonResponse
     {
         try {
             $resource = Reflection::read($instance, 'collects') ?? Reflection::call($instance, 'collects');
 
-            if (!$resource) {
-                return null;
+            if (!$resource || !Reflection::isInstantiable($resource)) {
+                if(!($type->isGeneric() && ($resource = $type->getSub()) && Reflection::isInstantiable($resource))) {
+                    return null;
+                }
+
+                $instance->collects = $resource;
             }
 
             $instance->collection = collect($this->getResource(new ReflectionClass($resource), 2))->mapInto($resource);
@@ -81,7 +85,7 @@ trait Resource
         }
     }
 
-    private function getResponseFromResource(JsonResource $instance, ReflectionClass $class): ?JsonResponse
+    private function getResponseFromResource(JsonResource $instance,  Reflection\Type $type, ReflectionClass $class): ?JsonResponse
     {
         try {
             $instance->resource = $this->getResource($class);
@@ -103,7 +107,8 @@ trait Resource
                 : $resource::factory();
             try {
                 $resources = $factory()->create();
-                collect($resources instanceof Collection ? $resources : [$resources])->map(fn($resource) => $resource->wasRecentlyCreated = false);
+                collect($resources instanceof Collection ? $resources : [$resources])->map(fn($resource
+                ) => $resource->wasRecentlyCreated = false);
                 return $resources;
             } catch (QueryException $e) {
                 return $factory()->make([
@@ -133,11 +138,11 @@ trait Resource
         }
 
         if ($type = Reflection::getPropertyType($class->getName(), 'resource', false)) {
-            return $type;
+            return $type->getType();
         }
 
         if ($type = Reflection::tryParseGeneric($class, 'extends')) {
-            return $type;
+            return $type->getType();
         }
 
         return null;
@@ -158,8 +163,8 @@ trait Resource
                 && !empty($tags = $doclbock->getTagsWithTypeByName('params'))) {
                 $tag = $tags[0];
 
-                if (($type = (string)$tag->getType()) && Reflection::isInstantiable($type)) {
-                    return $type;
+                if ($type = Reflection::parseDoctag($tag)) {
+                    return $type->getType();
                 }
             }
         }

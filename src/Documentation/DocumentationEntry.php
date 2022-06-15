@@ -4,6 +4,7 @@ namespace Ark4ne\OpenApi\Documentation;
 
 use Ark4ne\OpenApi\Contracts\Entry;
 use Ark4ne\OpenApi\Support\Reflection;
+use Ark4ne\OpenApi\Support\Reflection\Type;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Route;
@@ -17,8 +18,8 @@ class DocumentationEntry implements Entry
     protected array $parameters;
     protected mixed $controller;
     protected string $action;
-    protected null|string $requestClass;
-    protected null|string $responseClass;
+    protected null|Reflection\Type $requestClass;
+    protected null|Reflection\Type $responseClass;
 
     protected RequestEntry $request;
     protected mixed $response;
@@ -105,9 +106,9 @@ class DocumentationEntry implements Entry
     }
 
     /**
-     * @return class-string<Response>
+     * @return \Ark4ne\OpenApi\Support\Reflection\Type<Response, mixed>
      */
-    public function getResponseClass(): string
+    public function getResponseClass(): Reflection\Type
     {
         if (isset($this->responseClass)) {
             return $this->responseClass;
@@ -115,13 +116,13 @@ class DocumentationEntry implements Entry
 
         $method = Reflection::method($this->getControllerClass(), $this->getAction());
 
-        return $this->responseClass = Reflection::parseReturnType($method) ?? Response::class;
+        return $this->responseClass = Reflection::parseReturnType($method) ?? Reflection\Type::make(Response::class);
     }
 
     /**
-     * @return class-string<Request>
+     * @return \Ark4ne\OpenApi\Support\Reflection\Type<Request, null>
      */
-    public function getRequestClass(): string
+    public function getRequestClass(): Reflection\Type
     {
         if (isset($this->requestClass)) {
             return $this->requestClass;
@@ -139,7 +140,8 @@ class DocumentationEntry implements Entry
 
         $method = Reflection::method($this->getControllerClass(), $this->getAction());
 
-        return Reflection::parseParametersFromDocBlockForClass($method, Request::class) ?? Request::class;
+        return $this->requestClass = Reflection::parseParametersFromDocBlockForClass($method, Request::class)
+            ?? Reflection\Type::make(Request::class);
     }
 
     public function request(): RequestEntry
@@ -154,23 +156,23 @@ class DocumentationEntry implements Entry
 
     /**
      * @param array<class-string> $parsers
-     * @param mixed               $element
+     * @param null|Type           $element
      *
      * @throws \Illuminate\Contracts\Container\BindingResolutionException
      * @return mixed
      */
-    protected function parse(array $parsers, mixed $element): mixed
+    protected function parse(array $parsers, ?Reflection\Type $element): mixed
     {
-        if (empty($element)) {
+        if ($element === null) {
             return null;
         }
 
         foreach ($parsers as $for => $parser) {
-            if (is_a($element, $for, true)) {
+            if (is_a($element->getType(), $for, true)) {
                 return app()->make($parser)->parse($element, $this);
             }
         }
 
-        throw new \Exception("TODO: Can't parse $element");
+        throw new \Exception("TODO: Can't parse " . $element->getType());
     }
 }
