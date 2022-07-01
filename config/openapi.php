@@ -5,65 +5,167 @@ use Illuminate\Http;
 use Symfony\Component\HttpFoundation;
 
 return [
+    /*
+    |------------------------------------------------------------------
+    | Output-dir
+    |------------------------------------------------------------------
+    |
+    | Output directory.
+    |
+    */
     'output-dir' => storage_path('app/public/openapi'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Versions
+    |--------------------------------------------------------------------------
+    |
+    | Here you can specify multiple configurations for each version of your API.
+    |
+    */
     'versions' => [
         'v1' => [
+            /*
+            |------------------------------------------------------------------
+            | Output-file
+            |------------------------------------------------------------------
+            |
+            | Output file name.
+            |
+            */
             'output-file' => 'openapi-v1.json',
 
+            /*
+            |------------------------------------------------------------------
+            | Title
+            |------------------------------------------------------------------
+            |
+            | Document Title.
+            |
+            */
             'title' => '',
 
+            /*
+            |------------------------------------------------------------------
+            | Description
+            |------------------------------------------------------------------
+            |
+            | Document description.
+            |
+            */
             'description' => '',
 
+            /*
+            |------------------------------------------------------------------
+            | Routes
+            |------------------------------------------------------------------
+            |
+            | Define which routes will be processed.
+            | The pattern must be a shell mask.
+            |
+            */
             'routes' => [
                 'api/*'
             ],
 
+            /*
+            |------------------------------------------------------------------
+            | Group by (optional)
+            |------------------------------------------------------------------
+            |
+            | Used to group API routes.
+            | You can define a group by according to :
+            | - controller : The route controller class
+            | - uri : The route uri
+            | - name : The route name
+            |
+            | You will also need to define a regex that will retrieve the name
+            | of the group.
+            |
+            */
             'groupBy' => [
                 'by' => 'controller', // 'controller', 'uri, 'name'
                 'regex' => '/^App\\\\Http\\\\(\w+)/'
             ],
 
+            /*
+            |------------------------------------------------------------------
+            | Ignore verbs
+            |------------------------------------------------------------------
+            |
+            | HTTP verbs to ignore
+            |
+            */
             'ignore-verbs' => [
                 'HEAD'
             ]
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Parses
+    |--------------------------------------------------------------------------
+    |
+    | Define all parser used for documentate a specific class.
+    |
+    | For each object, only one parser will be used.
+    | For instance :
+    | ```
+    | class MyResourceCollection extends ResourceCollection {}
+    | ```
+    | ResourceCollectionParser and JsonResourceParser are eligible, because
+    | MyResourceCollection extends from ResourceCollection which extends from JsonResource.
+    |
+    | The order of the parsers will define which parser we will use:
+    | 1st eligible => parser used.
+    |
+    | For MyResourceCollection we will therefore use ResourceCollection.
+    |
+    */
     'parsers' => [
         /*
-         * Requests
-         */
+        | Requests
+        */
         'requests' => [
             Contracts\Documentation\DescribableRequest::class => Parsers\Requests\DescribedRequestParser::class,
             Http\Request::class => Parsers\Requests\RequestParser::class,
         ],
 
         /*
-         * Requests Rules
-         */
+        | Requests Rules
+        */
         'rules' => [
             // TODO
-
-            // Ark4ne\JsonApi\Support\Includes::class => OpenApi\__Custom\Parsers\Requests\Rules\RuleInclude::class
+            Ark4ne\JsonApi\Requests\Rules\Includes::class => Parsers\Rules\IncludesRuleParsers::class,
+            Ark4ne\JsonApi\Requests\Rules\Fields::class => Parsers\Rules\FieldsRuleParsers::class
         ],
 
         'responses' => [
             /*
-             * Laravel Responses
-             */
+            | Laravel Responses
+            */
             Http\Resources\Json\ResourceCollection::class => Parsers\Responses\ResourceCollectionParser::class,
             Http\Resources\Json\JsonResource::class => Parsers\Responses\JsonResourceParser::class,
             Http\JsonResponse::class => Parsers\Responses\JsonResponseParser::class,
             Http\Response::class => Parsers\Responses\ResponseParser::class,
 
             /*
-             * Symfony Responses
-             */
+            | Symfony Responses
+            */
             HttpFoundation\BinaryFileResponse::class => Parsers\Responses\BinaryFileResponseParser::class,
             HttpFoundation\StreamedResponse::class => Parsers\Responses\StreamedResponseParser::class,
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Format
+    |--------------------------------------------------------------------------
+    |
+    | Defines how date formats will be understood.
+    |
+    */
     'format' => [
         'date' => [
             'Y-m-d' => Documentation\Request\Parameter::FORMAT_DATE,
@@ -72,6 +174,20 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Connections
+    |--------------------------------------------------------------------------
+    |
+    | Defines whether to use transactions on different database connections.
+    |
+    | Using transaction will create and save models via factories. The saved
+    | models will be deleted at the end of the generation via a rollback.
+    |
+    | Without transactions, models will be created but not saved, which can
+    | lead to errors during generation.
+    |
+    */
     'connections' => [
         'use-transaction' => true
     ]
