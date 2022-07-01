@@ -103,7 +103,7 @@ class Reflection
     }
 
     public static function parseType(
-        ReflectionType $type,
+        ?ReflectionType $type,
         Reflector $from,
         string $typeName,
         null|string $typeAccess = null,

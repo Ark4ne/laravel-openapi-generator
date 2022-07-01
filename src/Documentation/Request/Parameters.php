@@ -19,10 +19,11 @@ class Parameters
     /**
      * @param string               $type
      * @param null|string|string[] $format
+     * @param bool                 $flat
      *
      * @return array<OASParameter>|\GoldSpecDigital\ObjectOrientedOAS\Objects\RequestBody
      */
-    public function convert(string $type, null|string|array $format = null): array|RequestBody
+    public function convert(string $type, null|string|array $format = null, bool $flat = false): array|RequestBody
     {
         switch ($type) {
             case OASParameter::IN_COOKIE:
@@ -33,12 +34,12 @@ class Parameters
                     ->values()
                     ->all();
             case OASParameter::IN_QUERY:
-                $params = $this->undot();
+                $params = $flat ? $this->flat() : $this->undot();
 
                 return collect($params)
-                    ->map(function (array|Parameter $param, $name) use ($type) {
+                    ->map(function (array|Parameter $param, $name) use ($type, $flat) {
                         if ($param instanceof Parameter) {
-                            return $param->undot()->oasParameters($type);
+                            return ($flat ? $param->flat() : $param->undot())->oasParameters($type);
                         }
 
                         /** @var OASParameter $parameter */
@@ -74,6 +75,27 @@ class Parameters
         );
 
         return Arr::undot($params);
+    }
+
+    protected function flat(): array
+    {
+        $flat = static function ($array, $prepend = '') use (&$flat) {
+            $results = [];
+
+            foreach ($array as $key => $value) {
+                $sub = $key === '*' ? '' : $key;
+                $arrayKey = $prepend ? "{$prepend}[$sub]" : $sub;
+                if (is_array($value) && !empty($value)) {
+                    $results = array_merge($results, $flat($value, $arrayKey));
+                } else {
+                    $results[$arrayKey] = $value;
+                }
+            }
+
+            return $results;
+        };
+
+        return $flat($this->undot());
     }
 
     /**

@@ -7,6 +7,7 @@ use Ark4ne\OpenApi\Documentation\Request\Content;
 use Ark4ne\OpenApi\Documentation\Request\Parameter;
 use Ark4ne\OpenApi\Documentation\Request\Parameters;
 use Ark4ne\OpenApi\Documentation\Request\Security;
+use Ark4ne\OpenApi\Errors\Log;
 use Ark4ne\OpenApi\Support\Http;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Str;
@@ -50,7 +51,7 @@ class DocumentationGenerator
         );
     }
 
-    public function generate(string $version): void
+    public function generate(string $version, bool $flatParameters = false): void
     {
         $this->config = config("openapi.versions.$version");
 
@@ -66,7 +67,7 @@ class DocumentationGenerator
 
             foreach ($entry->getMethods() as $method) {
                 if (!in_array(strtoupper($method), $ignoreVerbs, true)) {
-                    $operations[] = $this->operation($entry, $method);
+                    $operations[] = $this->operation($entry, $method, $flatParameters);
                 }
             }
 
@@ -95,8 +96,14 @@ class DocumentationGenerator
             throw new RuntimeException(sprintf('Directory "%s" was not created', $dir));
         }
 
+        $path = $this->config['output-file'];
+
+        if ($flatParameters) {
+            $path = "$path-flat";
+        }
+
         file_put_contents(
-            "$dir/{$this->config['output-file']}",
+            "$dir/$path",
             $openApi->toJson()
         );
     }
@@ -104,12 +111,15 @@ class DocumentationGenerator
     /**
      * @param \Ark4ne\OpenApi\Documentation\DocumentationEntry $entry
      * @param string                                           $method
+     * @param bool                                             $flatParameters
      *
      * @throws \GoldSpecDigital\ObjectOrientedOAS\Exceptions\InvalidArgumentException
      * @return \GoldSpecDigital\ObjectOrientedOAS\Objects\Operation
      */
-    protected function operation(DocumentationEntry $entry, string $method): Operation
+    protected function operation(DocumentationEntry $entry, string $method, bool $flatParameters): Operation
     {
+        Log::info("Operation", "[$method] " . $entry->getUri());
+
         $request = $entry->request();
 
         /** @var Operation $operation */
@@ -121,10 +131,10 @@ class DocumentationGenerator
             ->parameters(
                 ...(new Parameters($request->parameters()))->convert(OASParameter::IN_PATH),
                 ...(new Parameters($request->headers()))->convert(OASParameter::IN_HEADER),
-                ...(new Parameters($request->queries()))->convert(OASParameter::IN_QUERY),
+                ...(new Parameters($request->queries()))->convert(OASParameter::IN_QUERY, null, $flatParameters),
                 ...(
             !Http::acceptBody($method)
-                ? (new Parameters($request->body()))->convert(OASParameter::IN_QUERY)
+                ? (new Parameters($request->body()))->convert(OASParameter::IN_QUERY, null, $flatParameters)
                 : []
             ),
             )
@@ -146,26 +156,42 @@ class DocumentationGenerator
         }
 
         if (Http::canAsContent($method)) {
-            $response = $entry->response();
+            try {
+                $responses[] = $this->convertResponse($entry->response());
 
-            $res = Response::create()
-                ->statusCode($response->statusCode() ?: 200)
-                ->headers(...$response->headers());
-
-            if ($body = $response->body()) {
-                if($body instanceof Parameter) {
-                    $res = $res->content(Content::convert($body->oasSchema(), $response->format()));
-                } else {
-                    $res = $res->content($body);
+                if ($request->hasRules()) {
+                    // have rules
+                    $responses[] = Response::create()
+                        ->statusCode(422)
+                        ->description('Unprocessable Entity');
                 }
-            }
 
-            $operation = $operation->responses($res);
+                $operation = $operation->responses(...$responses);
+            } catch (\Throwable $e) {
+                Log::warn('Response', 'Error when trying to generate response : ' . $e->getMessage());
+            }
         }
 
         $this->group($entry, $operation->tags);
 
         return $operation;
+    }
+
+    protected function convertResponse(ResponseEntry $entry): Response
+    {
+        $response = Response::create()
+            ->statusCode($entry->statusCode() ?: 200)
+            ->headers(...$entry->headers());
+
+        if ($body = $entry->body()) {
+            if ($body instanceof Parameter) {
+                $response = $response->content(Content::convert($body->oasSchema(), $entry->format()));
+            } else {
+                $response = $response->content($body);
+            }
+        }
+
+        return $response;
     }
 
     /**

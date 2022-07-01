@@ -5,6 +5,7 @@ namespace Ark4ne\OpenApi\Parsers\Responses\Concerns;
 use Ark4ne\OpenApi\Contracts\Entry;
 use Ark4ne\OpenApi\Documentation\Request\Parameter;
 use Ark4ne\OpenApi\Documentation\ResponseEntry;
+use Ark4ne\OpenApi\Errors\Log;
 use Ark4ne\OpenApi\Support\Fake;
 use Ark4ne\OpenApi\Support\Reflection;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Header;
@@ -80,7 +81,7 @@ trait Resource
 
             return $instance->response();
         } catch (\Throwable $e) {
-            dump($e->getMessage()); // TODO : suggestion
+            Log::warn('Response', 'Error when trying to documentate resource collection : ' . $e->getMessage());
             return null;
         }
     }
@@ -92,7 +93,7 @@ trait Resource
 
             return $instance->response();
         } catch (\Throwable $e) {
-            dump($e->getMessage()); // TODO : suggestion
+            Log::warn('Response', 'Error when trying to documentate resource : ' . $e->getMessage());
             return null;
         }
     }

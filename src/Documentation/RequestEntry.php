@@ -5,7 +5,7 @@ namespace Ark4ne\OpenApi\Documentation;
 class RequestEntry
 {
     /**
-     * @param array<string, Request\Security> $securities
+     * @param array<string, Request\Security>  $securities
      * @param array<string, Request\Parameter> $parameters
      * @param array<string, Request\Parameter> $headers
      * @param array<string, Request\Parameter> $body
@@ -44,4 +44,9 @@ class RequestEntry
      * @return array<string, Request\Parameter>
      */
     public function queries(): array { return $this->queries; }
+
+    public function hasRules(): bool
+    {
+        return !empty($this->queries) || !empty($this->body);
+    }
 }

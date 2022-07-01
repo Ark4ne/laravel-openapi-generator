@@ -111,6 +111,7 @@ class Parameter
     protected ?string $ref;
 
     protected bool $undotName = false;
+    protected bool $flatName = false;
 
     public function __construct(
         protected string $name,
@@ -241,11 +242,15 @@ class Parameter
         return $this;
     }
 
+    public function flat(bool $flat = true): static
+    {
+        $this->flatName = $flat;
+        return $this;
+    }
+
     public function oasSchema(): Schema
     {
-        $name = $this->undotName
-            ? Arr::last(explode('.', $this->name))
-            : $this->name;
+        $name = $this->getName();
 
         if($this->ref ?? null) {
             return Schema::ref($this->ref, $name);
@@ -292,7 +297,7 @@ class Parameter
         /** @var OASParameter $params */
         $params = OASParameter::$for($schema->objectId);
         $params = $params
-            ->name($this->name)
+            ->name($this->getName())
             ->required($this->required)
             ->allowEmptyValue($this->nullable)
             ->schema($schema)
@@ -300,6 +305,22 @@ class Parameter
             ->description($this->description ?? null);
 
         return $params;
+    }
+
+    protected function getName(): string
+    {
+        if ($this->undotName) {
+            return Arr::last(explode('.', $this->name));
+        }
+        if ($this->flatName) {
+            return collect(explode('.', $this->name))
+                ->map(fn($name) => $name === '*' ? '' : $name)
+                ->reduce(
+                    fn(string $name, string $sub) => $name ? "{$name}[$sub]" : $sub,
+                    ''
+                );
+        }
+        return $this->name;
     }
 
     protected function schemaDescription(): ?string
