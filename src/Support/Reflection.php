@@ -195,7 +195,7 @@ class Reflection
      * @param \ReflectionType $type
      * @param class-string<T>|null $for
      *
-     * @return Type<class-string<T>, null>|null
+     * @return Type<T, null>|null
      */
     public static function parseTypeHint(ReflectionType $type, ?string $for = null): ?Type
     {
@@ -321,7 +321,7 @@ class Reflection
      * @throws \ReflectionException
      * @return mixed
      */
-    public static function call(string|object $object, string $method, array ...$args): mixed
+    public static function call(string|object $object, string $method, mixed ...$args): mixed
     {
         $reflected = self::reflection($object)->getMethod($method);
         $reflected->setAccessible(true);

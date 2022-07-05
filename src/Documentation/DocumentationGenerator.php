@@ -99,7 +99,7 @@ class DocumentationGenerator
         $path = $this->config['output-file'];
 
         if ($flatParameters) {
-            $path = "$path-flat";
+            $path = "flat-$path";
         }
 
         file_put_contents(

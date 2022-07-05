@@ -28,11 +28,16 @@ trait Resource
      */
     public function parse(Reflection\Type $element, Entry $entry): ResponseEntry
     {
+        return $this->toResponseEntry($this->getResponse($element, $entry));
+    }
+
+    protected function toResponseEntry($response): ResponseEntry
+    {
         $status = 200;
         $headers = [];
         $parameter = null;
 
-        if ($response = $this->getResponse($element, $entry)) {
+        if ($response) {
             $status = $response->getStatusCode();
             $parameter = Parameter::fromJson($response->getData(true));
             foreach ($response->headers->allPreserveCase() as $name => $value) {
@@ -43,8 +48,8 @@ trait Resource
         return new ResponseEntry(
             format: MediaType::MEDIA_TYPE_APPLICATION_JSON,
             statusCode: $status,
-            body: $parameter,
             headers: $headers,
+            body: $parameter,
         );
     }
 
