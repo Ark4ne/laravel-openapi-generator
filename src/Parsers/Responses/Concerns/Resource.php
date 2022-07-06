@@ -72,17 +72,14 @@ trait Resource
     private function getResponseFromCollection(ResourceCollection $instance, Reflection\Type $type): ?JsonResponse
     {
         try {
-            $resource = Reflection::read($instance, 'collects') ?? Reflection::call($instance, 'collects');
-
-            if (!$resource || !Reflection::isInstantiable($resource)) {
-                if(!($type->isGeneric() && ($resource = $type->getSub()) && Reflection::isInstantiable($resource))) {
-                    return null;
-                }
-
-                $instance->collects = $resource;
+            if (!($resource = $this->getResourceFromCollection($instance, $type))) {
+                Log::warn('Response', "Can't determinate resource type for collection : " . $instance::class);
+                return null;
             }
 
-            $instance->collection = collect($this->getResource(new ReflectionClass($resource), 2))->mapInto($resource);
+            $instance->collects = $resource;
+            $instance->collection = collect($this->getModelFromResource(new ReflectionClass($resource), 2))
+                ->mapInto($resource);
 
             return $instance->response();
         } catch (\Throwable $e) {
@@ -94,7 +91,7 @@ trait Resource
     private function getResponseFromResource(JsonResource $instance,  Reflection\Type $type, ReflectionClass $class): ?JsonResponse
     {
         try {
-            $instance->resource = $this->getResource($class);
+            $instance->resource = $this->getModelFromResource($class);
 
             return $instance->response();
         } catch (\Throwable $e) {
@@ -103,9 +100,22 @@ trait Resource
         }
     }
 
-    private function getResource(ReflectionClass $class, int $count = 1): mixed
+    private function getResourceFromCollection(ResourceCollection $instance, Reflection\Type $type): ?string {
+
+        $resource = Reflection::read($instance, 'collects') ?? Reflection::call($instance, 'collects');
+
+        if (!$resource || !Reflection::isInstantiable($resource)) {
+            if(!($type->isGeneric() && ($resource = $type->getSub()) && Reflection::isInstantiable($resource))) {
+                return null;
+            }
+        }
+
+        return $resource;
+    }
+
+    private function getModelFromResource(ReflectionClass $class, int $count = 1): mixed
     {
-        $resource = $this->getResourceType($class);
+        $resource = $this->getResourceClass($class);
 
         if ($resource && method_exists($resource, 'factory')) {
             $factory = static fn() => $count > 1
@@ -118,14 +128,14 @@ trait Resource
                 return $resources;
             } catch (QueryException $e) {
                 return $factory()->make([
-                    'id' => '',
+                    'id' => 'mixed',
                 ]);
             }
         }
 
         $fake = static fn() => $resource
             ? new Fake($resource, [
-                'id' => '',
+                'id' => 'mixed',
                 'type' => Str::kebab(Str::afterLast($resource, "\\"))
             ])
             : new Fake;
@@ -137,7 +147,7 @@ trait Resource
         return collect(array_fill(0, $count, $fake()));
     }
 
-    private function getResourceType(ReflectionClass $class): ?string
+    private function getResourceClass(ReflectionClass $class): ?string
     {
         if ($type = $this->getResourceTypeFromConstructor($class)) {
             return $type;

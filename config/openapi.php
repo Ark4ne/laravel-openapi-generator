@@ -136,12 +136,20 @@ return [
         | Requests Rules
         */
         'rules' => [
-            // TODO
+            /*
+            | JsonApi Rules
+            */
             Ark4ne\JsonApi\Requests\Rules\Includes::class => Parsers\Rules\IncludesRuleParsers::class,
             Ark4ne\JsonApi\Requests\Rules\Fields::class => Parsers\Rules\FieldsRuleParsers::class
         ],
 
         'responses' => [
+            /*
+            | JsonApi Resources & Collections
+            */
+            Ark4ne\JsonApi\Resources\JsonApiCollection::class => Parsers\Responses\JsonApiCollectionParser::class,
+            Ark4ne\JsonApi\Resources\JsonApiResource::class => Parsers\Responses\JsonApiResourceParser::class,
+
             /*
             | Laravel Responses
             */
