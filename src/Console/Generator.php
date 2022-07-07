@@ -35,7 +35,9 @@ class Generator extends Command
         Log::interseptor(fn(string $level, string $context, string $message) => $this->$level("[$context] - $message"));
 
         try {
-            $this->beginTransaction();
+            if (!$this->beginTransaction()) {
+                return 0;
+            }
 
             foreach (config('openapi.versions') as $version => $config) {
                 foreach ([false, true] as $flat) {
@@ -59,6 +61,8 @@ class Generator extends Command
         }
         $connections = array_keys(config('database.connections'));
 
+        $allStarted = true;
+
         foreach ($connections as $connection) {
             try {
                 $connect = DB::connection($connection);
@@ -69,11 +73,12 @@ class Generator extends Command
             try {
                 $connect->beginTransaction();
             } catch (\Throwable $e) {
+                $allStarted = false;
                 $this->comment("$connection can't start transaction");
             }
         }
 
-        return true;
+        return $allStarted || $this->confirm("Some connections could not establish a transaction. Do you want to continue ?");
     }
 
     protected function rollback(): bool
