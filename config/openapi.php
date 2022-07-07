@@ -70,10 +70,54 @@ return [
 
             /*
             |------------------------------------------------------------------
-            | Group by (optional)
+            | Name by
+            |------------------------------------------------------------------
+            |
+            | Name your api routes.
+            |
+            | You can define name by according to :
+            | (WIP) - description : The description block from action method.
+            | - controller : The route controller class
+            | - uri : The route uri
+            | - name : The route name
+            |
+            | You will also need to define a regex that will retrieve the name
+            | of the group.
+            */
+            'nameBy' => [
+                'by' => 'name', // 'description', 'controller', 'uri, 'name'
+                'regex' => '/(.+)/'
+            ],
+
+            /*
+            |------------------------------------------------------------------
+            | Tag by
             |------------------------------------------------------------------
             |
             | Used to group API routes.
+            | You can define a tag by according to :
+            | - controller : The route controller class
+            | - uri : The route uri
+            | - name : The route name
+            |
+            | You will also need to define a regex that will retrieve the name
+            | of the group.
+            |
+            */
+            'tagBy' => [
+                'by' => 'controller', // 'controller', 'uri, 'name'
+                'regex' => '/^App\\\\Http\\\\(\w+)Controller/'
+            ],
+
+            /*
+            |------------------------------------------------------------------
+            | Group by (optional)
+            |------------------------------------------------------------------
+            |
+            | Used to group Tags and create upper level.
+            |
+            | Use the openapi extension "x-tagGroups".
+            |
             | You can define a group by according to :
             | - controller : The route controller class
             | - uri : The route uri

@@ -126,8 +126,8 @@ class DocumentationGenerator
         $operation = Operation::$method();
         $operation = $operation
             ->operationId("$method:{$entry->getName()}")
-            ->summary(Str::studly($entry->getName()))
-            ->tags($this->tag($entry->getControllerName()))
+            ->summary($this->name($entry))
+            ->tags($this->tag($entry))
             ->parameters(
                 ...(new Parameters($request->parameters()))->convert(OASParameter::IN_PATH),
                 ...(new Parameters($request->headers()))->convert(OASParameter::IN_HEADER),
@@ -196,6 +196,32 @@ class DocumentationGenerator
 
     /**
      * @param \Ark4ne\OpenApi\Documentation\DocumentationEntry $entry
+     * @param array<mixed>|callable                            $config
+     *
+     * @return string|null
+     */
+    protected function resolveGroup(DocumentationEntry $entry, array|callable $config): ?string
+    {
+        if (is_callable($config)) {
+            return $config($entry);
+        }
+
+        $by = match ($config['by'] ?? null) {
+            'uri' => $entry->getUri(),
+            'name' => $entry->getName(),
+            'controller' => $entry->getControllerClass(),
+            default => null
+        };
+
+        if ($by && preg_match($config['regex'], $by, $match)) {
+            return $match[1];
+        }
+
+        return null;
+    }
+
+    /**
+     * @param \Ark4ne\OpenApi\Documentation\DocumentationEntry $entry
      * @param string[]                                         $tags
      *
      * @return void
@@ -206,25 +232,10 @@ class DocumentationGenerator
             return;
         }
 
-        if (is_callable($group)) {
-            $by = $group($entry);
+        $by = $this->resolveGroup($entry, $group);
 
-            if ($by) {
-                $this->groupBy($by, $tags);
-            }
-
-            return;
-        }
-
-        $by = match ($group['by'] ?? null) {
-            'uri' => $entry->getUri(),
-            'name' => $entry->getName(),
-            'controller' => $entry->getControllerClass(),
-            default => null
-        };
-
-        if ($by && preg_match($group['regex'], $by, $match)) {
-            $this->groupBy($match[1], $tags);
+        if ($by) {
+            $this->groupBy($by, $tags);
         }
     }
 
@@ -242,8 +253,15 @@ class DocumentationGenerator
         $this->groups[$key]['tags'] = array_unique(array_merge($this->groups[$key]['tags'] ?? [], $tags));
     }
 
-    protected function tag(string $name): Tag
+    protected function tag(DocumentationEntry $entry): Tag
     {
+        $name = $this->resolveGroup($entry, $this->config['tagBy']) ?? $entry->getControllerName();
+
         return $this->tags[strtolower($name)] ??= Tag::create($name)->name($name);
+    }
+
+    protected function name(DocumentationEntry $entry): string
+    {
+        return $this->resolveGroup($entry, $this->config['nameBy']) ?? Str::studly($entry->getName());
     }
 }
