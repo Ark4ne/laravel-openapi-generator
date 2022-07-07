@@ -19,14 +19,14 @@ trait JAResource
         return [
             'data' => [
                     'id' => 'mixed',
-                    'type' => $this->getType($class),
-                    'attributes' => $this->getArrayKeys($instance, 'toAttributes', $request),
+                    'type' => $this->getType($instance::class),
+                    'attributes' => $this->getSamples($instance, 'toAttributes', $request),
                     'relationships' => collect(Reflection::call($instance, 'toRelationships', $request))->map(function (
                         $relationship
                     ) {
                         $sample = [
                             'id' => 'mixed',
-                            'type' => $this->getType(Reflection::reflection($relationship->getResource()))
+                            'type' => $this->getType($relationship->getResource())
                         ];
 
                         $data = Reflection::read($relationship, 'asCollection')
@@ -55,8 +55,8 @@ trait JAResource
                             ]);
                     })->all()
                 ] + array_filter([
-                    'meta' => $this->getArrayKeys($instance, 'toResourceMeta', $request),
-                    'links' => $this->getArrayKeys($instance, 'toLinks', $request),
+                    'meta' => $this->getSamples($instance, 'toResourceMeta', $request),
+                    'links' => $this->getSamples($instance, 'toLinks', $request),
                 ]),
         ];
     }
@@ -70,15 +70,15 @@ trait JAResource
             );
 
             $data['relationships'] = array_merge(
-                $structure['data']['relationships'],
-                array_filter($data['relationships'])
+                $structure['data']['relationships'] ?? [],
+                array_filter($data['relationships'] ?? [])
             );
 
             $data['relationships'] = collect($data['relationships'])
                 ->map(fn($value, $key) => array_merge($structure['data']['relationships'][$key] ?? [], $value))
                 ->all();
 
-            return $data;
+            return array_filter($data);
         };
 
         $data = $response->getData(true);
@@ -103,7 +103,7 @@ trait JAResource
      * @throws \ReflectionException
      * @return string[]
      */
-    private function getArrayKeys($instance, string $method, $request = null): array
+    private function getSamples($instance, string $method, $request = null): array
     {
         $request ??= request();
 
@@ -118,9 +118,17 @@ trait JAResource
         }
     }
 
-    private function getType(\ReflectionClass $class): string
+    private function getType(string $class): string
     {
-        $type = $this->getResourceClass($class) ?? $class->getName();
+        $reflect = Reflection::reflection($class);
+
+        try {
+            return Reflection::call($reflect->newInstanceWithoutConstructor(), 'toType', request());
+        } catch (\Throwable $e) {
+            // TODO
+        }
+
+        $type = $this->getResourceClass($reflect) ?? $reflect->getName();
 
         return Str::kebab(Str::beforeLast(Str::afterLast($type, "\\"), 'Resource'));
     }

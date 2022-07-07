@@ -129,6 +129,7 @@ trait Resource
             } catch (QueryException $e) {
                 return $factory()->make([
                     'id' => 'mixed',
+                    'uuid' => 'mixed',
                 ]);
             }
         }
@@ -136,6 +137,7 @@ trait Resource
         $fake = static fn() => $resource
             ? new Fake($resource, [
                 'id' => 'mixed',
+                'uuid' => 'mixed',
                 'type' => Str::kebab(Str::afterLast($resource, "\\"))
             ])
             : new Fake;
