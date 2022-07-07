@@ -54,7 +54,7 @@ class Generator extends Command
 
     protected function beginTransaction(): bool
     {
-        if (!config('openapi.use-transaction')) {
+        if (!config('openapi.connections.use-transaction')) {
             return false;
         }
         $connections = array_keys(config('database.connections'));
@@ -78,7 +78,7 @@ class Generator extends Command
 
     protected function rollback(): bool
     {
-        if (!config('openapi.use-transaction')) {
+        if (!config('openapi.connections.use-transaction')) {
             return false;
         }
         $connections = array_keys(config('database.connections'));

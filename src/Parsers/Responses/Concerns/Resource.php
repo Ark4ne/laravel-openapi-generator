@@ -121,17 +121,19 @@ trait Resource
             $factory = static fn() => $count > 1
                 ? $resource::factory()->count($count)
                 : $resource::factory();
-            try {
-                $resources = $factory()->create();
-                collect($resources instanceof Collection ? $resources : [$resources])->map(fn($resource
-                ) => $resource->wasRecentlyCreated = false);
-                return $resources;
-            } catch (QueryException $e) {
-                return $factory()->make([
-                    'id' => 'mixed',
-                    'uuid' => 'mixed',
-                ]);
+            if (config('openapi.connections.use-transaction')) {
+                try {
+                    $resources = $factory()->create();
+                    collect($resources instanceof Collection ? $resources : [$resources])->map(fn($resource
+                    ) => $resource->wasRecentlyCreated = false);
+                    return $resources;
+                } catch (QueryException $e) {
+                }
             }
+            return $factory()->make([
+                'id' => 'mixed',
+                'uuid' => 'mixed',
+            ]);
         }
 
         $fake = static fn() => $resource
