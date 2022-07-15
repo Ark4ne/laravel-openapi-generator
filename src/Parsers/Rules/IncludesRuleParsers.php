@@ -54,11 +54,11 @@ class IncludesRuleParsers implements CustomRuleParser
     {
         $ref = 'include:' . $this->getType($schema);
 
-        if (Component::has($ref)) {
-            return Component::get($ref)?->ref();
+        if (Component::has($ref, Component::SCOPE_SCHEMAS)) {
+            return Component::get($ref, Component::SCOPE_SCHEMAS)?->ref();
         }
 
-        $component = Component::create($ref);
+        $component = Component::create($ref, Component::SCOPE_SCHEMAS);
 
         $param = (new Parameter($ref))
             ->typeDescription($this->description($ref, $this->example($schema)))

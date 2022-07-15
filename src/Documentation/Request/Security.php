@@ -2,6 +2,7 @@
 
 namespace Ark4ne\OpenApi\Documentation\Request;
 
+use Ark4ne\OpenApi\Contracts\OASSchematable;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\SecurityRequirement;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\SecurityScheme;
 
@@ -24,7 +25,7 @@ use GoldSpecDigital\ObjectOrientedOAS\Objects\SecurityScheme;
  * @method self flows(?string $flows)
  * @method self openIdConnectUrl(?string $openIdConnectUrl)
  */
-class Security
+class Security implements OASSchematable
 {
     const TYPE_API_KEY = 'apiKey';
     const TYPE_HTTP = 'http';
@@ -45,14 +46,14 @@ class Security
         $this->scheme = new SecurityScheme(...$args);
     }
 
-    public function oasScheme(): SecurityScheme
+    public function oasSchema(): SecurityScheme
     {
         return $this->scheme;
     }
 
     public function oasRequirement(): SecurityRequirement
     {
-        return SecurityRequirement::create()->securityScheme($this->oasScheme());
+        return SecurityRequirement::create()->securityScheme($this->oasSchema());
     }
 
     /**

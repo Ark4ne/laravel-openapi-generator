@@ -2,6 +2,7 @@
 
 namespace Ark4ne\OpenApi\Documentation\Request;
 
+use Ark4ne\OpenApi\Contracts\OASSchematable;
 use Ark4ne\OpenApi\Documentation\Request\Concerns\Typable;
 use Ark4ne\OpenApi\Documentation\Request\Concerns\HasCondition;
 use Ark4ne\OpenApi\Support\Date;
@@ -15,7 +16,7 @@ use Illuminate\Support\Arr;
  * @property-read string            $type
  * @property-read string            $name
  */
-class Parameter
+class Parameter implements OASSchematable
 {
     use Typable, HasCondition;
 

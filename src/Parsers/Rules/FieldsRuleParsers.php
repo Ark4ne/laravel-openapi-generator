@@ -46,8 +46,8 @@ class FieldsRuleParsers implements CustomRuleParser
 
         $ref = 'fields:' . implode('-', array_keys($resources));
 
-        if (Component::has($ref)) {
-            return Component::get($ref)?->ref();
+        if (Component::has($ref, Component::SCOPE_SCHEMAS)) {
+            return Component::get($ref, Component::SCOPE_SCHEMAS)?->ref();
         }
 
         $param = (new Parameter($ref))
@@ -58,7 +58,7 @@ class FieldsRuleParsers implements CustomRuleParser
                 ->all()
             );
 
-        $component = Component::create($ref);
+        $component = Component::create($ref, Component::SCOPE_SCHEMAS);
 
         $component->object($param);
 
