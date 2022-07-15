@@ -2,10 +2,11 @@
 
 namespace Ark4ne\OpenApi\Parsers\Requests\Concerns;
 
+use Ark4ne\OpenApi\Descriptors\Requests\Rule;
 use Ark4ne\OpenApi\Documentation\Request\Parameter;
 use Ark4ne\OpenApi\Parsers\Requests\RuleParser;
 use Closure;
-use Illuminate\Contracts\Validation\Rule;
+use Illuminate\Contracts\Validation\Rule as ValidationRule;
 use Illuminate\Validation\ValidationRuleParser;
 
 use function str_contains;
@@ -20,17 +21,27 @@ trait RulesParser
     protected function rules(iterable $rules): iterable
     {
         return collect($rules)->map(
-            fn($rule, $attribute) => (new RuleParser(new Parameter($attribute), $this->prepareRules($rule)))->parse()
+            fn($rule, $attribute) => $this->parseRule(new Parameter($attribute), $rule)
         );
     }
 
+    protected function parseRule(Parameter $parameter, mixed $rule): Parameter
+    {
+        if ($rule instanceof Rule) {
+            $parameter->description($rule->description);
+            $rule = $rule->rule;
+        }
+
+        return (new RuleParser($parameter, $this->prepareRules($rule)))->parse();
+    }
+
     /**
-     * @param string|array|\Illuminate\Contracts\Validation\Rule|\Closure $ruleRaw
-     * @param array{rule: string|Rule, parameters:string[]}[]             $rules
+     * @param string|array|ValidationRule|\Closure $ruleRaw
+     * @param array{rule: string|ValidationRule, parameters:string[]}[]             $rules
      *
-     * @return array{rule: string|Rule, parameters:string[]}[]
+     * @return array{rule: string|ValidationRule, parameters:string[]}[]
      */
-    protected function prepareRules(string|array|Rule|Closure $ruleRaw, array &$rules = []): array
+    protected function prepareRules(string|array|ValidationRule|Closure $ruleRaw, array &$rules = []): array
     {
         if ($ruleRaw instanceof Closure) {
             return $rules;

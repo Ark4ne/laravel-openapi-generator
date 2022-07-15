@@ -33,7 +33,7 @@ class Describer
      */
     public function getBody(): array
     {
-        return array_combine(array_column($this->body, 'name'), array_column($this->body, 'raw'));
+        return array_combine(array_column($this->body, 'name'), array_column($this->body, 'rule'));
     }
 
     /**
@@ -41,9 +41,8 @@ class Describer
      */
     public function getQueries(): array
     {
-        return array_combine(array_column($this->body, 'name'), array_column($this->body, 'raw'));
+        return array_combine(array_column($this->queries, 'name'), array_column($this->queries, 'rule'));
     }
-
 
     /**
      * @return array<string, Security>
@@ -100,6 +99,13 @@ class Describer
     public function security(string $type): Security
     {
         return $this->securities[strtolower($type)] = (new Security($type))->type($type);
+    }
+
+    public function token(string $in = Security::IN_HEADER): self
+    {
+        $this->apiKey($in);
+
+        return $this;
     }
 
     public function apiKey(string $in = Security::IN_HEADER): Security
@@ -174,36 +180,34 @@ class Describer
     /**
      * Define body rules
      *
-     * @param iterable<string, mixed> $rules
+     * @param iterable<string, Rule|string|mixed> $rules
      *
      * @return $this
      */
     public function body(iterable $rules): self
     {
         foreach ($rules as $name => $rule) {
-            $this->body[strtolower($name)] = [
-                'name' => $name,
-                'raw' => $rule,
-            ];
+            $this->body[strtolower($name)] = $rule instanceof Rule
+                ? $rule->name($name)
+                : new Rule(['name' => $name, 'rule' => $rule]);
         }
 
         return $this;
     }
 
     /**
-     * Define queries rules - For get parameters only
+     * Define queries rules - For GET parameters only
      *
-     * @param iterable<string, mixed> $rules
+     * @param iterable<string, Rule|string|mixed> $rules
      *
      * @return $this
      */
     public function queries(iterable $rules): self
     {
         foreach ($rules as $name => $rule) {
-            $this->queries[strtolower($name)] = [
-                'name' => $name,
-                'rule' => $rule
-            ];
+            $this->queries[strtolower($name)] = $rule instanceof Rule
+                ? $rule->name($name)
+                : new Rule(['name' => $name, 'rule' => $rule]);
         }
 
         return $this;
@@ -249,5 +253,15 @@ class Describer
         return $this
             ->accept(MediaType::MEDIA_TYPE_TEXT_XML)
             ->body($rules);
+    }
+
+    /**
+     * @param string|array<string|\Illuminate\Contracts\Validation\Rule>|\Illuminate\Contracts\Validation\Rule $rules
+     *
+     * @return \Ark4ne\OpenApi\Descriptors\Requests\Rule
+     */
+    public function rule(mixed $rules): Rule
+    {
+        return new Rule(['rule' => $rules]);
     }
 }
