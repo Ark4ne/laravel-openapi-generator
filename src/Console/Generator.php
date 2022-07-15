@@ -4,6 +4,7 @@ namespace Ark4ne\OpenApi\Console;
 
 use Ark4ne\OpenApi\Documentation\DocumentationGenerator;
 use Ark4ne\OpenApi\Errors\Log;
+use Ark4ne\OpenApi\Support\Translator;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
@@ -32,6 +33,8 @@ class Generator extends Command
 
     public function handle(): int
     {
+        $this->translator();
+
         Log::interseptor(fn(string $level, string $context, string $message) => $this->$level("[$context] - $message"));
 
         try {
@@ -102,5 +105,28 @@ class Generator extends Command
         }
 
         return true;
+    }
+
+    /**
+     * Overload translator
+     *
+     * @return void
+     */
+    protected function translator(): void
+    {
+        app()->singleton('translator', function ($app) {
+            $loader = $app['translation.loader'];
+
+            // When registering the translator component, we'll need to set the default
+            // locale as well as the fallback locale. So, we'll grab the application
+            // configuration so we can easily get both of these values from there.
+            $locale = $app['config']['app.locale'];
+
+            $trans = new Translator($loader, $locale);
+
+            $trans->setFallback($app['config']['app.fallback_locale']);
+
+            return $trans;
+        });
     }
 }

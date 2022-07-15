@@ -37,7 +37,7 @@ class RequestParser implements RequestParserContract
         $body = [];
 
         if (method_exists($element, 'rules')) {
-            $body = $this->rules($element->rules())->all();
+            $body = $this->rules($entry, $element->rules())->all();
         }
 
         return new RequestEntry(
