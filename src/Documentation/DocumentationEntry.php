@@ -5,6 +5,7 @@ namespace Ark4ne\OpenApi\Documentation;
 use Ark4ne\OpenApi\Contracts\Entry;
 use Ark4ne\OpenApi\Support\Reflection;
 use Ark4ne\OpenApi\Support\Reflection\Type;
+use Ark4ne\OpenApi\Support\Trans;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Route;
@@ -103,6 +104,27 @@ class DocumentationEntry implements Entry
         }
 
         return $this->action = $action;
+    }
+
+    public function getDescription(): ?string
+    {
+        $method = Reflection::method($this->getControllerClass(), $this->getAction());
+        $doc = Reflection::docblock($method);
+
+        $description = $doc?->getSummary() ?? '';
+        $tags = $doc?->getTagsByName('oa-description');
+
+        $keys = [];
+        if (!empty($tags)) {
+            /** @var \phpDocumentor\Reflection\DocBlock\Tags\Generic $tag */
+            $tag = $tags[0];
+            $desc = $tag->getDescription()->getBodyTemplate();
+            $keys[] = "openapi.requests.descriptions.custom.$desc";
+        }
+
+        $keys[] = "openapi.requests.descriptions.{$this->getName()}";
+
+        return Trans::get($keys, [], $description);
     }
 
     /**

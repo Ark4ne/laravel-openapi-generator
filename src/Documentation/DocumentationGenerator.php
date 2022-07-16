@@ -127,6 +127,7 @@ class DocumentationGenerator
         $operation = $operation
             ->operationId("$method:{$entry->getName()}")
             ->summary($this->name($entry))
+            ->description($entry->getDescription())
             ->tags($this->tag($entry))
             ->parameters(
                 ...(new Parameters($request->parameters()))->convert(OASParameter::IN_PATH),
