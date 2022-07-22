@@ -109,6 +109,14 @@ class Reflection
         null|string $typeAccess = null,
         bool $allowBuiltin = false
     ): ?Type {
+        if ($type instanceof ReflectionUnionType) {
+            foreach ($type->getTypes() as $unionType) {
+                if ($parsed = self::parseType($unionType, $from, $typeName, $typeAccess, $allowBuiltin)) {
+                    return $parsed;
+                }
+            }
+        }
+
         $returnType = $allowBuiltin || self::typeIsInstantiable($type)
             ? $type?->getName()
             : null;
