@@ -24,7 +24,7 @@ class RequestParser implements RequestParserContract
     {
         $element = new ($element->getType());
 
-        $parameters = collect($entry->getPathParameters())
+        $parameters = collect($entry->getRouteParams())
             ->map(function (?string $pattern, string $name) {
                 $param = new Parameter($name);
                 if ($pattern) {

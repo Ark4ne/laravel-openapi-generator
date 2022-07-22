@@ -17,9 +17,12 @@ use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use ReflectionClass;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 trait Resource
 {
+    use Response;
+
     /**
      * @param \Ark4ne\OpenApi\Support\Reflection\Type<JsonResource|ResourceCollection> $element
      * @param \Ark4ne\OpenApi\Contracts\Entry                                          $entry
@@ -28,27 +31,28 @@ trait Resource
      */
     public function parse(Reflection\Type $element, Entry $entry): ResponseEntry
     {
-        return $this->toResponseEntry($this->getResponse($element, $entry));
+        return $this->toResponseEntry($this->getResponse($element, $entry), $entry);
     }
 
-    protected function toResponseEntry($response): ResponseEntry
+    protected function toResponseEntry(?SymfonyResponse $response, Entry $entry): ResponseEntry
     {
-        $status = 200;
-        $headers = [];
+        $status = $entry->getDocResponseStatusCode() ?? 200;
+        $statusText = $entry->getDocResponseStatusName() ?? SymfonyResponse::$statusTexts[200];
+        $headers = iterator_to_array($entry->getDocResponseHeaders());
         $parameter = null;
 
         if ($response) {
-            $status = $response->getStatusCode();
+            $status = $entry->getDocResponseStatusCode() ?? $response->getStatusCode();
+            $statusText = $entry->getDocResponseStatusName() ?? Reflection::read($response, 'statusText');
             $parameter = Parameter::fromJson($response->getData(true));
-            foreach ($response->headers->allPreserveCase() as $name => $value) {
-                $headers[] = Header::create($name)->example($value);
-            }
+            $headers = array_merge($headers, $response->headers->allPreserveCase());
         }
 
         return new ResponseEntry(
             format: MediaType::MEDIA_TYPE_APPLICATION_JSON,
             statusCode: $status,
-            headers: $headers,
+            statusName: $statusText,
+            headers: $this->convertHeadersToOasHeaders($headers),
             body: $parameter,
         );
     }

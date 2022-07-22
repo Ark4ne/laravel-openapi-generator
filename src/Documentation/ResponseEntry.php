@@ -16,8 +16,9 @@ class ResponseEntry
     public function __construct(
         protected string $format,
         protected int $statusCode = 0,
+        protected string $statusName = '',
         protected array $headers = [],
-        protected null|Request\Parameter|MediaType  $body = null,
+        protected null|Request\Parameter|MediaType $body = null,
     ) {
     }
 
@@ -30,6 +31,11 @@ class ResponseEntry
      * @return int
      */
     public function statusCode(): int { return $this->statusCode; }
+
+    /**
+     * @return string
+     */
+    public function statusName(): string { return $this->statusName; }
 
     /**
      * @return array<string, \GoldSpecDigital\ObjectOrientedOAS\Objects\Header>

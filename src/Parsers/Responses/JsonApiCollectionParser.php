@@ -44,7 +44,7 @@ class JsonApiCollectionParser implements ResponseParserContract
             $response = response()->json($structure);
         }
 
-        return $this->toResponseEntry($response);
+        return $this->toResponseEntry($response, $entry);
     }
 
 }

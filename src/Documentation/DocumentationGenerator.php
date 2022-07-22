@@ -8,9 +8,9 @@ use Ark4ne\OpenApi\Documentation\Request\Parameter;
 use Ark4ne\OpenApi\Documentation\Request\Parameters;
 use Ark4ne\OpenApi\Documentation\Request\Security;
 use Ark4ne\OpenApi\Errors\Log;
+use Ark4ne\OpenApi\Support\Config;
 use Ark4ne\OpenApi\Support\Http;
 use Illuminate\Routing\Router;
-use Illuminate\Support\Str;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\{
     Info,
     Operation,
@@ -30,9 +30,6 @@ class DocumentationGenerator
     /** @var array<string, Tag[]> */
     protected array $groups = [];
 
-    /** @var array<string, mixed> */
-    protected array $config;
-
     public function __construct(
         private Router $router
     ) {
@@ -51,12 +48,10 @@ class DocumentationGenerator
         );
     }
 
-    public function generate(string $version, bool $flatParameters = false): void
+    public function generate(string $version, string $lang = null): void
     {
-        $this->config = config("openapi.versions.$version");
-
-        $routes = $this->getRoutes($this->config['routes']);
-        $ignoreVerbs = array_map('strtoupper', $this->config['ignore-verbs'] ?? []);
+        $routes = $this->getRoutes(Config::routes());
+        $ignoreVerbs = array_map('strtoupper', Config::ignoreVerbs());
 
         $paths = [];
 
@@ -67,19 +62,19 @@ class DocumentationGenerator
 
             foreach ($entry->getMethods() as $method) {
                 if (!in_array(strtoupper($method), $ignoreVerbs, true)) {
-                    $operations[] = $this->operation($entry, $method, $flatParameters);
+                    $operations[] = $this->operation($entry, $method, true);
                 }
             }
 
             $paths[] = PathItem::create()
-                ->route('/' . ltrim($entry->getUri(), '/'))
+                ->route('/' . ltrim($entry->getRouteUri(), '/'))
                 ->operations(...$operations);
         }
 
         $info = Info::create()
-            ->title($this->config['title'])
+            ->title(Config::title())
             ->version($version)
-            ->description($this->config['description']);
+            ->description(Config::description());
 
         $openApi = OpenApi::create()
             ->openapi(OpenApi::OPENAPI_3_0_2)
@@ -92,18 +87,14 @@ class DocumentationGenerator
             $openApi = $openApi->x('tagGroups', array_values($this->groups));
         }
 
-        if (!is_dir($dir = config("openapi.output-dir")) && !mkdir($dir, 0777, true) && !is_dir($dir)) {
+        if (!is_dir($dir = Config::outputDir()) && !mkdir($dir, 0777, true) && !is_dir($dir)) {
             throw new RuntimeException(sprintf('Directory "%s" was not created', $dir));
         }
 
-        $path = $this->config['output-file'];
-
-        if ($flatParameters) {
-            $path = "flat-$path";
-        }
+        $path = Config::outputFile();
 
         file_put_contents(
-            "$dir/$path",
+            $lang ? "$dir/$lang-$path" : "$dir/$path",
             $openApi->toJson()
         );
     }
@@ -118,15 +109,15 @@ class DocumentationGenerator
      */
     protected function operation(DocumentationEntry $entry, string $method, bool $flatParameters): Operation
     {
-        Log::info("Operation", "[$method] " . $entry->getUri());
+        Log::info("Operation", "[$method] " . $entry->getRouteUri());
 
         $request = $entry->request();
 
         /** @var Operation $operation */
         $operation = Operation::$method();
         $operation = $operation
-            ->operationId("$method:{$entry->getName()}")
-            ->summary($this->name($entry))
+            ->operationId("$method:{$entry->getRouteName()}")
+            ->summary($entry->getName())
             ->description($entry->getDescription())
             ->tags($this->tag($entry))
             ->parameters(
@@ -156,7 +147,7 @@ class DocumentationGenerator
             );
         }
 
-        if (Http::canAsContent($method)) {
+        if (Http::canReturnContent($method)) {
             try {
                 $responses[] = $this->convertResponse($entry->response());
 
@@ -197,72 +188,24 @@ class DocumentationGenerator
 
     /**
      * @param \Ark4ne\OpenApi\Documentation\DocumentationEntry $entry
-     * @param array<mixed>|callable                            $config
-     *
-     * @return string|null
-     */
-    protected function resolveGroup(DocumentationEntry $entry, array|callable $config): ?string
-    {
-        if (is_callable($config)) {
-            return $config($entry);
-        }
-
-        $by = match ($config['by'] ?? null) {
-            'uri' => $entry->getUri(),
-            'name' => $entry->getName(),
-            'controller' => $entry->getControllerClass(),
-            default => null
-        };
-
-        if ($by && preg_match($config['regex'], $by, $match)) {
-            return $match[1];
-        }
-
-        return null;
-    }
-
-    /**
-     * @param \Ark4ne\OpenApi\Documentation\DocumentationEntry $entry
      * @param string[]                                         $tags
      *
      * @return void
      */
     protected function group(DocumentationEntry $entry, array $tags): void
     {
-        if (!($group = $this->config['groupBy'] ?? null)) {
-            return;
+        if ($name = $entry->getGroup()) {
+            $key = strtolower($name);
+
+            $this->groups[$key]['name'] = $name;
+            $this->groups[$key]['tags'] = array_unique(array_merge($this->groups[$key]['tags'] ?? [], $tags));
         }
-
-        $by = $this->resolveGroup($entry, $group);
-
-        if ($by) {
-            $this->groupBy($by, $tags);
-        }
-    }
-
-    /**
-     * @param string   $name
-     * @param string[] $tags
-     *
-     * @return void
-     */
-    protected function groupBy(string $name, array $tags): void
-    {
-        $key = strtolower($name);
-
-        $this->groups[$key]['name'] = $name;
-        $this->groups[$key]['tags'] = array_unique(array_merge($this->groups[$key]['tags'] ?? [], $tags));
     }
 
     protected function tag(DocumentationEntry $entry): Tag
     {
-        $name = $this->resolveGroup($entry, $this->config['tagBy']) ?? $entry->getControllerName();
+        $name = $entry->getTag();
 
         return $this->tags[strtolower($name)] ??= Tag::create($name)->name($name);
-    }
-
-    protected function name(DocumentationEntry $entry): string
-    {
-        return $this->resolveGroup($entry, $this->config['nameBy']) ?? Str::studly($entry->getName());
     }
 }

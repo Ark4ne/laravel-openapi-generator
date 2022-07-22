@@ -2,30 +2,81 @@
 
 namespace Ark4ne\OpenApi\Contracts;
 
-use Ark4ne\OpenApi\Support\Reflection\Type;
+use Ark4ne\OpenApi\Documentation\RequestEntry;
+use Ark4ne\OpenApi\Documentation\ResponseEntry;
+use Ark4ne\OpenApi\Support\ArrayInsensitive;
+use Ark4ne\OpenApi\Support\Reflection;
+use phpDocumentor\Reflection\DocBlock;
+use ReflectionMethod;
 
 interface Entry
 {
-    public function getUri(): string;
+    /**
+     * @return array<string>
+     */
+    public function getMethods(): array;
+
+    public function getRouteUri(): string;
+
+    public function getRouteName(): string;
 
     /**
+     * @throws \ReflectionException
      * @return array<string, null|string>
      */
-    public function getPathParameters(): array;
+    public function getRouteParams(): array;
 
     public function getController(): mixed;
 
     public function getControllerClass(): string;
 
+    public function getControllerName(): string;
+
     public function getAction(): string;
 
-    /**
-     * @return Type<\Illuminate\Http\Response, mixed>
-     */
-    public function getResponseClass(): Type;
+    public function getMethod(): ReflectionMethod;
+
+    public function getDoc(): ?DocBlock;
 
     /**
-     * @return Type<\Illuminate\Http\Request, null>
+     * @param string $tag
+     *
+     * @return \phpDocumentor\Reflection\DocBlock\Tags\BaseTag[]
      */
-    public function getRequestClass(): Type;
+    public function getDocTag(string $tag): array;
+
+    public function getDocDescription(): ?string;
+
+    public function getDocResponseStatus(): ?string;
+
+    public function getDocResponseStatusCode(): ?int;
+
+    public function getDocResponseStatusName(): ?string;
+
+    /**
+     * @return ArrayInsensitive<string, string>
+     */
+    public function getDocResponseHeaders(): ArrayInsensitive;
+
+    public function getName(): string;
+
+    public function getTag(): string;
+
+    public function getGroup(): ?string;
+
+    public function getDescription(): ?string;
+
+    /**
+     * @return Reflection\Type<\Illuminate\Http\Response, mixed>
+     */
+    public function getResponseClass(): Reflection\Type;
+
+    /**
+     * @return Reflection\Type<\Illuminate\Http\Request, null>
+     */
+    public function getRequestClass(): Reflection\Type;
+
+    public function request(): RequestEntry;
+
+    public function response(): ResponseEntry;
 }

@@ -3,6 +3,8 @@
 namespace Ark4ne\OpenApi\Documentation;
 
 use Ark4ne\OpenApi\Contracts\Entry;
+use Ark4ne\OpenApi\Support\ArrayInsensitive;
+use Ark4ne\OpenApi\Support\Config;
 use Ark4ne\OpenApi\Support\Reflection;
 use Ark4ne\OpenApi\Support\Reflection\Type;
 use Ark4ne\OpenApi\Support\Trans;
@@ -10,6 +12,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Str;
+use phpDocumentor\Reflection\DocBlock;
+use ReflectionMethod;
 
 class DocumentationEntry implements Entry
 {
@@ -19,6 +23,8 @@ class DocumentationEntry implements Entry
     protected array $parameters;
     protected mixed $controller;
     protected string $action;
+    protected ReflectionMethod $method;
+    protected null|DocBlock $doc;
     protected null|Reflection\Type $requestClass;
     protected null|Reflection\Type $responseClass;
 
@@ -38,12 +44,12 @@ class DocumentationEntry implements Entry
         return $this->route->methods();
     }
 
-    public function getUri(): string
+    public function getRouteUri(): string
     {
         return $this->uri ??= $this->route->uri();
     }
 
-    public function getName(): string
+    public function getRouteName(): string
     {
         return $this->name ??= $this->route->getName() ?? Str::slug(
                 $this->getControllerClass() . '-' . $this->getAction(),
@@ -55,7 +61,7 @@ class DocumentationEntry implements Entry
      * @throws \ReflectionException
      * @return array<string, null|string>
      */
-    public function getPathParameters(): array
+    public function getRouteParams(): array
     {
         if (isset($this->parameters)) {
             return $this->parameters;
@@ -106,25 +112,107 @@ class DocumentationEntry implements Entry
         return $this->action = $action;
     }
 
-    public function getDescription(): ?string
+    public function getMethod(): ReflectionMethod
     {
-        $method = Reflection::method($this->getControllerClass(), $this->getAction());
-        $doc = Reflection::docblock($method);
+        return $this->method ??= Reflection::method($this->getControllerClass(), $this->getAction());
+    }
 
-        $description = $doc?->getSummary() ?? '';
-        $tags = $doc?->getTagsByName('oa-description');
+    public function getDoc(): ?DocBlock
+    {
+        return $this->doc ??= Reflection::docblock($this->getMethod());
+    }
 
-        $keys = [];
-        if (!empty($tags)) {
-            /** @var \phpDocumentor\Reflection\DocBlock\Tags\Generic $tag */
-            $tag = $tags[0];
-            $desc = $tag->getDescription()->getBodyTemplate();
-            $keys[] = "openapi.requests.descriptions.custom.$desc";
+    /**
+     * @param string $tag
+     *
+     * @return \phpDocumentor\Reflection\DocBlock\Tags\BaseTag[]
+     */
+    public function getDocTag(string $tag): array
+    {
+        return $this->getDoc()?->getTagsByName("oa-$tag") ?? [];
+    }
+
+    public function getDocDescription(): ?string
+    {
+        return ($this->getDocTag('description')[0] ?? null)?->getDescription()?->getBodyTemplate();
+    }
+
+    public function getDocResponseStatus(): ?string
+    {
+        return trim(($this->getDocTag('response-status')[0] ?? null)?->getDescription()?->getBodyTemplate());
+    }
+
+    public function getDocResponseStatusCode(): ?int
+    {
+        $status = $this->getDocResponseStatus();
+
+        if ($status) {
+            [$code] = explode(' ', $status, 2);
+
+            return (int)$code;
         }
 
-        $keys[] = "openapi.requests.descriptions.{$this->getName()}";
+        return null;
+    }
 
-        return Trans::get($keys, [], $description);
+    public function getDocResponseStatusName(): ?string
+    {
+        $status = $this->getDocResponseStatus();
+
+        if ($status) {
+            $parts = explode(' ', $status, 2);
+
+            return $parts[2] ?? null;
+        }
+
+        return null;
+    }
+
+    /**
+     * @return ArrayInsensitive<string, string>
+     */
+    public function getDocResponseHeaders(): ArrayInsensitive
+    {
+        $entries = array_map(
+            static function ($tag) {
+                $parts = explode(' ', $tag->getDescription()?->getBodyTemplate(), 2);
+
+                return [$parts[0], $parts[1] ?? ''];
+            },
+            $this->getDocTag('response-header')
+        );
+
+        return new ArrayInsensitive(array_combine(
+            array_column($entries, 0),
+            array_column($entries, 1)
+        ));
+    }
+
+    public function getName(): string
+    {
+        return Trans::get("openapi.requests.{$this->getRouteName()}.name")
+            ?? $this->resolveGroup(Config::nameBy())
+            ?? Str::studly($this->getRouteName());
+    }
+
+    public function getTag(): string
+    {
+        return $this->resolveGroup(Config::tagBy()) ?? $this->getControllerName();
+    }
+
+    public function getGroup(): ?string
+    {
+        return $this->resolveGroup(Config::groupBy());
+    }
+
+    public function getDescription(): ?string
+    {
+        if ($desc = $this->getDocDescription()) {
+            return Trans::get("openapi.requests.descriptions.$desc", [], $desc);
+        }
+
+        return Trans::get("openapi.requests.{$this->getRouteName()}.description", [],
+            $this->getDoc()?->getSummary() ?? '');
     }
 
     /**
@@ -136,7 +224,7 @@ class DocumentationEntry implements Entry
             return $this->responseClass;
         }
 
-        $method = Reflection::method($this->getControllerClass(), $this->getAction());
+        $method = $this->getMethod();
 
         return $this->responseClass = Reflection::parseReturnType($method) ?? Reflection\Type::make(Response::class);
     }
@@ -160,7 +248,7 @@ class DocumentationEntry implements Entry
             }
         }
 
-        $method = Reflection::method($this->getControllerClass(), $this->getAction());
+        $method = $this->getMethod();
 
         return $this->requestClass = Reflection::parseParametersFromDocBlockForClass($method, Request::class)
             ?? Reflection\Type::make(Request::class);
@@ -196,5 +284,34 @@ class DocumentationEntry implements Entry
         }
 
         throw new \Exception("TODO: Can't parse " . $element->getType());
+    }
+
+    /**
+     * @param array{by: string, regex: string}|callable $config
+     *
+     * @return string|null
+     */
+    protected function resolveGroup(null|array|callable $config): ?string
+    {
+        if (null === $config) {
+            return null;
+        }
+
+        if (is_callable($config)) {
+            return $config($this);
+        }
+
+        $by = match ($config['by'] ?? null) {
+            'uri' => $this->getRouteUri(),
+            'name' => $this->getRouteName(),
+            'controller' => $this->getControllerClass(),
+            default => null
+        };
+
+        if ($by && preg_match($config['regex'], $by, $match)) {
+            return $match[1];
+        }
+
+        return null;
     }
 }

@@ -11,7 +11,7 @@ class Http
         return !($method === 'GET' || $method === 'HEAD' || $method === 'DELETE');
     }
 
-    public static function canAsContent(string $method): bool
+    public static function canReturnContent(string $method): bool
     {
         $method = strtoupper($method);
 

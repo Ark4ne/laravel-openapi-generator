@@ -39,7 +39,7 @@ trait RulesParser
 
         // TODO check typeDescription
         $parameter->typeDescription(Trans::get([
-            "openapi.requests.parameters.custom.{$entry->getName()}.$parameter->name",
+            "openapi.requests.parameters.custom.{$entry->getRouteName()}.$parameter->name",
             "openapi.requests.parameters.$parameter->name",
         ], default: $description));
 

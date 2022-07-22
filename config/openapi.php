@@ -84,7 +84,7 @@ return [
             | You will also need to define a regex that will retrieve the name
             | of the group.
             */
-            'nameBy' => [
+            'name-by' => [
                 'by' => 'name', // 'description', 'controller', 'uri, 'name'
                 'regex' => '/(.+)/'
             ],
@@ -104,7 +104,7 @@ return [
             | of the group.
             |
             */
-            'tagBy' => [
+            'tag-by' => [
                 'by' => 'controller', // 'controller', 'uri, 'name'
                 'regex' => '/^App\\\\Http\\\\(\w+)Controller/'
             ],
@@ -127,7 +127,7 @@ return [
             | of the group.
             |
             */
-            'groupBy' => [
+            'group-by' => [
                 'by' => 'controller', // 'controller', 'uri, 'name'
                 'regex' => '/^App\\\\Http\\\\(\w+)/'
             ],
@@ -242,5 +242,17 @@ return [
     */
     'connections' => [
         'use-transaction' => true
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Languages
+    |--------------------------------------------------------------------------
+    |
+    | Defines in which languages the documentation will be generated.
+    |
+    */
+    'languages' => [
+        // 'en',
     ]
 ];

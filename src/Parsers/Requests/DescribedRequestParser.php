@@ -28,7 +28,7 @@ class DescribedRequestParser implements RequestParserContract
 
         return new RequestEntry(
             securities: $describer->getSecurities(),
-            parameters: collect($entry->getPathParameters())
+            parameters: collect($entry->getRouteParams())
                 ->map(fn(?string $pattern, string $name) => tap(new Parameter($name), fn($param) => $pattern
                     ? $this->parseRegex($param, $pattern)
                     : null))

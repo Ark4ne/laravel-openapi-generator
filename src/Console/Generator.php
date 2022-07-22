@@ -4,6 +4,8 @@ namespace Ark4ne\OpenApi\Console;
 
 use Ark4ne\OpenApi\Documentation\DocumentationGenerator;
 use Ark4ne\OpenApi\Errors\Log;
+use Ark4ne\OpenApi\Support\Config;
+use Ark4ne\OpenApi\Support\Trans;
 use Ark4ne\OpenApi\Support\Translator;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -42,12 +44,21 @@ class Generator extends Command
                 return 0;
             }
 
-            foreach (config('openapi.versions') as $version => $config) {
-                foreach ([false, true] as $flat) {
+            foreach (Config::versions() as $version => $config) {
+                Config::version($version);
+
+                if (!empty($languages = Config::languages())) {
+                    foreach ($languages as $language) {
+                        Trans::lang($language);
+
+                        /** @var DocumentationGenerator $generator */
+                        $generator = app()->make(DocumentationGenerator::class);
+                        $generator->generate($version, $language);
+                    }
+                } else {
                     /** @var DocumentationGenerator $generator */
                     $generator = app()->make(DocumentationGenerator::class);
-
-                    $generator->generate($version, $flat);
+                    $generator->generate($version);
                 }
             }
         } finally {
@@ -59,12 +70,12 @@ class Generator extends Command
 
     protected function beginTransaction(): bool
     {
-        if (!config('openapi.connections.use-transaction')) {
+        if (!Config::connections('use-transaction')) {
             return false;
         }
         $connections = array_keys(config('database.connections'));
 
-        $allStarted = true;
+        $success = true;
 
         foreach ($connections as $connection) {
             try {
@@ -76,20 +87,23 @@ class Generator extends Command
             try {
                 $connect->beginTransaction();
             } catch (\Throwable $e) {
-                $allStarted = false;
+                $success = false;
                 $this->comment("$connection can't start transaction");
             }
         }
 
-        return $allStarted || $this->confirm("Some connections could not establish a transaction. Do you want to continue ?");
+        return $success || $this->confirm("Some connections could not establish a transaction. Do you want to continue ?");
     }
 
     protected function rollback(): bool
     {
-        if (!config('openapi.connections.use-transaction')) {
-            return false;
+        if (!Config::connections('use-transaction')) {
+            return true;
         }
+
         $connections = array_keys(config('database.connections'));
+
+        $success = true;
 
         foreach (array_reverse($connections) as $connection) {
             try {
@@ -101,10 +115,11 @@ class Generator extends Command
                 $connect->rollBack();
             } catch (\Throwable $e) {
                 $this->warn("$connection can't rollback transaction");
+                $success = false;
             }
         }
 
-        return true;
+        return $success;
     }
 
     /**

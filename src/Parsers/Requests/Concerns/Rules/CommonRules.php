@@ -31,7 +31,7 @@ trait CommonRules
      */
     public function parseActiveUrl(array $parameters): void
     {
-        $this->parameter->string()->pattern('url'); // TODO description
+        $this->parameter->string()->pattern('url');
     }
 
     /**
