@@ -2,8 +2,10 @@
 
 namespace Ark4ne\OpenApi\Parsers\Responses\Concerns;
 
+use Ark4ne\OpenApi\Errors\Log;
 use Ark4ne\OpenApi\Support\Fake;
 use Ark4ne\OpenApi\Support\Reflection;
+use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,29 +24,43 @@ trait JAResource
                     'type' => $this->getType($instance::class),
                     'attributes' => $this->getSamples($instance, 'toAttributes', $request),
                     'relationships' => collect(Reflection::call($instance, 'toRelationships', $request))->map(function (
-                        $relationship
-                    ) {
+                        $relationship,
+                        $name
+                    ) use ($instance) {
+                        $resource = $relationship->getResource();
+
                         $sample = [
                             'id' => 'mixed',
-                            'type' => $this->getType($relationship->getResource())
+                            'type' => $this->getType($resource)
                         ];
 
                         $data = Reflection::read($relationship, 'asCollection')
+                        || is_subclass_of($resource, ResourceCollection::class)
                             ? [$sample, $sample]
                             : $sample;
 
-                        $relationshipLinks = Reflection::read($relationship, 'links');
-                        try {
-                            $links = $relationshipLinks(new Fake);
-                        } catch (\Throwable $e) {
-                            // todo log
+                        if ($relationshipLinks = Reflection::read($relationship, 'links')) {
+                            try {
+                                $links = $relationshipLinks(new Fake);
+                            } catch (\Throwable $e) {
+                                Log::warn('Response', implode("\n    ", [
+                                    'Error when trying to documentate json-api resource ' . $instance::class . ' : ',
+                                    'Fail to generate links for relation ' . $name . ' : ',
+                                    $e->getMessage()
+                                ]));
+                            }
                         }
 
-                        $relationshipMeta = Reflection::read($relationship, 'meta');
-                        try {
-                            $meta = $relationshipMeta(new Fake);
-                        } catch (\Throwable $e) {
-                            // todo log
+                        if ($relationshipMeta = Reflection::read($relationship, 'meta')) {
+                            try {
+                                $meta = $relationshipMeta(new Fake);
+                            } catch (\Throwable $e) {
+                                Log::warn('Response', implode("\n    ", [
+                                    'Error when trying to documentate json-api resource ' . $instance::class . ' : ',
+                                    'Fail to generate meta for relation ' . $name . ' : ',
+                                    $e->getMessage()
+                                ]));
+                            }
                         }
 
                         return [
@@ -63,7 +79,7 @@ trait JAResource
 
     protected function mergeResponseWithStructure(Response $response, array $structure)
     {
-        $merge = function($data, $structure){
+        $merge = function ($data, $structure) {
             $data['attributes'] = array_merge(
                 $structure['data']['attributes'],
                 array_filter($data['attributes'], static fn($v) => $v !== '' && $v !== [])
@@ -96,9 +112,9 @@ trait JAResource
     }
 
     /**
-     * @param $instance
+     * @param        $instance
      * @param string $method
-     * @param $request
+     * @param        $request
      *
      * @throws \ReflectionException
      * @return string[]
@@ -113,7 +129,11 @@ trait JAResource
                 'mixed'
             );
         } catch (\Throwable $e) {
-            // TODO log
+            Log::warn('Response', implode("\n    ", [
+                'Error when trying to documentate json-api resource ' . $instance::class . ' : ',
+                'Fail to generate samples for attributes : ',
+                $e->getMessage()
+            ]));
             return [];
         }
     }
@@ -125,7 +145,11 @@ trait JAResource
         try {
             return Reflection::call($reflect->newInstanceWithoutConstructor(), 'toType', request());
         } catch (\Throwable $e) {
-            // TODO
+            Log::warn('Response', implode("\n    ", [
+                'Error when trying to documentate json-api resource ' . $class . ' : ',
+                'Fail to generate type, use custom type from resource::class : ', // TODO Split error log and solution
+                $e->getMessage()
+            ]));
         }
 
         $type = $this->getResourceClass($reflect) ?? $reflect->getName();
