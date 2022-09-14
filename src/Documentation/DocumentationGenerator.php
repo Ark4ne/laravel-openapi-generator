@@ -20,7 +20,6 @@ use GoldSpecDigital\ObjectOrientedOAS\Objects\{
     Tag
 };
 use GoldSpecDigital\ObjectOrientedOAS\OpenApi;
-use RuntimeException;
 
 class DocumentationGenerator
 {
@@ -48,7 +47,7 @@ class DocumentationGenerator
         );
     }
 
-    public function generate(string $version, string $lang = null): void
+    public function generate(string $version): OpenApi
     {
         $routes = $this->getRoutes(Config::routes());
         $ignoreVerbs = array_map('strtoupper', Config::ignoreVerbs());
@@ -87,16 +86,7 @@ class DocumentationGenerator
             $openApi = $openApi->x('tagGroups', array_values($this->groups));
         }
 
-        if (!is_dir($dir = Config::outputDir()) && !mkdir($dir, 0777, true) && !is_dir($dir)) {
-            throw new RuntimeException(sprintf('Directory "%s" was not created', $dir));
-        }
-
-        $path = Config::outputFile();
-
-        file_put_contents(
-            $lang ? "$dir/$lang-$path" : "$dir/$path",
-            $openApi->toJson()
-        );
+        return $openApi;
     }
 
     /**

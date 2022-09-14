@@ -7,8 +7,10 @@ use Ark4ne\OpenApi\Errors\Log;
 use Ark4ne\OpenApi\Support\Config;
 use Ark4ne\OpenApi\Support\Trans;
 use Ark4ne\OpenApi\Support\Translator;
+use GoldSpecDigital\ObjectOrientedOAS\Exceptions\ValidationException;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use RuntimeException;
 
 class Generator extends Command
 {
@@ -17,7 +19,7 @@ class Generator extends Command
      *
      * @var string
      */
-    protected $signature = 'openapi:generate';
+    protected $signature = 'openapi:generate {--force}';
 
     /**
      * The console command name.
@@ -50,15 +52,10 @@ class Generator extends Command
                 if (!empty($languages = Config::languages())) {
                     foreach ($languages as $language) {
                         Trans::lang($language);
-
-                        /** @var DocumentationGenerator $generator */
-                        $generator = app()->make(DocumentationGenerator::class);
-                        $generator->generate($version, $language);
+                        $this->generate($version, $language);
                     }
                 } else {
-                    /** @var DocumentationGenerator $generator */
-                    $generator = app()->make(DocumentationGenerator::class);
-                    $generator->generate($version);
+                    $this->generate($version);
                 }
             }
         } finally {
@@ -66,6 +63,35 @@ class Generator extends Command
         }
 
         return 0;
+    }
+
+    protected function generate(string $version, string $lang = null): void
+    {
+        /** @var DocumentationGenerator $generator */
+        $generator = app()->make(DocumentationGenerator::class);
+        $openapi = $generator->generate($version);
+
+        try {
+            $openapi->validate();
+            Log::info('Validation', "SUCCESS");
+        } catch (ValidationException $exception) {
+            Log::error('Validation', "FAILED with " . count($exception->getErrors()) . " errors");
+            foreach ($exception->getErrors() as $error) {
+                Log::line($error['pointer'], "[{$error['constraint']}] {$error['message']}");
+            }
+        }
+
+        if (!is_dir($dir = Config::outputDir()) && !mkdir($dir, 0777, true) && !is_dir($dir)) {
+            throw new RuntimeException(sprintf('Directory "%s" was not created', $dir));
+        }
+
+        $path = Config::outputFile();
+
+        $file = $lang ? "$lang-$path" : $path;
+
+        file_put_contents("$dir/$file", $openapi->toJson());
+
+        Log::info('Generation', "$file: terminated");
     }
 
     protected function beginTransaction(): bool
@@ -92,7 +118,9 @@ class Generator extends Command
             }
         }
 
-        return $success || $this->confirm("Some connections could not establish a transaction. Do you want to continue ?");
+        return $success
+            || $this->option('force')
+            || $this->confirm("Some connections could not establish a transaction. Do you want to continue ?");
     }
 
     protected function rollback(): bool
