@@ -10,7 +10,6 @@ use Closure;
  * @method static void error(string $context, string $message)
  * @method static void warn(string $context, string $message)
  * @method static void info(string $context, string $message)
- * @method static void comment(string $context, string $message)
  * @method static void line(string $context, string $message)
  */
 class Log

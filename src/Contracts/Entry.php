@@ -53,6 +53,8 @@ interface Entry
 
     public function getDocResponseStatusName(): ?string;
 
+    public function getDocResponsePaginate(): bool;
+
     /**
      * @return ArrayInsensitive<string, string>
      */

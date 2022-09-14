@@ -168,6 +168,11 @@ class DocumentationEntry implements Entry
         return null;
     }
 
+    public function getDocResponsePaginate(): bool
+    {
+        return (bool)($this->getDocTag('response-paginate')[0] ?? false);
+    }
+
     /**
      * @return ArrayInsensitive<string, string>
      */

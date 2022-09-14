@@ -23,53 +23,9 @@ trait JAResource
                     'id' => 'mixed',
                     'type' => $this->getType($instance::class),
                     'attributes' => $this->getSamples($instance, 'toAttributes', $request),
-                    'relationships' => collect(Reflection::call($instance, 'toRelationships', $request))->map(function (
-                        $relationship,
-                        $name
-                    ) use ($instance) {
-                        $resource = $relationship->getResource();
-
-                        $sample = [
-                            'id' => 'mixed',
-                            'type' => $this->getType($resource)
-                        ];
-
-                        $data = Reflection::read($relationship, 'asCollection')
-                        || is_subclass_of($resource, ResourceCollection::class)
-                            ? [$sample, $sample]
-                            : $sample;
-
-                        if ($relationshipLinks = Reflection::read($relationship, 'links')) {
-                            try {
-                                $links = $relationshipLinks(new Fake);
-                            } catch (\Throwable $e) {
-                                Log::warn('Response', implode("\n    ", [
-                                    'Error when trying to documentate json-api resource ' . $instance::class . ' : ',
-                                    'Fail to generate links for relation ' . $name . ' : ',
-                                    $e->getMessage()
-                                ]));
-                            }
-                        }
-
-                        if ($relationshipMeta = Reflection::read($relationship, 'meta')) {
-                            try {
-                                $meta = $relationshipMeta(new Fake);
-                            } catch (\Throwable $e) {
-                                Log::warn('Response', implode("\n    ", [
-                                    'Error when trying to documentate json-api resource ' . $instance::class . ' : ',
-                                    'Fail to generate meta for relation ' . $name . ' : ',
-                                    $e->getMessage()
-                                ]));
-                            }
-                        }
-
-                        return [
-                                'data' => $data,
-                            ] + array_filter([
-                                'links' => $links ?? null,
-                                'meta' => $meta ?? null,
-                            ]);
-                    })->all()
+                    'relationships' => collect(Reflection::call($instance, 'toRelationships', $request))
+                        ->map(fn ($relationship, $name) => $this->mapRelationships($instance, $relationship, $name))
+                        ->all()
                 ] + array_filter([
                     'meta' => $this->getSamples($instance, 'toResourceMeta', $request),
                     'links' => $this->getSamples($instance, 'toLinks', $request),
@@ -77,9 +33,55 @@ trait JAResource
         ];
     }
 
+    protected function mapRelationships($instance, $relationship, $name)
+    {
+        $resource = $relationship->getResource();
+
+        $sample = [
+            'id' => 'mixed',
+            'type' => $this->getType($resource)
+        ];
+
+        $data = Reflection::read($relationship, 'asCollection')
+        || is_subclass_of($resource, ResourceCollection::class)
+            ? [$sample, $sample]
+            : $sample;
+
+        if ($relationshipLinks = Reflection::read($relationship, 'links')) {
+            try {
+                $links = $relationshipLinks(new Fake);
+            } catch (\Throwable $e) {
+                Log::warn('Response', implode("\n    ", [
+                    'Error when trying to documentate json-api resource ' . $instance::class . ' : ',
+                    'Fail to generate links for relation ' . $name . ' : ',
+                    $e->getMessage()
+                ]));
+            }
+        }
+
+        if ($relationshipMeta = Reflection::read($relationship, 'meta')) {
+            try {
+                $meta = $relationshipMeta(new Fake);
+            } catch (\Throwable $e) {
+                Log::warn('Response', implode("\n    ", [
+                    'Error when trying to documentate json-api resource ' . $instance::class . ' : ',
+                    'Fail to generate meta for relation ' . $name . ' : ',
+                    $e->getMessage()
+                ]));
+            }
+        }
+
+        return [
+                'data' => $data,
+            ] + array_filter([
+                'links' => $links ?? null,
+                'meta' => $meta ?? null,
+            ]);
+    }
+
     protected function mergeResponseWithStructure(Response $response, array $structure)
     {
-        $merge = function ($data, $structure) {
+        $merge = static function ($data, $structure) {
             $data['attributes'] = array_merge(
                 $structure['data']['attributes'],
                 array_filter($data['attributes'], static fn($v) => $v !== '' && $v !== [])

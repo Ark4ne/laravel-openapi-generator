@@ -14,6 +14,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Resources\Json\ResourceCollection;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use ReflectionClass;
@@ -64,17 +65,20 @@ trait Resource
         $instance = $class->newInstanceWithoutConstructor();
 
         if ($instance instanceof ResourceCollection) {
-            return $this->getResponseFromCollection($instance, $type);
+            return $this->getResponseFromCollection($entry, $instance, $type);
         }
         if ($instance instanceof JsonResource) {
-            return $this->getResponseFromResource($instance, $type, $class);
+            return $this->getResponseFromResource($entry, $instance, $type, $class);
         }
 
         return null;
     }
 
-    private function getResponseFromCollection(ResourceCollection $instance, Reflection\Type $type): ?JsonResponse
-    {
+    private function getResponseFromCollection(
+        Entry $entry,
+        ResourceCollection $instance,
+        Reflection\Type $type
+    ): ?JsonResponse {
         try {
             if (!($resource = $this->getResourceFromCollection($instance, $type))) {
                 Log::warn('Response', "Can't determinate resource type for collection : " . $instance::class);
@@ -82,8 +86,13 @@ trait Resource
             }
 
             $instance->collects = $resource;
-            $instance->collection = collect($this->getModelFromResource(new ReflectionClass($resource), 2))
-                ->mapInto($resource);
+            $collection = collect($this->getModelFromResource(new ReflectionClass($resource), 2))->mapInto($resource);
+
+            if ($entry->getDocResponsePaginate()) {
+                $collection = new LengthAwarePaginator($collection, $collection->count(), 15);
+            }
+
+            $instance->collection = $collection;
 
             return $instance->response();
         } catch (\Throwable $e) {
@@ -92,8 +101,12 @@ trait Resource
         }
     }
 
-    private function getResponseFromResource(JsonResource $instance,  Reflection\Type $type, ReflectionClass $class): ?JsonResponse
-    {
+    private function getResponseFromResource(
+        Entry $entry,
+        JsonResource $instance,
+        Reflection\Type $type,
+        ReflectionClass $class
+    ): ?JsonResponse {
         try {
             $instance->resource = $this->getModelFromResource($class);
 
@@ -104,12 +117,12 @@ trait Resource
         }
     }
 
-    private function getResourceFromCollection(ResourceCollection $instance, Reflection\Type $type): ?string {
-
+    private function getResourceFromCollection(ResourceCollection $instance, Reflection\Type $type): ?string
+    {
         $resource = Reflection::read($instance, 'collects') ?? Reflection::call($instance, 'collects');
 
         if (!$resource || !Reflection::isInstantiable($resource)) {
-            if(!($type->isGeneric() && ($resource = $type->getSub()) && Reflection::isInstantiable($resource))) {
+            if (!($type->isGeneric() && ($resource = $type->getSub()) && Reflection::isInstantiable($resource))) {
                 return null;
             }
         }
