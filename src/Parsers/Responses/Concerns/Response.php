@@ -5,6 +5,7 @@ namespace Ark4ne\OpenApi\Parsers\Responses\Concerns;
 use Ark4ne\OpenApi\Contracts\Entry;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Header;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\MediaType;
+use GoldSpecDigital\ObjectOrientedOAS\Objects\Schema;
 
 trait Response
 {
@@ -31,7 +32,7 @@ trait Response
     public function convertHeadersToOasHeaders(iterable $headers): array
     {
         foreach ($headers as $name => $value) {
-            $converted[] = Header::create($name)->example($value);
+            $converted[] = Header::create($name)->schema(Schema::string())->example($value);
         }
 
         return $converted ?? [];

@@ -268,24 +268,29 @@ class Parameter implements OASSchematable
             ->enum(...($this->enum ?? []))
             ->pattern($this->pattern ?? null)
             ->default($this->default ?? null)
-            ->properties(...array_map(fn(self $param) => $param->oasSchema(), $this->properties ?? []))
             ->multipleOf($this->multipleOf ?? null)// ->additionalProperties($additionalProperties)  // TODO
         ;
+
+        if($this->properties ?? null) {
+            $schema = $schema->properties(...array_map(fn(self $param) => $param->oasSchema(), $this->properties ?? []));
+        }
 
         if ($this->items ?? null) {
             $schema = $schema->items($this->items->oasSchema());
         }
 
-        if (($this->min ?? null) && ($this->exclusiveMin ?? null)) {
-            $schema = $schema->exclusiveMinimum($this->min);
-        } elseif ($this->min ?? null) {
-            $schema = $schema->minimum($this->min);
-        }
+        if ($this->type === self::TYPE_NUMBER || $this->type === self::TYPE_INTEGER) {
+            if (($this->min ?? null) && ($this->exclusiveMin ?? null)) {
+                $schema = $schema->exclusiveMinimum($this->min);
+            } elseif ($this->min ?? null) {
+                $schema = $schema->minimum($this->min);
+            }
 
-        if (($this->max ?? null) && ($this->exclusiveMax ?? null)) {
-            $schema = $schema->exclusiveMaximum($this->max);
-        } elseif ($this->max ?? null) {
-            $schema = $schema->maximum($this->max);
+            if (($this->max ?? null) && ($this->exclusiveMax ?? null)) {
+                $schema = $schema->exclusiveMaximum($this->max);
+            } elseif ($this->max ?? null) {
+                $schema = $schema->maximum($this->max);
+            }
         }
 
         return $schema;
@@ -389,7 +394,7 @@ class Parameter implements OASSchematable
                     fn($value, $key) => self::fromJson($value, $key)
                 ));
             } elseif (!empty($data)) {
-                $parameter->object()->properties(...collect($data)->map(
+                $parameter->array()->items(...collect($data)->map(
                     fn($value, $key) => self::fromJson($value, $key)
                 ));
             } else {

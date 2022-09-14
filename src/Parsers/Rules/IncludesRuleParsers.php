@@ -52,7 +52,7 @@ class IncludesRuleParsers implements CustomRuleParser
 
     protected function schemaToRef(mixed $schema): string
     {
-        $ref = 'include:' . $this->getType($schema);
+        $ref = 'include-' . $this->getType($schema);
 
         if (Component::has($ref, Component::SCOPE_SCHEMAS)) {
             return Component::get($ref, Component::SCOPE_SCHEMAS)?->ref();

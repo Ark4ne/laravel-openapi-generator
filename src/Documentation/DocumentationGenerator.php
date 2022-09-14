@@ -173,6 +173,7 @@ class DocumentationGenerator
     {
         $response = Response::create()
             ->statusCode($entry->statusCode() ?: 200)
+            ->description($entry->statusName() ?: '')
             ->headers(...$entry->headers());
 
         if ($body = $entry->body()) {

@@ -7,6 +7,7 @@ use Ark4ne\OpenApi\Contracts\ResponseParserContract;
 use Ark4ne\OpenApi\Documentation\ResponseEntry;
 use Ark4ne\OpenApi\Parsers\Responses\Concerns\Response;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\MediaType;
+use GoldSpecDigital\ObjectOrientedOAS\Objects\Schema;
 
 class ResponseParser implements ResponseParserContract
 {
@@ -19,7 +20,7 @@ class ResponseParser implements ResponseParserContract
             statusCode: $entry->getDocResponseStatusCode() ?? 0,
             statusName: $entry->getDocResponseStatusName() ?? '',
             headers: $this->convertHeadersToOasHeaders($this->getHeaders($entry)),
-            body: MediaType::create()->mediaType($this->getMediaType($entry))
+            body: MediaType::create()->mediaType($this->getMediaType($entry))->schema(Schema::string())
         );
     }
 }
