@@ -11,9 +11,10 @@
   "require": {
     "php": "^8.0",
     "laravel/framework": "^8.0|^9.0",
-    "goldspecdigital/oooas": "^2.8",
+    "goldspecdigital/oooas": "^2.10",
     "phpdocumentor/reflection-docblock": "^5.3",
-    "phpdocumentor/type-resolver": "^1.6"
+    "phpdocumentor/type-resolver": "^1.6",
+    "justinrainbow/json-schema": "^5.2"
   },
   "require-dev": {
     "phpunit/phpunit": "^9.0",
