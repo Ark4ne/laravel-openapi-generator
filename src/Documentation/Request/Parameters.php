@@ -2,8 +2,9 @@
 
 namespace Ark4ne\OpenApi\Documentation\Request;
 
+use Ark4ne\OpenApi\Support\Arr;
+use Ark4ne\OpenApi\Support\Config;
 use InvalidArgumentException;
-use Illuminate\Support\Arr;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\{MediaType, Parameter as OASParameter, RequestBody, Schema};
 
 class Parameters
@@ -19,11 +20,10 @@ class Parameters
     /**
      * @param string               $type
      * @param null|string|string[] $format
-     * @param bool                 $flat
      *
      * @return array<OASParameter>|\GoldSpecDigital\ObjectOrientedOAS\Objects\RequestBody
      */
-    public function convert(string $type, null|string|array $format = null, bool $flat = false): array|RequestBody
+    public function convert(string $type, null|string|array $format = null): array|RequestBody
     {
         switch ($type) {
             case OASParameter::IN_COOKIE:
@@ -34,12 +34,12 @@ class Parameters
                     ->values()
                     ->all();
             case OASParameter::IN_QUERY:
-                $params = $flat ? $this->flat() : $this->undot();
+                $params = Config::flatMode('none') ? $this->undot() : $this->flat();
 
                 return collect($params)
-                    ->map(function (array|Parameter $param, $name) use ($type, $flat) {
+                    ->map(function (array|Parameter $param, $name) use ($type) {
                         if ($param instanceof Parameter) {
-                            return ($flat ? $param->flat() : $param->undot())->oasParameters($type);
+                            return (Config::flatMode('none') ? $param->undot() : $param->flat())->oasParameters($type);
                         }
 
                         /** @var OASParameter $parameter */
@@ -74,15 +74,35 @@ class Parameters
             array_column($params, 1)
         );
 
-        return Arr::undot($params);
+        return Arr::undot($params, self::key());
     }
 
     protected function flat(): array
     {
-        $flat = static function ($array, $prepend = '') use (&$flat) {
+        /**
+         * @param array<Parameter|array<Parameter>> $array
+         * @param string                            $prepend
+         *
+         * @return array
+         */
+        $flat = static function (array $array, string $prepend = '') use (&$flat) {
             $results = [];
 
             foreach ($array as $key => $value) {
+                if ($key === self::key()) {
+                    continue;
+                }
+                // Handle parameter like "values.*: string" => "values[]: string" as "values: array<string>"
+                if ($key === '*' &&
+                    !is_array($value) && // prevent parameter like "values.*.name". they will be treated as values[][name]
+                    Config::flatMode('last') &&
+                    isset($array[self::key()]) &&
+                    $array[self::key()]->type === Parameter::TYPE_ARRAY
+                ) {
+                    $self = $array[self::key()];
+                    $results[$prepend] = $self->items($value);
+                    continue;
+                }
                 $sub = $key === '*' ? '' : $key;
                 $arrayKey = $prepend ? "{$prepend}[$sub]" : $sub;
                 if (is_array($value) && !empty($value)) {
@@ -138,5 +158,12 @@ class Parameters
         return Schema::object($name)->properties(
             ...$this->arrayToProperties($params)
         );
+    }
+
+    private static function key(): string
+    {
+        static $key;
+
+        return $key ??= uniqid('self-', false);
     }
 }

@@ -14,6 +14,7 @@ use Illuminate\Support\Str;
  * @method static string[] ignoreVerbs()
  * @method static string outputFile()
  * @method static string outputDir()
+ * @method static string parameters(string ...$key)
  * @method static array parsers(?string $type = null)
  * @method static array format(?string $type = null)
  * @method static array connections(?string $value = null)
@@ -35,8 +36,8 @@ class Config
     }
 
     /**
-     * @param string $name
-     * @param array<mixed>  $args
+     * @param string       $name
+     * @param array<string> $args
      *
      * @return mixed
      */
@@ -59,5 +60,12 @@ class Config
         }
 
         return null;
+    }
+
+    public static function flatMode(string $is = null): string|bool
+    {
+        $mode = self::parameters('query', 'flat') ?? 'all';
+
+        return $is === null ? $mode : $mode === $is;
     }
 }

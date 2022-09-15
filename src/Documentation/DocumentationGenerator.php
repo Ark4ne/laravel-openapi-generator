@@ -61,7 +61,7 @@ class DocumentationGenerator
 
             foreach ($entry->getMethods() as $method) {
                 if (!in_array(strtoupper($method), $ignoreVerbs, true)) {
-                    $operations[] = $this->operation($entry, $method, true);
+                    $operations[] = $this->operation($entry, $method);
                 }
             }
 
@@ -92,12 +92,11 @@ class DocumentationGenerator
     /**
      * @param \Ark4ne\OpenApi\Documentation\DocumentationEntry $entry
      * @param string                                           $method
-     * @param bool                                             $flatParameters
      *
      * @throws \GoldSpecDigital\ObjectOrientedOAS\Exceptions\InvalidArgumentException
      * @return \GoldSpecDigital\ObjectOrientedOAS\Objects\Operation
      */
-    protected function operation(DocumentationEntry $entry, string $method, bool $flatParameters): Operation
+    protected function operation(DocumentationEntry $entry, string $method): Operation
     {
         Log::info("Operation", "[$method] " . $entry->getRouteUri());
 
@@ -113,10 +112,10 @@ class DocumentationGenerator
             ->parameters(
                 ...(new Parameters($request->parameters()))->convert(OASParameter::IN_PATH),
                 ...(new Parameters($request->headers()))->convert(OASParameter::IN_HEADER),
-                ...(new Parameters($request->queries()))->convert(OASParameter::IN_QUERY, null, $flatParameters),
+                ...(new Parameters($request->queries()))->convert(OASParameter::IN_QUERY),
                 ...(
             !Http::acceptBody($method)
-                ? (new Parameters($request->body()))->convert(OASParameter::IN_QUERY, null, $flatParameters)
+                ? (new Parameters($request->body()))->convert(OASParameter::IN_QUERY)
                 : []
             ),
             )

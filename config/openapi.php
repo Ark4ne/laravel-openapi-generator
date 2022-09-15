@@ -142,7 +142,33 @@ return [
             */
             'ignore-verbs' => [
                 'HEAD'
-            ]
+            ],
+
+            /*
+            |------------------------------------------------------------------
+            | Parameters configuration render
+            |------------------------------------------------------------------
+            |
+            | Parameters configuration render
+            |
+            */
+            'parameters' => [
+                'query' => [
+                    /*
+                    |----------------------------------------------------------
+                    | Flat mode
+                    |----------------------------------------------------------
+                    |
+                    | all: flat all parameters.
+                    |      ex: [filter.*.name.*: string] => filter[][name][]: string
+                    | last: flat last parameters.
+                    |      ex: [filter.*.name.*: string] => filter[][name]: array<string>
+                    | none:
+                    |      ex: [filter.*.name.*: string] => filter: array<object{name:array<string>}>
+                    */
+                    'flat' => 'all'
+                ],
+            ],
         ],
     ],
 
