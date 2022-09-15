@@ -89,6 +89,7 @@ trait CommonRules
     public function parseBoolean(array $parameters): void
     {
         $this->parameter->bool();
+        $this->parameter->description('acceptable: `true`, `false`, `1`, `0`, `"1"`, `"0"`');
     }
 
     /**
@@ -594,12 +595,9 @@ trait CommonRules
         $this->parameter->required()->nullable();
     }
 
-    /**
-     * @param array<string> $parameters
-     */
-    public function parseProhibited(array $parameters): void
+    public function parseProhibited(): void
     {
-        // TODO condition
+        $this->parameter->description("The field under validation must be empty or not present.");
     }
 
     /**
@@ -623,10 +621,14 @@ trait CommonRules
      */
     public function parseProhibits(array $parameters): void
     {
-        // TODO exclude
+        $this->parameter->description(
+            "If the field under validation is present, `" .
+            implode('`, `', $parameters) .
+            "` can be present, even if empty."
+        );
     }
 
-    public function parseRegex(array $parameters): static
+    public function parseRegex(array $parameters): void
     {
         $this->_parseRegex($this->parameter, $parameters[0]);
     }
