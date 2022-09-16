@@ -24,7 +24,7 @@ class GenerateTest extends FeatureTestCase
 
         $schema = json_decode(file_get_contents(
             __DIR__ . '/../../vendor/goldspecdigital/oooas/schemas/v3.0.json'
-        ), true, 512, JSON_THROW_ON_ERROR);
+        ), false, 512, JSON_THROW_ON_ERROR);
 
         $validator = new Validator();
         $validator->validate($data, $schema);
