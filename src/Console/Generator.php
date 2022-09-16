@@ -3,8 +3,8 @@
 namespace Ark4ne\OpenApi\Console;
 
 use Ark4ne\OpenApi\Documentation\DocumentationGenerator;
-use Ark4ne\OpenApi\Errors\Log;
 use Ark4ne\OpenApi\Support\Config;
+use Ark4ne\OpenApi\Support\Facades\Logger;
 use Ark4ne\OpenApi\Support\Trans;
 use Ark4ne\OpenApi\Support\Translator;
 use GoldSpecDigital\ObjectOrientedOAS\Exceptions\ValidationException;
@@ -39,7 +39,7 @@ class Generator extends Command
     {
         $this->translator();
 
-        Log::interseptor(fn(string $level, string $context, string $message) => $this->$level("[$context] - $message"));
+        Logger::interseptor(fn(string $message, bool $newline) => $this->output->write($message, $newline));
 
         try {
             if (!$this->beginTransaction()) {
@@ -62,23 +62,33 @@ class Generator extends Command
             $this->rollback();
         }
 
+        $this->line('');
+
         return 0;
     }
 
     protected function generate(string $version, string $lang = null): void
     {
+        Logger::start("Generate: $version" . ($lang ? " - $lang" : ''));
         /** @var DocumentationGenerator $generator */
         $generator = app()->make(DocumentationGenerator::class);
         $openapi = $generator->generate($version);
+        Logger::end('success');
 
         try {
+            Logger::start("Validate: $version" . ($lang ? " - $lang" : ''));
             $openapi->validate();
-            Log::info('Validation', "SUCCESS");
+            Logger::end('success');
         } catch (ValidationException $exception) {
-            Log::error('Validation', "FAILED with " . count($exception->getErrors()) . " errors");
-            foreach ($exception->getErrors() as $error) {
-                Log::line($error['pointer'], "[{$error['constraint']}] {$error['message']}");
+            $errors = collect($exception->getErrors())->groupBy('pointer');
+            foreach ($errors as $pointer => $error) {
+                Logger::start($pointer);
+                foreach ($error as $e) {
+                    Logger::error("[{$e['constraint']}] {$e['message']}");
+                }
+                Logger::end();
             }
+            Logger::end('error', 'validation failed with ' . count($exception->getErrors()) . " errors");
         }
 
         if (!is_dir($dir = Config::outputDir()) && !mkdir($dir, 0777, true) && !is_dir($dir)) {
@@ -90,8 +100,6 @@ class Generator extends Command
         $file = $lang ? "$lang-$path" : $path;
 
         file_put_contents("$dir/$file", $openapi->toJson());
-
-        Log::info('Generation', "$file: terminated");
     }
 
     protected function beginTransaction(): bool

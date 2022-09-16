@@ -5,10 +5,9 @@ namespace Ark4ne\OpenApi\Parsers\Responses\Concerns;
 use Ark4ne\OpenApi\Contracts\Entry;
 use Ark4ne\OpenApi\Documentation\Request\Parameter;
 use Ark4ne\OpenApi\Documentation\ResponseEntry;
-use Ark4ne\OpenApi\Errors\Log;
+use Ark4ne\OpenApi\Support\Facades\Logger;
 use Ark4ne\OpenApi\Support\Fake;
 use Ark4ne\OpenApi\Support\Reflection;
-use GoldSpecDigital\ObjectOrientedOAS\Objects\Header;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\MediaType;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
@@ -81,7 +80,7 @@ trait Resource
     ): ?JsonResponse {
         try {
             if (!($resource = $this->getResourceFromCollection($instance, $type))) {
-                Log::warn('Response', "Can't determinate resource type for collection : " . $instance::class);
+                Logger::error("Can't determinate resource type for collection : " . $instance::class);
                 return null;
             }
 
@@ -96,7 +95,8 @@ trait Resource
 
             return $instance->response();
         } catch (\Throwable $e) {
-            Log::warn('Response', 'Error when trying to documentate resource collection : ' . $e->getMessage());
+            Logger::error("Error when trying to documentate resource collection " . $instance::class);
+            Logger::error($e->getMessage());
             return null;
         }
     }
@@ -112,7 +112,8 @@ trait Resource
 
             return $instance->response();
         } catch (\Throwable $e) {
-            Log::warn('Response', 'Error when trying to documentate resource : ' . $e->getMessage());
+            Logger::error("Error when trying to documentate resource collection " . $instance::class);
+            Logger::error($e->getMessage());
             return null;
         }
     }

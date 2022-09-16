@@ -2,7 +2,7 @@
 
 namespace Ark4ne\OpenApi\Parsers\Responses\Concerns;
 
-use Ark4ne\OpenApi\Errors\Log;
+use Ark4ne\OpenApi\Support\Facades\Logger;
 use Ark4ne\OpenApi\Support\Fake;
 use Ark4ne\OpenApi\Support\Reflection;
 use Illuminate\Http\Resources\Json\ResourceCollection;
@@ -51,11 +51,9 @@ trait JAResource
             try {
                 $links = $relationshipLinks(new Fake);
             } catch (\Throwable $e) {
-                Log::warn('Response', implode("\n    ", [
-                    'Error when trying to documentate json-api resource ' . $instance::class . ' : ',
-                    'Fail to generate links for relation ' . $name . ' : ',
-                    $e->getMessage()
-                ]));
+                Logger::warn('Fail to generate links for json-api-resource ' . $instance::class);
+                Logger::warn($e->getMessage());
+                Logger::notice('Use empty array instead');
             }
         }
 
@@ -63,11 +61,9 @@ trait JAResource
             try {
                 $meta = $relationshipMeta(new Fake);
             } catch (\Throwable $e) {
-                Log::warn('Response', implode("\n    ", [
-                    'Error when trying to documentate json-api resource ' . $instance::class . ' : ',
-                    'Fail to generate meta for relation ' . $name . ' : ',
-                    $e->getMessage()
-                ]));
+                Logger::warn('Fail to generate meta for json-api-resource ' . $instance::class);
+                Logger::warn($e->getMessage());
+                Logger::notice('Use empty array instead');
             }
         }
 
@@ -131,11 +127,9 @@ trait JAResource
                 'mixed'
             );
         } catch (\Throwable $e) {
-            Log::warn('Response', implode("\n    ", [
-                'Error when trying to documentate json-api resource ' . $instance::class . ' : ',
-                'Fail to generate samples for attributes : ',
-                $e->getMessage()
-            ]));
+            Logger::warn('Fail to generate samples for attributes for json-api-resource ' . $instance::class);
+            Logger::warn($e->getMessage());
+            Logger::notice('Use empty array instead');
             return [];
         }
     }
@@ -147,11 +141,9 @@ trait JAResource
         try {
             return Reflection::call($reflect->newInstanceWithoutConstructor(), 'toType', request());
         } catch (\Throwable $e) {
-            Log::warn('Response', implode("\n    ", [
-                'Error when trying to documentate json-api resource ' . $class . ' : ',
-                'Fail to generate type, use custom type from resource::class : ', // TODO Split error log and solution
-                $e->getMessage()
-            ]));
+            Logger::warn('Fail to generate type from {resource::class} for json-api-resource ' . $class);
+            Logger::warn($e->getMessage());
+            Logger::notice('Use custom type from resource::class');
         }
 
         $type = $this->getResourceClass($reflect) ?? $reflect->getName();

@@ -7,8 +7,8 @@ use Ark4ne\OpenApi\Documentation\Request\Content;
 use Ark4ne\OpenApi\Documentation\Request\Parameter;
 use Ark4ne\OpenApi\Documentation\Request\Parameters;
 use Ark4ne\OpenApi\Documentation\Request\Security;
-use Ark4ne\OpenApi\Errors\Log;
 use Ark4ne\OpenApi\Support\Config;
+use Ark4ne\OpenApi\Support\Facades\Logger;
 use Ark4ne\OpenApi\Support\Http;
 use Illuminate\Routing\Router;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\{
@@ -98,8 +98,9 @@ class DocumentationGenerator
      */
     protected function operation(DocumentationEntry $entry, string $method): Operation
     {
-        Log::info("Operation", "[$method] " . $entry->getRouteUri());
+        Logger::start("$method " . $entry->getRouteUri(), 'blue');
 
+        Logger::start('request ');
         $request = $entry->request();
 
         /** @var Operation $operation */
@@ -120,6 +121,7 @@ class DocumentationGenerator
             ),
             )
             ->responses(Response::ok());
+        Logger::end('success');
 
         if (Http::acceptBody($method)) {
             $operation = $operation->requestBody((new Parameters($request->body()))->convert(
@@ -137,6 +139,8 @@ class DocumentationGenerator
         }
 
         if (Http::canReturnContent($method)) {
+            Logger::start('response');
+
             try {
                 $responses[] = $this->convertResponse($entry->response());
 
@@ -148,12 +152,16 @@ class DocumentationGenerator
                 }
 
                 $operation = $operation->responses(...$responses);
+
+                Logger::end('success');
             } catch (\Throwable $e) {
-                Log::warn('Response', 'Error when trying to generate response : ' . $e->getMessage());
+                Logger::end('error', 'Error when trying to generate response : ' . $e->getMessage());
             }
         }
 
         $this->group($entry, $operation->tags);
+
+        Logger::end('success');
 
         return $operation;
     }

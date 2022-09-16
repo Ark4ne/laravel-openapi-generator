@@ -5,8 +5,8 @@ namespace Ark4ne\OpenApi\Parsers\Responses;
 use Ark4ne\OpenApi\Contracts\Entry;
 use Ark4ne\OpenApi\Contracts\ResponseParserContract;
 use Ark4ne\OpenApi\Documentation\ResponseEntry;
-use Ark4ne\OpenApi\Errors\Log;
 use Ark4ne\OpenApi\Parsers\Responses\Concerns\JAResource;
+use Ark4ne\OpenApi\Support\Facades\Logger;
 use Ark4ne\OpenApi\Support\Reflection;
 use Ark4ne\OpenApi\Support\Reflection\Type;
 
@@ -21,7 +21,7 @@ class JsonApiCollectionParser implements ResponseParserContract
         $instance = $class->newInstanceWithoutConstructor();
 
         if (!($resource = $this->getResourceFromCollection($instance, $type))) {
-            Log::warn('Response', "Can't determinate resource type for collection : " . $instance::class);
+            Logger::warn("Can't determinate resource type for collection : " . $instance::class);
         }
 
         $instance->collects = $resource;
