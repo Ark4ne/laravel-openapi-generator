@@ -49,7 +49,13 @@ trait RegexParser
             }
         }
 
-        $param->string()->pattern("regex:" . ($regex[0] === $regex[strlen($regex) - 1]) ? $regex : "/$regex/");
+        $param->string();
+
+        if (preg_match('/^[\w-]+(?:\|[\w-]+)+$/', $regex)) {
+            $param->enum(explode("|", $regex));
+        } else {
+            $param->pattern("regex:" . ($regex[0] === $regex[strlen($regex) - 1]) ? $regex : "/$regex/");
+        }
 
         return $this;
     }
