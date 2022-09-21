@@ -330,7 +330,7 @@ trait CommonRules
      */
     public function parseExclude(array $parameters): void
     {
-        // ignore: not a rules
+        // TODO: description
     }
 
     /**
@@ -338,7 +338,7 @@ trait CommonRules
      */
     public function parseExcludeIf(array $parameters): void
     {
-        // ignore: not a rules
+        $this->parameter->unless(array_shift($parameters), $parameters ?? [], 'available');
     }
 
     /**
@@ -346,7 +346,7 @@ trait CommonRules
      */
     public function parseExcludeUnless(array $parameters): void
     {
-        // ignore: not a rules
+        $this->parameter->if(array_shift($parameters), $parameters ?? [], 'available');
     }
 
     /**
@@ -354,7 +354,7 @@ trait CommonRules
      */
     public function parseExcludeWithout(array $parameters): void
     {
-        // ignore: not a rules
+        $this->parameter->with($parameters ?? [], 'available');
     }
 
     /**
