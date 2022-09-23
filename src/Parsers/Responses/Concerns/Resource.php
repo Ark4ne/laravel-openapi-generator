@@ -95,8 +95,10 @@ trait Resource
 
             return $instance->response();
         } catch (\Throwable $e) {
-            Logger::error("Error when trying to documentate resource collection " . $instance::class);
-            Logger::error($e->getMessage());
+            Logger::error([
+                "Error when trying to documentate resource collection " . $instance::class,
+                $e->getMessage()
+            ]);
             return null;
         }
     }
@@ -112,8 +114,10 @@ trait Resource
 
             return $instance->response();
         } catch (\Throwable $e) {
-            Logger::error("Error when trying to documentate resource collection " . $instance::class);
-            Logger::error($e->getMessage());
+            Logger::error([
+                "Error when trying to documentate resource " . $instance::class,
+                $e->getMessage()
+            ]);
             return null;
         }
     }

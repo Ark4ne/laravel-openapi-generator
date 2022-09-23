@@ -58,7 +58,7 @@ class Logger
             $this->operations[array_key_last($this->operations)]['actions'][] = $action;
         }
         $newline = $args[1] ?? true;
-        $msg = $args[0] ?? '';
+        $msg = (array)($args[0] ?? []);
         $icon = self::ICONS[$action] ?? '';
         $lvl = self::MAP[$action] ?? $action;
 
@@ -67,6 +67,9 @@ class Logger
         if ($icon && $msg) {
             $icon = "$icon ";
         }
+
+        $msg = implode($icon ? "\n$indent  " : "\n$indent", array_merge(...array_map(static fn($msg) => explode("\n", $msg), $msg)));
+
         if ($lvl === 'error') {
             $msg = "<fg=#ff0000>$icon$msg</>";
         }

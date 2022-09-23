@@ -61,8 +61,10 @@ trait JAResource
             try {
                 $links = $relationshipLinks(new Fake);
             } catch (\Throwable $e) {
-                Logger::warn('Fail to generate links for json-api-resource ' . $instance::class);
-                Logger::warn($e->getMessage());
+                Logger::warn([
+                    'Fail to generate links for json-api-resource ' . $instance::class,
+                    $e->getMessage()
+                ]);
                 Logger::notice('Use empty array instead');
             }
         }
@@ -71,8 +73,10 @@ trait JAResource
             try {
                 $meta = $relationshipMeta(new Fake);
             } catch (\Throwable $e) {
-                Logger::warn('Fail to generate meta for json-api-resource ' . $instance::class);
-                Logger::warn($e->getMessage());
+                Logger::warn([
+                    'Fail to generate meta for json-api-resource ' . $instance::class,
+                    $e->getMessage()
+                ]);
                 Logger::notice('Use empty array instead');
             }
         }
@@ -137,8 +141,10 @@ trait JAResource
                 'mixed'
             );
         } catch (\Throwable $e) {
-            Logger::warn('Fail to generate samples for attributes for json-api-resource ' . $instance::class);
-            Logger::warn($e->getMessage());
+            Logger::warn([
+                'Fail to generate samples for attributes for json-api-resource ' . $instance::class,
+                $e->getMessage()
+            ]);
             Logger::notice('Use empty array instead');
             return [];
         }
@@ -151,8 +157,10 @@ trait JAResource
         try {
             return Reflection::call($reflect->newInstanceWithoutConstructor(), 'toType', request());
         } catch (\Throwable $e) {
-            Logger::warn('Fail to generate type from {resource::class} for json-api-resource ' . $class);
-            Logger::warn($e->getMessage());
+            Logger::warn([
+                'Fail to generate type from {resource::class} for json-api-resource ' . $class,
+                $e->getMessage()
+            ]);
             Logger::notice('Use custom type from resource::class');
         }
 
