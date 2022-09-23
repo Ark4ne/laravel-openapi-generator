@@ -118,12 +118,12 @@ trait Resource
         }
     }
 
-    private function getResourceFromCollection(ResourceCollection $instance, Reflection\Type $type): ?string
+    private function getResourceFromCollection(ResourceCollection $instance, ?Reflection\Type $type): ?string
     {
         $resource = Reflection::read($instance, 'collects') ?? Reflection::call($instance, 'collects');
 
         if (!$resource || !Reflection::isInstantiable($resource)) {
-            if (!($type->isGeneric() && ($resource = $type->getSub()) && Reflection::isInstantiable($resource))) {
+            if (!($type && $type->isGeneric() && ($resource = $type->getSub()) && Reflection::isInstantiable($resource))) {
                 return null;
             }
         }

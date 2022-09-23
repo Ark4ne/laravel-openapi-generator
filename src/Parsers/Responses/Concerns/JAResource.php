@@ -36,6 +36,7 @@ trait JAResource
     protected function mapRelationships($instance, $relationship, $name)
     {
         $resource = $relationship->getResource();
+        $class = Reflection::reflection($resource);
         $isCollectionClass = is_subclass_of($resource, ResourceCollection::class);
         $isCollection = $isCollectionClass || Reflection::read($relationship, 'asCollection');
 
@@ -44,8 +45,8 @@ trait JAResource
         ];
 
         if ($isCollectionClass && ($collects = $this->getResourceFromCollection(
-                $resource,
-                Reflection::tryParseGeneric(Reflection::reflection($resource), 'extends'))
+                $class->newInstanceWithoutConstructor(),
+                Reflection::tryParseGeneric($class, 'extends'))
             )) {
             $sample['type'] = $this->getType($collects);
         } else {
