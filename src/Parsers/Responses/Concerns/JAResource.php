@@ -36,14 +36,23 @@ trait JAResource
     protected function mapRelationships($instance, $relationship, $name)
     {
         $resource = $relationship->getResource();
+        $isCollectionClass = is_subclass_of($resource, ResourceCollection::class);
+        $isCollection = $isCollectionClass || Reflection::read($relationship, 'asCollection');
 
         $sample = [
             'id' => 'mixed',
-            'type' => $this->getType($resource)
         ];
 
-        $data = Reflection::read($relationship, 'asCollection')
-        || is_subclass_of($resource, ResourceCollection::class)
+        if ($isCollectionClass && ($collects = $this->getResourceFromCollection(
+                $resource,
+                Reflection::tryParseGeneric(Reflection::reflection($resource), 'extends'))
+            )) {
+            $sample['type'] = $this->getType($collects);
+        } else {
+            $sample['type'] = $this->getType($resource);
+        }
+
+        $data = $isCollection
             ? [$sample, $sample]
             : $sample;
 
