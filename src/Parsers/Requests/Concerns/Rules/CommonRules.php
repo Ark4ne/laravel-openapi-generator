@@ -624,7 +624,7 @@ trait CommonRules
         $this->parameter->description(
             "If the field under validation is present, `" .
             implode('`, `', $parameters) .
-            "` can be present, even if empty."
+            "` can't be present, even if empty."
         );
     }
 
