@@ -2,6 +2,10 @@
 
 namespace Ark4ne\OpenApi\Parsers\Responses\Concerns;
 
+use Ark4ne\JsonApi\Descriptors\Describer;
+use Ark4ne\JsonApi\Resources\Concerns\PrepareData;
+use Ark4ne\OpenApi\Documentation\Request\Component;
+use Ark4ne\OpenApi\Documentation\Request\Parameter;
 use Ark4ne\OpenApi\Support\Facades\Logger;
 use Ark4ne\OpenApi\Support\Fake;
 use Ark4ne\OpenApi\Support\Reflection;
@@ -12,6 +16,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 trait JAResource
 {
+    use ValueType;
     use Resource;
 
     protected function generateStructure($instance, \ReflectionClass $class)
@@ -20,11 +25,11 @@ trait JAResource
 
         return [
             'data' => [
-                    'id' => 'mixed',
+                    'id' => 'int|string',
                     'type' => $this->getType($instance::class),
                     'attributes' => $this->getSamples($instance, 'toAttributes', $request),
                     'relationships' => collect(Reflection::call($instance, 'toRelationships', $request))
-                        ->map(fn ($relationship, $name) => $this->mapRelationships($instance, $relationship, $name))
+                        ->map(fn($relationship, $name) => $this->mapRelationships($instance, $relationship, $name))
                         ->all()
                 ] + array_filter([
                     'meta' => $this->getSamples($instance, 'toResourceMeta', $request),
@@ -41,7 +46,7 @@ trait JAResource
         $isCollection = $isCollectionClass || Reflection::read($relationship, 'asCollection');
 
         $sample = [
-            'id' => 'mixed',
+            'id' => 'int|string',
         ];
 
         if ($isCollectionClass && ($collects = $this->getResourceFromCollection(
@@ -62,7 +67,7 @@ trait JAResource
                 $links = $relationshipLinks(new Fake);
             } catch (\Throwable $e) {
                 Logger::warn([
-                    'Fail to generate links for json-api-resource ' . $instance::class,
+                    'Fail to generate structure for toLinks on json-api-resource ' . $instance::class,
                     $e->getMessage()
                 ]);
                 Logger::notice('Use empty array instead');
@@ -74,7 +79,7 @@ trait JAResource
                 $meta = $relationshipMeta(new Fake);
             } catch (\Throwable $e) {
                 Logger::warn([
-                    'Fail to generate meta for json-api-resource ' . $instance::class,
+                    'Fail to generate structure for toMeta on json-api-resource ' . $instance::class,
                     $e->getMessage()
                 ]);
                 Logger::notice('Use empty array instead');
@@ -123,26 +128,68 @@ trait JAResource
         return $response->setData($data);
     }
 
+    private function prepareSample($values)
+    {
+        static $mergeValues;
+
+        if (!isset($mergeValues)) {
+            // Available for json-api v1.2
+            if (trait_exists(PrepareData::class)) {
+                $stub = new class {
+                    use PrepareData;
+                };
+
+                $method = Reflection::method($stub, 'mergeValues');
+                $method->setAccessible(true);
+
+                $mergeValues = static fn($values) => $method->invoke($stub, $values);
+            } else {
+                $mergeValues = static fn($values) => $values;
+            }
+        }
+
+        return $mergeValues($values);
+    }
+
     /**
      * @param        $instance
      * @param string $method
      * @param        $request
      *
-     * @throws \ReflectionException
-     * @return string[]
+     * @return array<string, string>
      */
     private function getSamples($instance, string $method, $request = null): array
     {
         $request ??= request();
 
         try {
-            return array_fill_keys(
-                collect(Reflection::call($instance, $method, $request))->keys()->all(),
-                'mixed'
-            );
+            return collect($this->prepareSample(Reflection::call($instance, $method, $request) ?? []))->mapWithKeys(function ($value, $key) {
+                $key = Describer::retrieveName($value, $key);
+
+                if ($this->isBool($value)) {
+                    return [$key => 'bool'];
+                }
+                if ($this->isInt($value)) {
+                    return [$key => 'integer'];
+                }
+                if ($this->isFloat($value)) {
+                    return [$key => 'float'];
+                }
+                if ($this->isString($value)) {
+                    return [$key => 'string'];
+                }
+                if ($this->isArray($value)) {
+                    return [$key => 'array'];
+                }
+                if ($this->isDate($value)) {
+                    return [$key => 'date'];
+                }
+
+                return [$key => 'mixed'];
+            })->all();
         } catch (\Throwable $e) {
             Logger::warn([
-                'Fail to generate samples for attributes for json-api-resource ' . $instance::class,
+                "Fail to generate structure for $method on json-api-resource " . $instance::class,
                 $e->getMessage()
             ]);
             Logger::notice('Use empty array instead');
