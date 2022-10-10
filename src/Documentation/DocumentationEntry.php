@@ -26,10 +26,11 @@ class DocumentationEntry implements Entry
     protected ReflectionMethod $method;
     protected null|DocBlock $doc;
     protected null|Reflection\Type $requestClass;
-    protected null|Reflection\Type $responseClass;
-
+    /** @var Reflection\Type[]|Reflection\Type|null */
+    protected null|array|Reflection\Type $responseClass;
     protected RequestEntry $request;
-    protected mixed $response;
+    /** @var \Ark4ne\OpenApi\Documentation\ResponseEntry[] */
+    protected array $response;
 
     public function __construct(
         protected Route $route
@@ -52,9 +53,9 @@ class DocumentationEntry implements Entry
     public function getRouteName(): string
     {
         return $this->name ??= $this->route->getName() ?? Str::slug(
-                $this->getControllerClass() . '-' . $this->getAction(),
-                '.'
-            );
+            $this->getControllerClass() . '-' . $this->getAction(),
+            '.'
+        );
     }
 
     /**
@@ -221,9 +222,9 @@ class DocumentationEntry implements Entry
     }
 
     /**
-     * @return \Ark4ne\OpenApi\Support\Reflection\Type<Response, mixed>
+     * @return \Ark4ne\OpenApi\Support\Reflection\Type<Response, mixed>[]|\Ark4ne\OpenApi\Support\Reflection\Type<Response, mixed>
      */
-    public function getResponseClass(): Reflection\Type
+    public function getResponseClass(): Reflection\Type|array
     {
         if (isset($this->responseClass)) {
             return $this->responseClass;
@@ -261,34 +262,53 @@ class DocumentationEntry implements Entry
 
     public function request(): RequestEntry
     {
-        return $this->request ??= $this->parse(config('openapi.parsers.requests'), $this->getRequestClass());
+        return $this->request ??= $this->parse(config('openapi.parsers.requests'), $this->getRequestClass())[0] ?? null;
     }
 
-    public function response(): ResponseEntry
+    /**
+     * @throws \Illuminate\Contracts\Container\BindingResolutionException
+     * @return \Ark4ne\OpenApi\Documentation\ResponseEntry[]
+     */
+    public function response(): array
     {
         return $this->response ??= $this->parse(config('openapi.parsers.responses'), $this->getResponseClass());
     }
 
     /**
-     * @param array<class-string> $parsers
-     * @param null|Type           $element
+     * @param array<class-string>                    $parsers
+     * @param Reflection\Type[]|Reflection\Type|null $element
      *
      * @throws \Illuminate\Contracts\Container\BindingResolutionException
      * @return mixed
      */
-    protected function parse(array $parsers, ?Reflection\Type $element): mixed
+    protected function parse(array $parsers, null|array|Reflection\Type $element): mixed
     {
         if ($element === null) {
             return null;
         }
 
-        foreach ($parsers as $for => $parser) {
-            if (is_a($element->getType(), $for, true)) {
-                return app()->make($parser)->parse($element, $this);
+        if (!is_array($element)) {
+            $element = [$element];
+        }
+
+        $mapped = [];
+
+        foreach ($element as $item) {
+            foreach ($parsers as $for => $parser) {
+                if (is_a($item->getType(), $for, true)) {
+                    $mapped[] = app()->make($parser)->parse($item, $this);
+                    break;
+                }
             }
         }
 
-        throw new \Exception("TODO: Can't parse " . $element->getType());
+        if (!empty($mapped)) {
+            return $mapped;
+        }
+
+        throw new \Exception("TODO: Can't parse " . (is_array($element)
+                ? implode(', ', array_map(static fn($element) => $element->getType(), $element))
+                : $element->getType()));
     }
 
     /**

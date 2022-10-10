@@ -11,10 +11,10 @@ use Ark4ne\OpenApi\Support\Reflection;
 class Type
 {
     /**
-     * @param class-string<T>|null    $type
-     * @param bool|null $builtin
-     * @param bool      $generic
-     * @param class-string<U>|null    $sub
+     * @param class-string<T>|null $type
+     * @param bool|null            $builtin
+     * @param bool                 $generic
+     * @param class-string<U>|null $sub
      */
     public function __construct(
         protected ?string $type = null,

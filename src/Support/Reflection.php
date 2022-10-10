@@ -7,6 +7,7 @@ use phpDocumentor\Reflection\DocBlock;
 use phpDocumentor\Reflection\DocBlock\Tags\TagWithType;
 use phpDocumentor\Reflection\DocBlockFactory;
 use phpDocumentor\Reflection\Types\Collection;
+use phpDocumentor\Reflection\Types\Compound;
 use phpDocumentor\Reflection\Types\ContextFactory;
 use ReflectionClass;
 use ReflectionMethod;
@@ -92,7 +93,13 @@ class Reflection
         return $type instanceof ReflectionNamedType && !$type->isBuiltin() && self::isInstantiable($type->getName());
     }
 
-    public static function parseReturnType(ReflectionMethod $method, bool $allowBuiltin = false): ?Type
+    /**
+     * @param \ReflectionMethod $method
+     * @param bool              $allowBuiltin
+     *
+     * @return \Ark4ne\OpenApi\Support\Reflection\Type[]|\Ark4ne\OpenApi\Support\Reflection\Type|null
+     */
+    public static function parseReturnType(ReflectionMethod $method, bool $allowBuiltin = false): null|Type|array
     {
         return self::parseType(
             $method->getReturnType(),
@@ -102,26 +109,23 @@ class Reflection
         );
     }
 
+    /**
+     * @param \ReflectionType|null $type
+     * @param \Reflector           $from
+     * @param string               $typeName
+     * @param string|null          $typeAccess
+     * @param bool                 $allowBuiltin
+     *
+     * @return \Ark4ne\OpenApi\Support\Reflection\Type[]|\Ark4ne\OpenApi\Support\Reflection\Type|null
+     */
     public static function parseType(
         ?ReflectionType $type,
         Reflector $from,
         string $typeName,
         null|string $typeAccess = null,
         bool $allowBuiltin = false
-    ): ?Type {
-        if ($type instanceof ReflectionUnionType) {
-            foreach ($type->getTypes() as $unionType) {
-                if ($parsed = self::parseType($unionType, $from, $typeName, $typeAccess, $allowBuiltin)) {
-                    return $parsed;
-                }
-            }
-        }
-
-        $returnType = $allowBuiltin || self::typeIsInstantiable($type)
-            ? $type?->getName()
-            : null;
-
-        $trueType = self::type($returnType)?->builtin(!self::typeIsInstantiable($type));
+    ): null|Type|array {
+        $trueType = self::parseTrueType($type, $from, $typeName, $typeAccess, $allowBuiltin);
 
         if (!($docblock = self::docblock($from))) {
             return $trueType;
@@ -150,18 +154,60 @@ class Reflection
         return self::parseDoctag($tag) ?? $trueType;
     }
 
+    public static function parseTrueType(
+        ?ReflectionType $type,
+        Reflector $from,
+        string $typeName,
+        null|string $typeAccess = null,
+        bool $allowBuiltin = false
+    ) {
+        if ($type instanceof ReflectionUnionType) {
+            return collect($type->getTypes())
+                ->map(fn($unionType) => self::parseTrueType($unionType, $from, $typeName, $typeAccess, $allowBuiltin))
+                ->filter()
+                ->all();
+        }
+
+        $returnType = $allowBuiltin || self::typeIsInstantiable($type)
+            ? $type?->getName()
+            : null;
+
+        return self::type($returnType)?->builtin(!self::typeIsInstantiable($type));
+    }
+
+    /**
+     * @param \phpDocumentor\Reflection\DocBlock\Tag $tag
+     * @param string|null                            $reflectionType
+     * @param bool                                   $allowBuiltin
+     *
+     * @return \Ark4ne\OpenApi\Support\Reflection\Type[]|\Ark4ne\OpenApi\Support\Reflection\Type|null
+     */
     public static function parseDoctag(
         DocBlock\Tag $tag,
         ?string $reflectionType = null,
         bool $allowBuiltin = false
-    ): ?Type {
-        if ($tag->getType() instanceof Collection) {
-            return Type::make($tag->getType()->getFqsen())
-                ->sub($tag->getType()->getValueType())
+    ): null|array|Type {
+        return self::parseDocType($tag->getType(), $reflectionType, $allowBuiltin);
+    }
+
+    public static function parseDocType(
+        ?\phpDocumentor\Reflection\Type $type,
+        ?string $reflectionType = null,
+        bool $allowBuiltin = false
+    ) {
+        if ($type instanceof Collection) {
+            return Type::make($type->getFqsen())
+                ->sub($type->getValueType())
                 ->generic(true);
         }
 
-        $docType = $tag->getType()?->__toString();
+        if ($type instanceof Compound) {
+            return collect($type->getIterator())
+                ->map(fn($type) => self::parseDocType($type, $reflectionType, $allowBuiltin))
+                ->all();
+        }
+
+        $docType = $type?->__toString();
 
         $docType = trim($docType ?? '', '\\');
 

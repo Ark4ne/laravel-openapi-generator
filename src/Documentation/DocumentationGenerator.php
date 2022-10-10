@@ -35,6 +35,8 @@ class DocumentationGenerator
     }
 
     /**
+     * TODO Review for split when route have optionals parameters
+     *
      * @param array<string> $rules
      *
      * @return iterable<\Illuminate\Routing\Route>
@@ -142,7 +144,7 @@ class DocumentationGenerator
             Logger::start('response');
 
             try {
-                $responses[] = $this->convertResponse($entry->response());
+                $responses = array_map(fn($response) => $this->convertResponse($response), $entry->response());
 
                 if ($request->hasRules()) {
                     // have rules

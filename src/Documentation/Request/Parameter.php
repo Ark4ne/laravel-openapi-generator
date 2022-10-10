@@ -12,13 +12,19 @@ use GoldSpecDigital\ObjectOrientedOAS\Objects\Schema;
 use Illuminate\Support\Arr;
 
 /**
- * @property-read array<int|string> $enum
- * @property-read string            $type
- * @property-read string            $name
+ * @property-read array<int|string>                                 $enum
+ * @property-read string                                            $type
+ * @property-read string                                            $name
+ * @property-read \Ark4ne\OpenApi\Documentation\Request\Condition[] $conditions
  */
 class Parameter implements OASSchematable
 {
     use Typable, HasCondition;
+
+    public const IN_QUERY = 'query';
+    public const IN_HEADER = 'header';
+    public const IN_PATH = 'path';
+    public const IN_COOKIE = 'cookie';
 
     /** A JSON array. */
     public const TYPE_ARRAY = 'array';
@@ -253,7 +259,7 @@ class Parameter implements OASSchematable
     {
         $name = $this->getName();
 
-        if($this->ref ?? null) {
+        if ($this->ref ?? null) {
             return Schema::ref($this->ref, $name);
         }
 
@@ -271,8 +277,10 @@ class Parameter implements OASSchematable
             ->multipleOf($this->multipleOf ?? null)// ->additionalProperties($additionalProperties)  // TODO
         ;
 
-        if($this->properties ?? null) {
-            $schema = $schema->properties(...array_map(fn(self $param) => $param->oasSchema(), $this->properties ?? []));
+        if ($this->properties ?? null) {
+            $schema = $schema->properties(...array_map(
+                static fn(self $param) => $param->oasSchema(), $this->properties ?? []
+            ));
         }
 
         if ($this->items ?? null) {
@@ -309,6 +317,10 @@ class Parameter implements OASSchematable
             ->schema($schema)
             ->example($this->example ?? null)
             ->description($this->description ?? null);
+
+        if ($for === self::IN_PATH) {
+            $params = $params->required();
+        }
 
         return $params;
     }
@@ -392,11 +404,11 @@ class Parameter implements OASSchematable
             if (Arr::isAssoc($data)) {
                 $parameter->object()->properties(...collect($data)->map(
                     fn($value, $key) => self::fromJson($value, $key)
-                ));
+                )->all());
             } elseif (!empty($data)) {
                 $parameter->array()->items(...collect($data)->map(
                     fn($value, $key) => self::fromJson($value, $key)
-                ));
+                )->all());
             } else {
                 $parameter->array();
             }

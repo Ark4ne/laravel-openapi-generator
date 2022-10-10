@@ -69,9 +69,9 @@ interface Entry
     public function getDescription(): ?string;
 
     /**
-     * @return Reflection\Type<\Illuminate\Http\Response, mixed>
+     * @return Reflection\Type<\Illuminate\Http\Response, null>[]|Reflection\Type<\Illuminate\Http\Response, null>
      */
-    public function getResponseClass(): Reflection\Type;
+    public function getResponseClass(): Reflection\Type|array;
 
     /**
      * @return Reflection\Type<\Illuminate\Http\Request, null>
@@ -80,5 +80,8 @@ interface Entry
 
     public function request(): RequestEntry;
 
-    public function response(): ResponseEntry;
+    /**
+     * @return ResponseEntry[]
+     */
+    public function response(): array;
 }

@@ -60,7 +60,11 @@ class Fake implements Arrayable, ArrayAccess, Countable, IteratorAggregate, Json
     {
         try {
             if ($this->class) {
-                return $this->fakeValue(Reflection::parseReturnType($this->class->getMethod($name), true));
+                $type = Reflection::parseReturnType($this->class->getMethod($name), true);
+                if (is_array($type)) {
+                    $type = $type[0] ?? null;
+                }
+                return $this->fakeValue($type?->getType());
             }
         } catch (\Throwable $e) {
         }
@@ -83,7 +87,11 @@ class Fake implements Arrayable, ArrayAccess, Countable, IteratorAggregate, Json
     {
         try {
             if ($this->class) {
-                return $this->fakeValue(Reflection::parseReturnType($this->class->getMethod('__invoke'), true));
+                $type = Reflection::parseReturnType($this->class->getMethod('__invoke'), true);
+                if (is_array($type)) {
+                    $type = $type[0] ?? null;
+                }
+                return $this->fakeValue($type?->getType());
             }
         } catch (\Throwable $e) {
         }
