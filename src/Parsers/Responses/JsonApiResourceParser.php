@@ -6,12 +6,14 @@ use Ark4ne\OpenApi\Contracts\Entry;
 use Ark4ne\OpenApi\Contracts\ResponseParserContract;
 use Ark4ne\OpenApi\Documentation\ResponseEntry;
 use Ark4ne\OpenApi\Parsers\Responses\Concerns\JAResource;
+use Ark4ne\OpenApi\Parsers\Responses\Concerns\JAResourceRef;
 use Ark4ne\OpenApi\Support\Reflection;
 use Ark4ne\OpenApi\Support\Reflection\Type;
 
 class JsonApiResourceParser implements ResponseParserContract
 {
     use JAResource;
+    use JAResourceRef;
 
     public function parse(Type $type, Entry $entry): ResponseEntry
     {
@@ -25,13 +27,18 @@ class JsonApiResourceParser implements ResponseParserContract
         try {
             /** @var \Illuminate\Http\JsonResponse $response */
             $response = $instance->response();
-
             $response = $this->mergeResponseWithStructure($response, $structure);
         } catch (\Throwable $e) {
             $response = response()->json($structure);
         }
 
-        return $this->toResponseEntry($response, $entry);
+        try {
+            $body = null; // (new Parameter('body'))->ref($this->resourceToRef($instance));
+        } catch (\Throwable $e) {
+            $body = null;
+        }
+
+        return $this->toResponseEntry($response, $entry, $body);
     }
 
 }

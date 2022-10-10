@@ -3,9 +3,10 @@
 namespace Ark4ne\OpenApi\Parsers\Responses\Concerns;
 
 use Ark4ne\JsonApi\Descriptors\Describer;
+use Ark4ne\JsonApi\Descriptors\Relations\Relation;
+use Ark4ne\JsonApi\Descriptors\Relations\RelationMany;
 use Ark4ne\JsonApi\Resources\Concerns\PrepareData;
-use Ark4ne\OpenApi\Documentation\Request\Component;
-use Ark4ne\OpenApi\Documentation\Request\Parameter;
+use Ark4ne\JsonApi\Resources\Relationship;
 use Ark4ne\OpenApi\Support\Facades\Logger;
 use Ark4ne\OpenApi\Support\Fake;
 use Ark4ne\OpenApi\Support\Reflection;
@@ -29,7 +30,11 @@ trait JAResource
                     'type' => $this->getType($instance::class),
                     'attributes' => $this->getSamples($instance, 'toAttributes', $request),
                     'relationships' => collect(Reflection::call($instance, 'toRelationships', $request))
-                        ->map(fn($relationship, $name) => $this->mapRelationships($instance, $relationship, $name))
+                        ->mapWithKeys(function ($relationship, $name) use ($instance) {
+                            $name = Describer::retrieveName($relationship, $name);
+
+                            return [$name => $this->mapRelationships($instance, $relationship, $name)];
+                        })
                         ->all()
                 ] + array_filter([
                     'meta' => $this->getSamples($instance, 'toResourceMeta', $request),
@@ -40,10 +45,18 @@ trait JAResource
 
     protected function mapRelationships($instance, $relationship, $name)
     {
-        $resource = $relationship->getResource();
+        if ($relationship instanceof Relationship) {
+            $resource = $relationship->getResource();
+        } elseif ($relationship instanceof Relation) {
+            $resource = $relationship->related();
+        } else {
+            throw new \Exception('Unsupported relation type: ' . $relationship::class);
+        }
         $class = Reflection::reflection($resource);
         $isCollectionClass = is_subclass_of($resource, ResourceCollection::class);
-        $isCollection = $isCollectionClass || Reflection::read($relationship, 'asCollection');
+        $isCollection = $isCollectionClass
+            || ($relationship instanceof Relationship && Reflection::read($relationship, 'asCollection'))
+            || $relationship instanceof RelationMany;
 
         $sample = [
             'id' => 'int|string',
@@ -152,41 +165,21 @@ trait JAResource
     }
 
     /**
-     * @param        $instance
-     * @param string $method
-     * @param        $request
+     * @param                                                          $instance
+     * @param string                                                   $method
+     * @param callable(string $key, mixed $value):array<string, mixed> $map
+     * @param                                                          $request
      *
-     * @return array<string, string>
+     * @return array<string, mixed>
      */
-    private function getSamples($instance, string $method, $request = null): array
+    private function mapSamples($instance, string $method, callable $map, $request = null): array
     {
         $request ??= request();
 
         try {
-            return collect($this->prepareSample(Reflection::call($instance, $method, $request) ?? []))->mapWithKeys(function ($value, $key) {
-                $key = Describer::retrieveName($value, $key);
-
-                if ($this->isBool($value)) {
-                    return [$key => 'bool'];
-                }
-                if ($this->isInt($value)) {
-                    return [$key => 'integer'];
-                }
-                if ($this->isFloat($value)) {
-                    return [$key => 'float'];
-                }
-                if ($this->isString($value)) {
-                    return [$key => 'string'];
-                }
-                if ($this->isArray($value)) {
-                    return [$key => 'array'];
-                }
-                if ($this->isDate($value)) {
-                    return [$key => 'date'];
-                }
-
-                return [$key => 'mixed'];
-            })->all();
+            return collect($this->prepareSample(Reflection::call($instance, $method, $request) ?? []))
+                ->mapWithKeys($map)
+                ->all();
         } catch (\Throwable $e) {
             Logger::warn([
                 "Fail to generate structure for $method on json-api-resource " . $instance::class,
@@ -195,6 +188,41 @@ trait JAResource
             Logger::notice('Use empty array instead');
             return [];
         }
+    }
+
+    /**
+     * @param        $instance
+     * @param string $method
+     * @param        $request
+     *
+     * @return array<string, string>
+     */
+    private function getSamples($instance, string $method, $request = null): array
+    {
+        return $this->mapSamples($instance, $method, function ($value, $key) {
+            $key = Describer::retrieveName($value, $key);
+
+            if ($this->isBool($value)) {
+                return [$key => 'bool'];
+            }
+            if ($this->isInt($value)) {
+                return [$key => 'integer'];
+            }
+            if ($this->isFloat($value)) {
+                return [$key => 'float'];
+            }
+            if ($this->isString($value)) {
+                return [$key => 'string'];
+            }
+            if ($this->isArray($value)) {
+                return [$key => 'array'];
+            }
+            if ($this->isDate($value)) {
+                return [$key => 'date'];
+            }
+
+            return [$key => 'mixed'];
+        }, $request);
     }
 
     private function getType(string $class): string

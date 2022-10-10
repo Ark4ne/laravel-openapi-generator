@@ -34,17 +34,16 @@ trait Resource
         return $this->toResponseEntry($this->getResponse($element, $entry), $entry);
     }
 
-    protected function toResponseEntry(?SymfonyResponse $response, Entry $entry): ResponseEntry
+    protected function toResponseEntry(?SymfonyResponse $response, Entry $entry, $body = null): ResponseEntry
     {
         $status = $entry->getDocResponseStatusCode() ?? 200;
         $statusText = $entry->getDocResponseStatusName() ?? SymfonyResponse::$statusTexts[200];
         $headers = iterator_to_array($entry->getDocResponseHeaders());
-        $parameter = null;
 
         if ($response) {
             $status = $entry->getDocResponseStatusCode() ?? $response->getStatusCode();
             $statusText = $entry->getDocResponseStatusName() ?? Reflection::read($response, 'statusText');
-            $parameter = Parameter::fromJson($response->getData(true));
+            $body ??= Parameter::fromJson($response->getData(true));
             $headers = array_merge($headers, $response->headers->allPreserveCase());
         }
 
@@ -53,7 +52,7 @@ trait Resource
             statusCode: $status,
             statusName: $statusText,
             headers: $this->convertHeadersToOasHeaders($headers),
-            body: $parameter,
+            body: $body,
         );
     }
 
