@@ -61,7 +61,7 @@ class Component
         return $this;
     }
 
-    public static function convert(): ?Components
+    public static function toComponents(): ?Components
     {
         if (empty(self::$refs)) {
             return null;

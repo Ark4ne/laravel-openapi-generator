@@ -17,6 +17,8 @@ use GoldSpecDigital\ObjectOrientedOAS\Objects\{
     Parameter as OASParameter,
     PathItem,
     Response,
+    Server,
+    ServerVariable,
     Tag
 };
 use GoldSpecDigital\ObjectOrientedOAS\OpenApi;
@@ -74,23 +76,44 @@ class DocumentationGenerator
                 ->operations(...$operations);
         }
 
-        $info = Info::create()
-            ->title(Config::title())
-            ->version($version)
-            ->description(Config::description());
-
         $openApi = OpenApi::create()
             ->openapi(OpenApi::OPENAPI_3_0_2)
-            ->info($info)
+            ->info($this->info($version))
             ->paths(...$paths)
             ->tags(...array_values($this->tags))
-            ->components(Component::convert());
+            ->servers(...$this->servers())
+            ->components(Component::toComponents());
 
         if (!empty($this->groups)) {
             $openApi = $openApi->x('tagGroups', array_values($this->groups));
         }
 
         return $openApi;
+    }
+
+    protected function info(string $version): Info
+    {
+        return Info::create()
+            ->title(Config::title())
+            ->version($version)
+            ->description(Config::description());
+    }
+
+    /**
+     * @return Server[]
+     */
+    protected function servers(): array
+    {
+        return array_map(
+            static fn($server) => Server::create()
+                ->url($server['url'] ?? null)
+                ->description($server['description'] ?? null)
+                ->variables(...array_map(static fn($variable) => ServerVariable::create()
+                    ->enum($variable['enum'] ?? null)
+                    ->default($variable['default'] ?? null)
+                    ->description($variable['description'] ?? null), $server['variables'] ?? [])),
+            Config::servers() ?? []
+        );
     }
 
     /**

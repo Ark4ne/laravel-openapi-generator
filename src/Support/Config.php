@@ -20,6 +20,7 @@ use Illuminate\Support\Str;
  * @method static array connections(?string $value = null)
  * @method static array versions()
  * @method static string[] languages()
+ * @method static array|null servers()
  */
 class Config
 {

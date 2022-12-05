@@ -17,6 +17,43 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Servers
+    |--------------------------------------------------------------------------
+    |
+    | Here you can specify global server configuration.
+    | You can define multiple server configuration.
+    |
+    | Any part of the server URL – scheme, host name or its parts, port, subpath
+    | can be parameterized using variables.
+    | Variables are indicated by {curly braces} in the server url.
+    |
+    | eg:
+    |   [
+    |       'url' => 'https://{env}.myapp.com',
+    |       'description' =>  config('app.name'),
+    |       'variable' => [
+    |           'env' => [
+    |               'enum' => ['development', 'staging', 'production'],
+    |               'default' => config('app.env')
+    |           ]
+    |       ],
+    |   ],
+    */
+    'servers' => [
+        [
+            'url' => config('app.url'),
+            'description' =>  config('app.name'),
+            'variable' => [
+                'env' => [
+                    'enum' => ['development', 'staging', 'production'],
+                    'default' => config('app.env')
+                ]
+            ],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Versions
     |--------------------------------------------------------------------------
     |
@@ -25,6 +62,16 @@ return [
     */
     'versions' => [
         'v1' => [
+            /*
+            |------------------------------------------------------------------
+            | Servers
+            |------------------------------------------------------------------
+            |
+            | Override global servers configuration.
+            |
+            */
+            // 'servers' => [],
+
             /*
             |------------------------------------------------------------------
             | Output-file
