@@ -54,21 +54,23 @@ class DocumentationGenerator
         $routes = $this->getRoutes(Config::routes());
         $ignoreVerbs = array_map('strtoupper', Config::ignoreVerbs());
 
-        $paths = [];
+        $entries = [];
 
         foreach ($routes as $route) {
             $entry = new DocumentationEntry($route);
 
-            $operations = [];
-
             foreach ($entry->getMethods() as $method) {
                 if (!in_array(strtoupper($method), $ignoreVerbs, true)) {
-                    $operations[] = $this->operation($entry, $method);
+                    $entries[$entry->getRouteUri()][] = $this->operation($entry, $method);
                 }
             }
+        }
 
+        $paths = [];
+
+        foreach ($entries as $entry => $operations) {
             $paths[] = PathItem::create()
-                ->route('/' . ltrim($entry->getRouteUri(), '/'))
+                ->route('/' . ltrim($entry, '/'))
                 ->operations(...$operations);
         }
 
