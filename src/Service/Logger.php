@@ -22,18 +22,34 @@ class Logger
         'info' => 'line',
     ];
 
+    const METHODS = [
+        'HEAD' => 'comment',
+        'GET' => 'blue',
+        'POST' => 'warn',
+        'PUT' => 'ff00ff',
+        'PATCH' => 'ff00ff',
+        'DELETE' => 'error',
+    ];
+
     protected array $interseptors = [];
     protected array $operations = [];
 
-    public function start(string $name, string $lvl = 'line'): void
+    public function request(string $method, string $uri): void
     {
-        $this->$lvl("$name ");
+        $this->write($method, self::METHODS[$method], newline: true);
+        $this->write(str_pad('', 8 - strlen($method), '.'), 'comment', newline: false);
+        $this->start($uri, newline: false);
+    }
+
+    public function start(string $name, string $lvl = 'line', bool $newline = null): void
+    {
+        $this->$lvl("$name ", $newline);
         $this->operations[] = ['name' => $name, 'actions' => []];
     }
 
     public function end(string $lvl = null, string $message = null): void
     {
-        $newline = empty($this->operations) || (bool)count($this->operations[array_key_last($this->operations)]['actions']);
+        $newline = empty($this->operations) || (bool) count($this->operations[array_key_last($this->operations)]['actions']);
 
         array_pop($this->operations);
         if ($lvl && !($newline && $lvl === 'success')) {
@@ -47,7 +63,7 @@ class Logger
     }
 
     /**
-     * @param string          $action
+     * @param string $action
      * @param (string|bool)[] $args
      *
      * @return void
@@ -58,7 +74,7 @@ class Logger
             $this->operations[array_key_last($this->operations)]['actions'][] = $action;
         }
         $newline = $args[1] ?? true;
-        $msg = (array)($args[0] ?? []);
+        $msg = (array) ($args[0] ?? []);
         $icon = self::ICONS[$action] ?? '';
         $lvl = self::MAP[$action] ?? $action;
 
@@ -68,25 +84,36 @@ class Logger
             $icon = "$icon ";
         }
 
-        $msg = implode($icon ? "\n$indent  " : "\n$indent", array_merge(...array_map(static fn($msg) => explode("\n", $msg), $msg)));
+        $msg = implode($icon ? "\n$indent  " : "\n$indent", array_merge(...array_map(static fn ($msg) => explode("\n", $msg), $msg)));
 
-        if ($lvl === 'error') {
-            $msg = "<fg=#ff0000>$icon$msg</>";
+        $this->write("$icon$msg", $lvl, $indent, $newline);
+    }
+
+    protected function write(string $message, string $color, string $indent = '', bool $newline = false)
+    {
+        if ($color === 'error') {
+            $msg = "<fg=#ff0000>$message</>";
         }
-        if ($lvl === 'blue') {
-            $msg = "<fg=blue>$icon$msg</>";
+        elseif ($color === 'blue') {
+            $msg = "<fg=blue>$message</>";
         }
-        if ($lvl === 'warn') {
-            $msg = "<fg=yellow>$icon$msg</>";
+        elseif ($color === 'warn') {
+            $msg = "<fg=yellow>$message</>";
         }
-        if ($lvl === 'comment') {
-            $msg = "<fg=gray>$icon$msg</>";
+        elseif ($color === 'comment') {
+            $msg = "<fg=gray>$message</>";
         }
-        if ($lvl === 'info') {
-            $msg = "<info>$icon$msg</info>";
+        elseif ($color === 'info') {
+            $msg = "<info>$message</info>";
         }
-        if ($lvl === 'line') {
-            $msg = "$icon$msg";
+        elseif ($color === 'line') {
+            $msg = $message;
+        }
+        elseif ($color) {
+            $msg = "<fg=#$color>$message</>";
+        }
+        else {
+            $msg = $message;
         }
         if ($newline) {
             $msg = PHP_EOL . $indent . $msg;

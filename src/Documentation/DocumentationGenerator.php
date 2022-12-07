@@ -125,9 +125,9 @@ class DocumentationGenerator
      */
     protected function operation(DocumentationEntry $entry, string $method): Operation
     {
-        Logger::start("$method " . $entry->getRouteUri(), 'blue');
-
+        Logger::request($method, $entry->getRouteUri());
         Logger::start('request ');
+
         $request = $entry->request();
 
         /** @var Operation $operation */
