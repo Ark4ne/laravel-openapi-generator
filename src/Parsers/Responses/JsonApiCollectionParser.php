@@ -33,15 +33,19 @@ class JsonApiCollectionParser implements ResponseParserContract
         $structure = $this->generateStructure($resourceInstance, $class);
 
         try {
-            $instance->collection = collect($this->getModelFromResource($resourceClass, 2))
-                ->mapInto($resource);
+            $instance->collection = collect($this->getModelFromResource($resourceClass, 2))->mapInto($resource);
 
             /** @var \Illuminate\Http\JsonResponse $response */
             $response = $instance->response();
 
             $response = $this->mergeResponseWithStructure($response, $structure);
         } catch (\Throwable $e) {
-            $response = response()->json($structure);
+            Logger::warn([
+                "Fail to generate response for collection of {{$resource}} - (collect class : {{$class->getName()}})",
+                $e->getMessage()
+            ]);
+            Logger::notice('Use resource structure instead.');
+            $response = response()->json(['data' => [$structure]]);
         }
 
         return $this->toResponseEntry($response, $entry);
