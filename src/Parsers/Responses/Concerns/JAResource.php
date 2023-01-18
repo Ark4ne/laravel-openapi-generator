@@ -7,6 +7,7 @@ use Ark4ne\JsonApi\Descriptors\Relations\Relation;
 use Ark4ne\JsonApi\Descriptors\Relations\RelationMany;
 use Ark4ne\JsonApi\Resources\Concerns\PrepareData;
 use Ark4ne\JsonApi\Resources\Relationship;
+use Ark4ne\JsonApi\Support\Values;
 use Ark4ne\OpenApi\Support\Facades\Logger;
 use Ark4ne\OpenApi\Support\Fake;
 use Ark4ne\OpenApi\Support\Reflection;
@@ -29,7 +30,7 @@ trait JAResource
                     'id' => 'int|string',
                     'type' => $this->getType($instance::class),
                     'attributes' => $this->getSamples($instance, 'toAttributes', $request),
-                    'relationships' => collect(Reflection::call($instance, 'toRelationships', $request))
+                    'relationships' => collect($this->mergeValues(Reflection::call($instance, 'toRelationships', $request)))
                         ->mapWithKeys(function ($relationship, $name) use ($instance) {
                             $name = Describer::retrieveName($relationship, $name);
 
@@ -141,13 +142,17 @@ trait JAResource
         return $response->setData($data);
     }
 
-    private function prepareSample($values)
+    private function mergeValues($values)
     {
         static $mergeValues;
 
         if (!isset($mergeValues)) {
+            // Available for json-api v1.3
+            if (class_exists(Values::class)) {
+                $mergeValues = static fn($values) => Values::mergeValues($values);
+            }
             // Available for json-api v1.2
-            if (trait_exists(PrepareData::class)) {
+            elseif (trait_exists(PrepareData::class)) {
                 $stub = new class {
                     use PrepareData;
                 };
@@ -156,7 +161,9 @@ trait JAResource
                 $method->setAccessible(true);
 
                 $mergeValues = static fn($values) => $method->invoke($stub, $values);
-            } else {
+            }
+            // no merge values
+            else {
                 $mergeValues = static fn($values) => $values;
             }
         }
@@ -177,7 +184,7 @@ trait JAResource
         $request ??= request();
 
         try {
-            return collect($this->prepareSample(Reflection::call($instance, $method, $request) ?? []))
+            return collect($this->mergeValues(Reflection::call($instance, $method, $request) ?? []))
                 ->mapWithKeys($map)
                 ->all();
         } catch (\Throwable $e) {
