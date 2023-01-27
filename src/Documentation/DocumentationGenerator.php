@@ -150,7 +150,7 @@ class DocumentationGenerator
             ->responses(Response::ok());
         Logger::end('success');
 
-        if (Http::acceptBody($method)) {
+        if (Http::acceptBody($method) && !empty($request->body())) {
             $operation = $operation->requestBody((new Parameters($request->body()))->convert(
                 'body',
                 ($request->headers()['Content-Type'] ?? null)?->enum

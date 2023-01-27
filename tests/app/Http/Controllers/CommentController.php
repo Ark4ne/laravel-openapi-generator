@@ -3,20 +3,18 @@
 namespace Test\app\Http\Controllers;
 
 use Ark4ne\JsonApi\Resources\JsonApiCollection;
-use Ark4ne\JsonApi\Resources\JsonApiResource;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Routing\Controller;
+use Test\app\Http\JsonApiResources\CommentResource as CommentJsonApiResource;
 use Test\app\Http\Requests\CommentRequest;
 use Test\app\Http\Resources\CommentResource;
-use Test\app\Http\Schema\CommentSchema;
-use Test\app\Http\Schema\UserSchema;
 use Test\app\Models\Comment;
 
 class CommentController extends Controller
 {
     use AsApiController {
-        index as apiIndex;
-        show as apiShow;
+        AsApiController::index as apiIndex;
+        AsApiController::show as apiShow;
     }
 
     protected function getModelClass(): string
@@ -29,17 +27,22 @@ class CommentController extends Controller
         return CommentResource::class;
     }
 
+    protected function getJsonApiResourceClass(): string
+    {
+        return CommentJsonApiResource::class;
+    }
+
     /**
      * @param \Test\app\Http\Requests\CommentRequest $request
      *
-     * @return \Illuminate\Http\Resources\Json\ResourceCollection<CommentResource>
+     * @return \Illuminate\Http\Resources\Json\ResourceCollection<CommentResource>|\Ark4ne\JsonApi\Resources\JsonApiCollection<CommentJsonApiResource>
      */
-    public function index(CommentRequest $request): ResourceCollection
+    public function index(CommentRequest $request): ResourceCollection|JsonApiCollection
     {
         return $this->apiIndex($request);
     }
 
-    public function show(CommentRequest $request, string $id): CommentResource
+    public function show(CommentRequest $request, string $id): CommentResource|CommentJsonApiResource
     {
         return $this->apiShow($request, $id);
     }

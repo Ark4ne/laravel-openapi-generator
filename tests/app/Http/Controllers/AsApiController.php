@@ -8,7 +8,7 @@ use Illuminate\Http\Resources\Json\ResourceCollection;
 
 trait AsApiController
 {
-    private static $useSchema = false;
+    private static $useJsonApiResource = true;
 
     /**
      * @return class-string<\Illuminate\Database\Eloquent\Model>
@@ -21,6 +21,11 @@ trait AsApiController
     abstract protected function getResourceClass(): string;
 
     /**
+     * @return class-string<\Illuminate\Http\Resources\Json\JsonResource>
+     */
+    abstract protected function getJsonApiResourceClass(): string;
+
+    /**
      * Display a listing of the resource.
      */
     public function index(Request $request): ResourceCollection
@@ -31,7 +36,9 @@ trait AsApiController
             ->with(array_filter(explode(',', $request->input('include', ''))))
             ->paginate();
 
-        $resourceClass = $this->getResourceClass();
+        $resourceClass = self::$useJsonApiResource
+            ? $this->getJsonApiResourceClass()
+            : $this->getResourceClass();
 
         return $resourceClass::collection($models);
     }
@@ -59,7 +66,11 @@ trait AsApiController
             ::with(array_filter(explode(',', $request->input('include', ''))))
             ->find($id);
 
-        return new ($this->getResourceClass())($model);
+        $resourceClass = self::$useJsonApiResource
+            ? $this->getJsonApiResourceClass()
+            : $this->getResourceClass();
+
+        return new $resourceClass($model);
     }
 
     /**

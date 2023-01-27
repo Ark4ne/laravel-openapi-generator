@@ -2,11 +2,16 @@
 
 namespace Test\Feature;
 
-use JsonSchema\Constraints\BaseConstraint;
-use JsonSchema\Validator;
+use Test\app\Http\Controllers\CommentController;
+use Test\app\Http\Controllers\PostController;
+use Test\app\Http\Controllers\UserController;
+use Test\Concerns\AssertOpenApi;
+use Test\Support\Reflect;
 
 class GenerateTest extends FeatureTestCase
 {
+    use AssertOpenApi;
+
     public function testGenerate(): void
     {
         $config = $this->app['config']['openapi'];
@@ -16,19 +21,22 @@ class GenerateTest extends FeatureTestCase
             ->artisan('openapi:generate --force')
             ->assertSuccessful();
 
-        $this->assertFileExists($file);
+        $this->assertOpenapiFile($file);
+    }
 
-        $data = BaseConstraint::arrayToObjectRecursive(
-            json_decode(file_get_contents($file), true, 512, JSON_THROW_ON_ERROR)
-        );
+    public function testGenerateJsonApiResource(): void
+    {
+        Reflect::set(CommentController::class, 'useJsonApiResource', true);
+        Reflect::set(UserController::class, 'useJsonApiResource', true);
+        Reflect::set(PostController::class, 'useJsonApiResource', true);
 
-        $schema = json_decode(file_get_contents(
-            __DIR__ . '/../../vendor/goldspecdigital/oooas/schemas/v3.0.json'
-        ), false, 512, JSON_THROW_ON_ERROR);
+        $config = $this->app['config']['openapi'];
+        $file = "{$config['output-dir']}/{$config['versions']['v1']['output-file']}";
 
-        $validator = new Validator();
-        $validator->validate($data, $schema);
+        $this
+            ->artisan('openapi:generate --force')
+            ->assertSuccessful();
 
-        $this->assertTrue($validator->isValid());
+        $this->assertOpenapiFile($file);
     }
 }
