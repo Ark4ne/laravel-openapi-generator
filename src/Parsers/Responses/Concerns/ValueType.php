@@ -2,6 +2,7 @@
 
 namespace Ark4ne\OpenApi\Parsers\Responses\Concerns;
 
+use Ark4ne\JsonApi\Descriptors\Describer;
 use Ark4ne\JsonApi\Descriptors\Values\ValueArray;
 use Ark4ne\JsonApi\Descriptors\Values\ValueBool;
 use Ark4ne\JsonApi\Descriptors\Values\ValueDate;
@@ -47,6 +48,11 @@ trait ValueType
 
     public function isDate(mixed $value): bool
     {
-        return $this->instanceof($value, ValueDate::class);
+        return $this->instanceof($value, \DateTimeInterface::class) || $this->instanceof($value, ValueDate::class);
+    }
+
+    public function isDescriber(mixed $value): bool
+    {
+        return $this->instanceof($value, Describer::class);
     }
 }

@@ -111,10 +111,13 @@ trait JAResource
     protected function mergeResponseWithStructure(Response $response, array $structure)
     {
         $merge = static function ($data, $structure) {
-            $data['attributes'] = array_merge(
-                $structure['data']['attributes'],
-                array_filter($data['attributes'], static fn($v) => $v !== '' && $v !== [])
+            $basic = static fn ($key, $structure, &$data) => $data[$key] = array_merge(
+                $structure['data'][$key] ?? [],
+                array_filter($data[$key] ?? [], static fn($v) => $v !== null && $v !== '' && $v !== [])
             );
+            $basic('attributes', $structure, $data);
+            $basic('meta', $structure, $data);
+            $basic('links', $structure, $data);
 
             $data['relationships'] = array_merge(
                 $structure['data']['relationships'] ?? [],
@@ -225,7 +228,29 @@ trait JAResource
                 return [$key => 'array'];
             }
             if ($this->isDate($value)) {
-                return [$key => 'date'];
+                $sample = 'date';
+
+                if ($this->isDescriber($value)) {
+                    $format = null;
+                    try {
+                        $format = Reflection::read($value, 'format');
+                    } catch (\Throwable $e) {
+                    }
+
+                    if (!$format && class_exists(\Ark4ne\JsonApi\Support\Config::class)) {
+                        $format = \Ark4ne\JsonApi\Support\Config::$date;
+                    }
+
+                    if (!$format) {
+                        $format = config('jsonapi.describer.date');
+                    }
+
+                    if ($format) {
+                        $sample = "date{{$format}}";
+                    }
+                }
+
+                return [$key => $sample];
             }
 
             return [$key => 'mixed'];
