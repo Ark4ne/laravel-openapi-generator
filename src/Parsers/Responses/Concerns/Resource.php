@@ -136,7 +136,7 @@ trait Resource
 
     private function getModelFromResource(ReflectionClass $class, int $count = 1): mixed
     {
-        $resource = $this->getResourceClass($class);
+        $resourceClass = $resource = $this->getResourceClass($class);
 
         if ($resource && method_exists($resource, 'factory')) {
             $factory = static fn() => $count > 1
@@ -149,6 +149,8 @@ trait Resource
                     ) => $resource->wasRecentlyCreated = false);
                     return $resources;
                 } catch (QueryException $e) {
+                    Logger::warn(["Can create concrete model [$resourceClass] with factory::create.", $e->getMessage()]);
+                    Logger::notice("Use factory::make instead.");
                 }
             }
             return $factory()->make([
