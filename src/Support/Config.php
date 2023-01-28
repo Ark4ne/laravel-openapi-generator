@@ -18,6 +18,7 @@ use Illuminate\Support\Str;
  * @method static array parsers(?string $type = null)
  * @method static array format(?string $type = null)
  * @method static array connections(?string $value = null)
+ * @method static array middlewares(?string $path = null)
  * @method static array versions()
  * @method static string[] languages()
  * @method static array|null servers()

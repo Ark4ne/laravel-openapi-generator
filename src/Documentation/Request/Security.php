@@ -3,10 +3,12 @@
 namespace Ark4ne\OpenApi\Documentation\Request;
 
 use Ark4ne\OpenApi\Contracts\OASSchematable;
-use GoldSpecDigital\ObjectOrientedOAS\Objects\SecurityRequirement;
+use Ark4ne\OpenApi\Documentation\Request\Concerns\OASProxy;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\SecurityScheme;
 
 /**
+ * @uses OASProxy<\GoldSpecDigital\ObjectOrientedOAS\Objects\SecurityScheme>
+ *
  * @property-read string|null                                                 $type
  * @property-read string|null                                                 $description
  * @property-read string|null                                                 $name
@@ -27,6 +29,8 @@ use GoldSpecDigital\ObjectOrientedOAS\Objects\SecurityScheme;
  */
 class Security implements OASSchematable
 {
+    use OASProxy;
+
     const TYPE_API_KEY = 'apiKey';
     const TYPE_HTTP = 'http';
     const TYPE_OAUTH2 = 'oauth2';
@@ -36,51 +40,21 @@ class Security implements OASSchematable
     const IN_HEADER = 'header';
     const IN_COOKIE = 'cookie';
 
-    private SecurityScheme $scheme;
-
     /**
      * @param mixed ...$args
      */
     public function __construct(...$args)
     {
-        $this->scheme = new SecurityScheme(...$args);
+        $this->object = new SecurityScheme(...$args);
     }
 
-    public function oasSchema(): SecurityScheme
+    public static function component(string $id, callable $callback): self
     {
-        return $this->scheme;
-    }
+        if (!Component::has($id, Component::SCOPE_SECURITY_SCHEMES)) {
+            $component = Component::create($id, Component::SCOPE_SECURITY_SCHEMES);
+            $component->object($callback(new self($id)));
+        }
 
-    public function oasRequirement(): SecurityRequirement
-    {
-        return SecurityRequirement::create()->securityScheme($this->oasSchema());
-    }
-
-    /**
-     * @param string       $name
-     * @param array<mixed> $args
-     *
-     * @return mixed
-     */
-    public function __call(string $name, array $args): mixed
-    {
-        $this->scheme = $this->scheme->$name(...$args);
-
-        return $this;
-    }
-
-    public function __get(string $name): mixed
-    {
-        return $this->scheme->$name;
-    }
-
-    public function __set(string $name, mixed $value): void
-    {
-        $this->scheme->$name = $value;
-    }
-
-    public function __isset(string $name): bool
-    {
-        return isset($this->scheme->$name);
+        return new self($id);
     }
 }

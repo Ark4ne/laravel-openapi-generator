@@ -7,6 +7,7 @@ use Ark4ne\OpenApi\Documentation\Request\Content;
 use Ark4ne\OpenApi\Documentation\Request\Parameter;
 use Ark4ne\OpenApi\Documentation\Request\Parameters;
 use Ark4ne\OpenApi\Documentation\Request\Security;
+use Ark4ne\OpenApi\Documentation\Request\SecurityRequirement;
 use Ark4ne\OpenApi\Support\Config;
 use Ark4ne\OpenApi\Support\Facades\Logger;
 use Ark4ne\OpenApi\Support\Http;
@@ -156,11 +157,9 @@ class DocumentationGenerator
         }
 
         if (!empty($request->securities())) {
-            $operation = $operation->security(
-                ...collect($request->securities())
-                ->map(fn(Security $security) => $security->oasRequirement())
-                ->all()
-            );
+            $operation = $operation->security(...collect($request->securities())
+                ->map(fn(SecurityRequirement $value) => $value->oasSchema())
+                ->all());
         }
 
         if (Http::canReturnContent($method)) {

@@ -3,6 +3,7 @@
 namespace Ark4ne\OpenApi\Documentation;
 
 use Ark4ne\OpenApi\Contracts\Entry;
+use Ark4ne\OpenApi\Support\Config;
 use Ark4ne\OpenApi\Support\Facades\Logger;
 use Ark4ne\OpenApi\Support\Reflection\Type;
 
@@ -20,6 +21,8 @@ class ComputeEntry
         $request = $this->request();
         $responses = $this->response();
 
+        $this->transform($request, $responses);
+
         return [$request, $responses];
     }
 
@@ -28,24 +31,6 @@ class ComputeEntry
         Logger::start('request ');
         $request = $this->parse(config('openapi.parsers.requests'), $this->entry->getRequestClass())[0] ?? null;
         Logger::end('success');
-
-        $middlewares = array_intersect_key(
-            config('openapi.parsers.middlewares', []),
-            array_fill_keys($this->entry->getMiddlewares(), true)
-        );
-
-        if (!empty($middlewares)) {
-            try {
-                Logger::start('middlewares ');
-                $parsers = array_unique(array_merge(...array_values(array_map(static fn($parsers) => (array)$parsers, $middlewares))));
-                foreach ($parsers as $parser) {
-                    app()->make($parser)->parse($this->entry, $request);
-                }
-                Logger::end('success');
-            } catch (\Throwable $e) {
-                Logger::end('error', 'Error when trying to parse middlewares : ' . $e->getMessage());
-            }
-        }
 
         return $request;
     }
@@ -64,6 +49,32 @@ class ComputeEntry
             Logger::end('error', 'Error when trying to generate response : ' . $e->getMessage());
         }
         return $responses;
+    }
+
+    /**
+     * @param RequestEntry $request
+     * @param ResponseEntry[] $responses
+     * @return void
+     */
+    private function transform(RequestEntry $request, array $responses): void
+    {
+        $middlewares = array_intersect_key(
+            Config::middlewares(),
+            array_fill_keys($this->entry->getMiddlewares(), true)
+        );
+
+        if (!empty($middlewares)) {
+            try {
+                Logger::start('middlewares ');
+                $parsers = array_unique(array_merge(...array_values(array_map(static fn($parsers) => (array)$parsers, $middlewares))));
+                foreach ($parsers as $parser) {
+                    app()->make($parser)->parse($this->entry, $request, $responses);
+                }
+                Logger::end('success');
+            } catch (\Throwable $e) {
+                Logger::end('error', 'Error when trying to parse middlewares : ' . $e->getMessage());
+            }
+        }
     }
 
     /**

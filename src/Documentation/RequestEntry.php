@@ -5,7 +5,7 @@ namespace Ark4ne\OpenApi\Documentation;
 class RequestEntry
 {
     /**
-     * @param array<string, Request\Security> $securities
+     * @param array<string, Request\SecurityRequirement> $securities
      * @param array<string, Request\Parameter> $parameters
      * @param array<string, Request\Parameter> $headers
      * @param array<string, Request\Parameter> $body
@@ -22,7 +22,7 @@ class RequestEntry
     }
 
     /**
-     * @return array<string, Request\Security>
+     * @return array<string, Request\SecurityRequirement>
      */
     public function securities(): array
     {
@@ -66,7 +66,7 @@ class RequestEntry
         return !empty($this->queries) || !empty($this->body);
     }
 
-    public function addSecurity(Request\Security $security): self
+    public function addSecurity(Request\SecurityRequirement $security): self
     {
         $this->securities[] = $security;
 
