@@ -78,6 +78,11 @@ interface Entry
      */
     public function getRequestClass(): Reflection\Type;
 
+    /**
+     * @return string[]
+     */
+    public function getMiddlewares(): array;
+
     public function request(): RequestEntry;
 
     /**

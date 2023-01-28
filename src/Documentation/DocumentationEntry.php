@@ -11,6 +11,7 @@ use Ark4ne\OpenApi\Support\Trans;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Route;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Str;
 use phpDocumentor\Reflection\DocBlock;
 use ReflectionMethod;
@@ -30,11 +31,13 @@ class DocumentationEntry implements Entry
     protected null|array|Reflection\Type $responseClass;
     protected RequestEntry $request;
     /** @var \Ark4ne\OpenApi\Documentation\ResponseEntry[] */
-    protected array $response;
+    protected array $responses;
 
     public function __construct(
-        protected Route $route
-    ) {
+        protected Router $router,
+        protected Route  $route
+    )
+    {
     }
 
     /**
@@ -59,8 +62,8 @@ class DocumentationEntry implements Entry
     }
 
     /**
-     * @throws \ReflectionException
      * @return array<string, null|string>
+     * @throws \ReflectionException
      */
     public function getRouteParams(): array
     {
@@ -264,55 +267,42 @@ class DocumentationEntry implements Entry
             ?? Reflection\Type::make(Request::class);
     }
 
+    /**
+     * @return string[]
+     */
+    public function getMiddlewares(): array
+    {
+        return $this->middlewares ??= array_unique(array_diff(
+            array_merge($this->route->gatherMiddleware(), $this->router->gatherRouteMiddleware($this->route)),
+            $this->route->excludedMiddleware()
+        ));
+    }
+
+    private function compute(): void
+    {
+        $compute = new ComputeEntry($this);
+
+        [$request, $responses] = $compute();
+
+        $this->request = $request;
+        $this->responses = $responses;
+    }
+
     public function request(): RequestEntry
     {
-        return $this->request ??= $this->parse(config('openapi.parsers.requests'), $this->getRequestClass())[0] ?? null;
+        if (!isset($this->request)) $this->compute();
+
+        return $this->request;
     }
 
     /**
-     * @throws \Illuminate\Contracts\Container\BindingResolutionException
      * @return \Ark4ne\OpenApi\Documentation\ResponseEntry[]
      */
     public function response(): array
     {
-        return $this->response ??= $this->parse(config('openapi.parsers.responses'), $this->getResponseClass());
-    }
+        if (!isset($this->responses)) $this->compute();
 
-    /**
-     * @param array<class-string>                    $parsers
-     * @param Reflection\Type[]|Reflection\Type|null $element
-     *
-     * @throws \Illuminate\Contracts\Container\BindingResolutionException
-     * @return mixed
-     */
-    protected function parse(array $parsers, null|array|Reflection\Type $element): mixed
-    {
-        if ($element === null) {
-            return null;
-        }
-
-        if (!is_array($element)) {
-            $element = [$element];
-        }
-
-        $mapped = [];
-
-        foreach ($element as $item) {
-            foreach ($parsers as $for => $parser) {
-                if (is_a($item->getType(), $for, true)) {
-                    $mapped[] = app()->make($parser)->parse($item, $this);
-                    break;
-                }
-            }
-        }
-
-        if (!empty($mapped)) {
-            return $mapped;
-        }
-
-        throw new \Exception("TODO: Can't parse " . (is_array($element)
-                ? implode(', ', array_map(static fn($element) => $element->getType(), $element))
-                : $element->getType()));
+        return $this->responses;
     }
 
     /**

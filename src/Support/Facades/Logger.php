@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static void success(mixed $message = null)
  * @method static void warn(mixed $message = null)
  * @method static void error(mixed $message = null)
- * @method static void interseptor(\Closure $closure)
+ * @method static void interceptor(\Closure $closure)
  */
 class Logger extends Facade
 {

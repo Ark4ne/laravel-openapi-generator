@@ -59,7 +59,7 @@ class DocumentationGenerator
         $entries = [];
 
         foreach ($routes as $route) {
-            $entry = new DocumentationEntry($route);
+            $entry = new DocumentationEntry($this->router, $route);
 
             foreach ($entry->getMethods() as $method) {
                 if (!in_array(strtoupper($method), $ignoreVerbs, true)) {
@@ -126,7 +126,6 @@ class DocumentationGenerator
     protected function operation(DocumentationEntry $entry, string $method): Operation
     {
         Logger::request($method, $entry->getRouteUri());
-        Logger::start('request ');
 
         $request = $entry->request();
 
@@ -148,7 +147,6 @@ class DocumentationGenerator
             ),
             )
             ->responses(Response::ok());
-        Logger::end('success');
 
         if (Http::acceptBody($method) && !empty($request->body())) {
             $operation = $operation->requestBody((new Parameters($request->body()))->convert(
@@ -166,24 +164,16 @@ class DocumentationGenerator
         }
 
         if (Http::canReturnContent($method)) {
-            Logger::start('response');
+            $responses = array_map(fn($response) => $this->convertResponse($response), $entry->response());
 
-            try {
-                $responses = array_map(fn($response) => $this->convertResponse($response), $entry->response());
-
-                if ($request->hasRules()) {
-                    // have rules
-                    $responses[] = Response::create()
-                        ->statusCode(422)
-                        ->description('Unprocessable Entity');
-                }
-
-                $operation = $operation->responses(...$responses);
-
-                Logger::end('success');
-            } catch (\Throwable $e) {
-                Logger::end('error', 'Error when trying to generate response : ' . $e->getMessage());
+            if ($request->hasRules()) {
+                // have rules
+                $responses[] = Response::create()
+                    ->statusCode(422)
+                    ->description('Unprocessable Entity');
             }
+
+            $operation = $operation->responses(...$responses);
         }
 
         $this->group($entry, $operation->tags);
