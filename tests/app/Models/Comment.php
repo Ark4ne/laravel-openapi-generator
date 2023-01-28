@@ -11,7 +11,7 @@ use Test\app\Factories\CommentFactory;
  * @property int $id
  * @property string $content
  * @property \DateTimeInterface $created_at
- * @property \DateTimeInterface $updated_at`
+ * @property \DateTimeInterface $updated_at
  *
  * @property-read User $user
  * @property-read Post $post

@@ -260,6 +260,19 @@ return [
             Ark4ne\JsonApi\Requests\Rules\Fields::class => Parsers\Rules\FieldsRuleParsers::class
         ],
 
+        /*
+        | Middlewares matching
+        */
+        'middlewares' => [
+            'auth:sanctum' => [
+                Parsers\Middlewares\ApplyBearerToken::class,
+                Parsers\Middlewares\ApplyXsrf::class,
+            ],
+            \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class => [
+                Parsers\Middlewares\ApplyCsrf::class,
+            ]
+        ],
+
         'responses' => [
             /*
             | JsonApi Resources & Collections

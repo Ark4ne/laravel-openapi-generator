@@ -31,7 +31,7 @@ class Logger
         'DELETE' => 'error',
     ];
 
-    protected array $interseptors = [];
+    protected array $interceptors = [];
     protected array $operations = [];
 
     public function request(string $method, string $uri): void
@@ -57,9 +57,9 @@ class Logger
         }
     }
 
-    public function interseptor(\Closure $closure): void
+    public function interceptor(\Closure $closure): void
     {
-        $this->interseptors[] = $closure;
+        $this->interceptors[] = $closure;
     }
 
     /**
@@ -118,8 +118,8 @@ class Logger
         if ($newline) {
             $msg = PHP_EOL . $indent . $msg;
         }
-        foreach ($this->interseptors as $interseptor) {
-            $interseptor($msg, false);
+        foreach ($this->interceptors as $interceptor) {
+            $interceptor($msg, false);
         }
     }
 }

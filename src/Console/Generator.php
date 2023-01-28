@@ -39,7 +39,7 @@ class Generator extends Command
     {
         $this->translator();
 
-        Logger::interseptor(fn(string $message, bool $newline) => $this->output->write($message, $newline));
+        Logger::interceptor(fn(string $message, bool $newline) => $this->output->write($message, $newline));
 
         try {
             if (!$this->beginTransaction()) {
