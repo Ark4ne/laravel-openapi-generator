@@ -20,8 +20,16 @@ trait AssertOpenApi
     {
         $validator = new Validator();
         $validator->validate($data, self::schema());
-        //dump($validator->getErrors());
-        $this->assertTrue($validator->isValid());
+
+        $errors = collect($validator->getErrors())->groupBy('pointer')->all();
+        $lists = [];
+        foreach ($errors as $pointer => $error) {
+            $lists[] = "$pointer:";
+            foreach ($error as $e) {
+                $lists[] = "  [{$e['constraint']}] {$e['message']}";
+            }
+        }
+        $this->assertTrue($validator->isValid(), implode("\n", $lists));
     }
 
     public function assertOpenapiArray(array $data): void
