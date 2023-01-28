@@ -260,19 +260,6 @@ return [
             Ark4ne\JsonApi\Requests\Rules\Fields::class => Parsers\Rules\FieldsRuleParsers::class
         ],
 
-        /*
-        | Middlewares matching
-        */
-        'middlewares' => [
-            'auth:sanctum' => [
-                Parsers\Middlewares\ApplyBearerToken::class,
-                Parsers\Middlewares\ApplyXsrf::class,
-            ],
-            \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class => [
-                Parsers\Middlewares\ApplyCsrf::class,
-            ]
-        ],
-
         'responses' => [
             /*
             | JsonApi Resources & Collections
@@ -294,6 +281,24 @@ return [
             HttpFoundation\BinaryFileResponse::class => Parsers\Responses\BinaryFileResponseParser::class,
             HttpFoundation\StreamedResponse::class => Parsers\Responses\StreamedResponseParser::class,
         ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Middlewares
+    |--------------------------------------------------------------------------
+    |
+    | Apply transformers for given middlewares.
+    |
+    */
+    'middlewares' => [
+        'auth:sanctum' => [
+            \Ark4ne\OpenApi\Transformers\Middlewares\ApplyBearerTokenSecurity::class,
+            \Ark4ne\OpenApi\Transformers\Middlewares\ApplyXsrfSecurity::class,
+        ],
+        \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class => [
+            \Ark4ne\OpenApi\Transformers\Middlewares\ApplyCsrfSecurity::class,
+        ]
     ],
 
     /*
