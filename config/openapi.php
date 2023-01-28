@@ -292,13 +292,13 @@ return [
     |
     */
     'middlewares' => [
-        'auth:sanctum' => [
-            \Ark4ne\OpenApi\Transformers\Middlewares\ApplyBearerTokenSecurity::class,
-            \Ark4ne\OpenApi\Transformers\Middlewares\ApplyXsrfSecurity::class,
-        ],
-        \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class => [
-            \Ark4ne\OpenApi\Transformers\Middlewares\ApplyCsrfSecurity::class,
-        ]
+        // 'auth:sanctum' => [
+        //     \Ark4ne\OpenApi\Transformers\Middlewares\ApplyBearerTokenSecurity::class,
+        //     \Ark4ne\OpenApi\Transformers\Middlewares\ApplyXsrfSecurity::class,
+        // ],
+        // \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class => [
+        //     \Ark4ne\OpenApi\Transformers\Middlewares\ApplyCsrfSecurity::class,
+        // ]
     ],
 
     /*
