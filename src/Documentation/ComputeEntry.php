@@ -68,7 +68,7 @@ class ComputeEntry
                 Logger::start('middlewares ');
                 $parsers = array_unique(array_merge(...array_values(array_map(static fn($parsers) => (array)$parsers, $middlewares))));
                 foreach ($parsers as $parser) {
-                    app()->make($parser)->parse($this->entry, $request, $responses);
+                    app()->make($parser)->transform($this->entry, $request, $responses);
                 }
                 Logger::end('success');
             } catch (\Throwable $e) {

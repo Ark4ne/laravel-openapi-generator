@@ -23,7 +23,7 @@ class SecurityRequirement implements OASSchematable
 
     public function addSecurity(Security $security): self
     {
-        $this->securityScheme(array_merge($this->securityScheme ?? [], [$security->objectId]));
+        $this->securityScheme(array_merge($this->object->securityScheme ?? [], [$security->objectId]));
 
         return $this;
     }
