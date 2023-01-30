@@ -14,6 +14,10 @@ class GenerateTest extends FeatureTestCase
 
     public function testGenerate(): void
     {
+        Reflect::set(CommentController::class, 'useJsonApiResource', false);
+        Reflect::set(UserController::class, 'useJsonApiResource', false);
+        Reflect::set(PostController::class, 'useJsonApiResource', false);
+
         $config = $this->app['config']['openapi'];
         $file = "{$config['output-dir']}/{$config['versions']['v1']['output-file']}";
 
@@ -21,6 +25,7 @@ class GenerateTest extends FeatureTestCase
             ->artisan('openapi:generate --force')
             ->assertSuccessful();
 
+        $this->assertOpenapiFileIs(__DIR__ . '/expected/openapi-jsonresource.json', $file);
         $this->assertOpenapiFile($file);
     }
 
@@ -37,6 +42,7 @@ class GenerateTest extends FeatureTestCase
             ->artisan('openapi:generate --force')
             ->assertSuccessful();
 
+        $this->assertOpenapiFileIs(__DIR__ . '/expected/openapi-jsonapi.json', $file);
         $this->assertOpenapiFile($file);
     }
 }
