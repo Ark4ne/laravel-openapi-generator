@@ -45,4 +45,50 @@ trait AssertOpenApi
 
         $this->assertOpenapi($data);
     }
+
+    public function assertOpenapiFileIs(string $expected, string $actual): void
+    {
+        $this->assertFileExists($actual);
+
+        $expected = json_decode(file_get_contents($expected), true, 512, JSON_THROW_ON_ERROR);
+        $actual = json_decode(file_get_contents($actual), true, 512, JSON_THROW_ON_ERROR);
+
+        $depths = [
+            'paths' => 2
+        ];
+
+        $clean = function (array &$arr, string $key, mixed $value = null) use (&$clean) {
+            if (isset($arr[$key])) {
+                $arr[$key] = $value;
+            }
+
+            foreach ($arr as &$item) {
+                if (is_array($item)) {
+                    $clean($item, $key);
+                }
+            }
+        };
+
+        $clean($expected, 'example', null);
+        $clean($actual, 'example', null);
+        $clean($expected, 'name', 'test');
+        $clean($actual, 'name', 'test');
+
+        $in = function (array $expected, array $actual, int $depth) use (&$in) {
+            foreach ($expected as $key => $value) {
+                $this->assertArrayHasKey($key, $actual);
+                if ($depth) {
+                    $in($value, $actual[$key], $depth - 1);
+                } else {
+                    $this->assertEquals($value, $actual[$key]);
+                }
+            }
+        };
+
+        foreach ($expected as $key => $item) {
+            $this->assertArrayHasKey($key, $actual);
+            if (is_string($item)) $this->assertEquals($item, $actual[$key]);
+            else $in($item, $actual[$key], $depths[$key] ?? 0);
+        }
+    }
 }
