@@ -80,7 +80,7 @@ trait AssertOpenApi
                 if ($depth) {
                     $in($value, $actual[$key], $depth - 1, $path ? "$path.$key" : $key);
                 } else {
-                    $this->assertEquals($value, $actual[$key]);
+                    $this->assertEquals($value, $actual[$key], $path ? "$path.$key" : $key);
                 }
             }
         };
