@@ -63,7 +63,7 @@ class Parameters
     /**
      * @return array<Parameter|array<Parameter>>
      */
-    protected function undot(): array
+    protected function preUndot(): array
     {
         $params = collect($this->parameters)
             ->map(static fn(Parameter $param) => [$param->name, $param])
@@ -77,13 +77,55 @@ class Parameters
         return Arr::undot($params, self::key());
     }
 
+    /**
+     * @return array<Parameter|array<Parameter>>
+     */
+    protected function undot(): array
+    {
+        /**
+         * @param Parameter|Parameter[]|Parameter[][] $parameter
+         *
+         * @return Parameter
+         */
+        $unstar = static function (array|Parameter $parameter, string $name) use (&$unstar) {
+            if ($parameter instanceof Parameter) {
+                $parameter->undot();
+                return $parameter;
+            }
+
+            $self = $parameter[self::key()] ?? (new Parameter($name));
+            unset($parameter[self::key()]);
+
+            if (isset($parameter['*'])) {
+                $self->array();
+                $self->items($unstar($parameter['*'], ''));
+
+                return $self;
+            }
+
+            $self->object();
+            $self->properties(...collect($parameter)
+                ->map($unstar)
+                ->all());
+
+            return $self;
+        };
+
+        return collect($this->preUndot())
+            ->map($unstar)
+            ->all();
+    }
+
+    /**
+     * @return array<Parameter>
+     */
     protected function flat(): array
     {
         /**
          * @param array<Parameter|array<Parameter>> $array
          * @param string                            $prepend
          *
-         * @return array
+         * @return array<Parameter>
          */
         $flat = static function (array $array, string $prepend = '') use (&$flat) {
             $results = [];
@@ -115,7 +157,7 @@ class Parameters
             return $results;
         };
 
-        return $flat($this->undot());
+        return $flat($this->preUndot());
     }
 
     /**
