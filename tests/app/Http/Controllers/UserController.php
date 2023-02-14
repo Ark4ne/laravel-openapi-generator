@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Test\app\Http\JsonApiResources\UserResource as UserJsonApiResource;
 use Test\app\Http\Requests\UserRequest;
+use Test\app\Http\Requests\UserStoreRequest;
 use Test\app\Http\Requests\UserUpdateRequest;
 use Test\app\Http\Resources\UserResource;
 use Test\app\Models\User;
@@ -103,11 +104,11 @@ class UserController extends Controller
     }
 
     /**
-     * @param UserUpdateRequest $request
+     * @param UserStoreRequest $request
      * @param string $id
      * @return UserResource|UserJsonApiResource
      */
-    public function store(UserUpdateRequest $request, string $id): UserResource|UserJsonApiResource
+    public function store(UserStoreRequest $request, string $id): UserResource|UserJsonApiResource
     {
         return $this->apiShow($request, $id);
     }
