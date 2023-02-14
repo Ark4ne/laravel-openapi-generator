@@ -292,6 +292,12 @@
                     "format": "string",
                     "type": "string",
                     "nullable": false
+                  },
+                  "email": {
+                    "description": "",
+                    "format": "string",
+                    "type": "string",
+                    "nullable": false
                   }
                 }
               }

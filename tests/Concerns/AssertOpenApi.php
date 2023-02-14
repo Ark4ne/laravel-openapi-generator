@@ -58,7 +58,7 @@ trait AssertOpenApi
         ];
 
         $clean = function (array &$arr, string $key, mixed $value = null) use (&$clean) {
-            if (isset($arr[$key])) {
+            if (isset($arr[$key]) && (!is_array($arr[$key]) || isset($arr[$key][0]))) {
                 $arr[$key] = $value;
             }
 
@@ -74,11 +74,11 @@ trait AssertOpenApi
         $clean($expected, 'name', 'test');
         $clean($actual, 'name', 'test');
 
-        $in = function (array $expected, array $actual, int $depth) use (&$in) {
+        $in = function (array $expected, array $actual, int $depth, string $path) use (&$in) {
             foreach ($expected as $key => $value) {
                 $this->assertArrayHasKey($key, $actual);
                 if ($depth) {
-                    $in($value, $actual[$key], $depth - 1);
+                    $in($value, $actual[$key], $depth - 1, $path ? "$path.$key" : $key);
                 } else {
                     $this->assertEquals($value, $actual[$key]);
                 }
@@ -88,7 +88,7 @@ trait AssertOpenApi
         foreach ($expected as $key => $item) {
             $this->assertArrayHasKey($key, $actual);
             if (is_string($item)) $this->assertEquals($item, $actual[$key]);
-            else $in($item, $actual[$key], $depths[$key] ?? 0);
+            else $in($item, $actual[$key], $depths[$key] ?? 0, '');
         }
     }
 }
