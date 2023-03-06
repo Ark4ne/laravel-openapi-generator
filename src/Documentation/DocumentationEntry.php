@@ -6,7 +6,7 @@ use Ark4ne\OpenApi\Contracts\Entry;
 use Ark4ne\OpenApi\Support\ArrayInsensitive;
 use Ark4ne\OpenApi\Support\Config;
 use Ark4ne\OpenApi\Support\Reflection;
-use Ark4ne\OpenApi\Support\Reflection\Type;
+use Ark4ne\OpenApi\Support\Support;
 use Ark4ne\OpenApi\Support\Trans;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -89,6 +89,10 @@ class DocumentationEntry implements Entry
 
     public function getControllerClass(): string
     {
+        if (Support::method($this->route, 'getControllerClass')) {
+            return $this->route->getControllerClass();
+        }
+
         return $this->getController()::class;
     }
 
