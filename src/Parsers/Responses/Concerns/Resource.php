@@ -8,6 +8,7 @@ use Ark4ne\OpenApi\Documentation\ResponseEntry;
 use Ark4ne\OpenApi\Support\Facades\Logger;
 use Ark4ne\OpenApi\Support\Fake;
 use Ark4ne\OpenApi\Support\Reflection;
+use Ark4ne\OpenApi\Support\Support;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\MediaType;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
@@ -18,6 +19,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use ReflectionClass;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
+use Throwable;
 
 trait Resource
 {
@@ -138,7 +140,7 @@ trait Resource
     {
         $resourceClass = $resource = $this->getResourceClass($class);
 
-        if ($resource && method_exists($resource, 'factory')) {
+        if ($resource && Support::method($resource, 'factory')) {
             $factory = static fn() => $count > 1
                 ? $resource::factory()->count($count)
                 : $resource::factory();
@@ -153,10 +155,15 @@ trait Resource
                     Logger::notice("Use factory::make instead.");
                 }
             }
-            return $factory()->make([
-                'id' => 'mixed',
-                'uuid' => 'mixed',
-            ]);
+            try {
+                return $factory()->make([
+                    'id' => 'mixed',
+                    'uuid' => 'mixed',
+                ]);
+            } catch (Throwable $e) {
+                Logger::warn(["Can create model [$resourceClass] with factory::make.", $e->getMessage()]);
+                Logger::notice("Try use faker instead.");
+            }
         }
 
         $fake = static fn() => $resource
