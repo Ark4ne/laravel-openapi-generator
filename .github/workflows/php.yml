@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        php_version: ['8.0', '8.1']
+        php_version: ['8.0', '8.1', '8.2']
 
     steps:
     - uses: actions/checkout@v3
@@ -42,7 +42,7 @@ jobs:
     #  run: vendor/bin/phpstan analyze
 
     - name: PHPUnit
-      run: vendor/bin/phpunit --coverage-clover coverage.xml
+      run: vendor/bin/phpunit --coverage-clover coverage.xml --configuration phpunit.php${{ matrix.php_version }}.xml.dist
 
     - name: Coverage
       run: bash <(curl -s https://codecov.io/bash)
