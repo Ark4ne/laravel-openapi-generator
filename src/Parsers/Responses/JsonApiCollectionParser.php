@@ -45,7 +45,7 @@ class JsonApiCollectionParser implements ResponseParserContract
                 $e->getMessage()
             ]);
             Logger::notice('Use resource structure instead.');
-            $response = response()->json(['data' => [$structure]]);
+            $response = response()->json(['data' => [$structure['data'], $structure['data']]]);
         }
 
         return $this->toResponseEntry($response, $entry);
