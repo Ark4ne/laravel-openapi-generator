@@ -90,9 +90,30 @@ Request rules parsers.
 ### `responses`
 Responses parsers.
 
-## Format 
+### `middlewares`
+Surcharge global middlewares config.
+
+@see [Middlewares](#middlewares)
+
+## Format
 ### `date`
 Defines how date formats will be understood.
+
+## Middlewares
+Defines middlewares transformers.
+
+For each middlewares, you can define a transformer that will be used to transform the request or responses.
+
+```php
+'middlewares' => [
+     'auth:sanctum' => [
+         \Ark4ne\OpenApi\Transformers\Middlewares\ApplyBearerTokenSecurity::class,
+     ],
+     \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class => [
+         \Ark4ne\OpenApi\Transformers\Middlewares\ApplyCsrfSecurity::class,
+     ]
+],
+```
 
 ## Connections
 ### `use-transaction`
