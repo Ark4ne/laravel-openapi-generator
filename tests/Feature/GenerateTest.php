@@ -2,6 +2,7 @@
 
 namespace Test\Feature;
 
+use Ark4ne\OpenApi\Support\Facades\Logger;
 use Test\app\Http\Controllers\CommentController;
 use Test\app\Http\Controllers\PostController;
 use Test\app\Http\Controllers\UserController;
@@ -21,6 +22,8 @@ class GenerateTest extends FeatureTestCase
         $config = $this->app['config']['openapi'];
         $file = "{$config['output-dir']}/{$config['versions']['v1']['output-file']}";
 
+        Logger::interceptor(static fn(string $message, bool $newline) => fwrite(STDOUT, strip_tags($message . ($newline ? PHP_EOL : ''))));
+
         $this
             ->artisan('openapi:generate --force')
             ->assertSuccessful();
@@ -37,6 +40,8 @@ class GenerateTest extends FeatureTestCase
 
         $config = $this->app['config']['openapi'];
         $file = "{$config['output-dir']}/{$config['versions']['v1']['output-file']}";
+
+        Logger::interceptor(static fn(string $message, bool $newline) => fwrite(STDOUT, strip_tags($message . ($newline ? PHP_EOL : ''))));
 
         $this
             ->artisan('openapi:generate --force')
