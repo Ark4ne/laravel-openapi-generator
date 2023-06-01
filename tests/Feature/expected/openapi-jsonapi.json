@@ -798,6 +798,45 @@
             "description": "Unprocessable Entity"
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "UserController"
+        ],
+        "summary": "user.destroy",
+        "description": "",
+        "operationId": "DELETE:user.destroy",
+        "parameters": [
+          {
+            "name": "user",
+            "in": "path",
+            "required": true,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "format": "string",
+              "type": "string",
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "",
+            "content": {
+              "text\/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Authorization-Bearer": []
+          }
+        ]
       }
     },
     "\/user\/{id}": {
@@ -3241,6 +3280,45 @@
             "description": "Unprocessable Entity"
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "CommentController"
+        ],
+        "summary": "comment.destroy",
+        "description": "",
+        "operationId": "DELETE:comment.destroy",
+        "parameters": [
+          {
+            "name": "comment",
+            "in": "path",
+            "required": true,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "format": "string",
+              "type": "string",
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "",
+            "content": {
+              "text\/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Authorization-Bearer": []
+          }
+        ]
       }
     },
     "\/post": {
@@ -3778,6 +3856,54 @@
             "description": "Unprocessable Entity"
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "PostController"
+        ],
+        "summary": "post.destroy",
+        "description": "",
+        "operationId": "DELETE:post.destroy",
+        "parameters": [
+          {
+            "name": "post",
+            "in": "path",
+            "required": true,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "format": "string",
+              "type": "string",
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "",
+            "content": {
+              "text\/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Authorization-Bearer": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "Authorization-Bearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "token"
       }
     }
   },

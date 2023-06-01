@@ -4,6 +4,7 @@ namespace Test\app\Http\Controllers;
 
 use Ark4ne\JsonApi\Resources\JsonApiCollection;
 use Illuminate\Http\Resources\Json\ResourceCollection;
+use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Test\app\Http\JsonApiResources\PostResource as PostJsonApiResource;
 use Test\app\Http\Requests\PostRequest;
@@ -45,5 +46,16 @@ class PostController extends Controller
     public function show(PostRequest $request, string $id): PostResource | PostJsonApiResource
     {
         return $this->apiShow($request, $id);
+    }
+
+    /**
+     * @param Post $post
+     * @oa-response-status 204
+     * @return Response
+     */
+    public function destroy(Post $post): Response
+    {
+        $post->delete();
+        return response()->noContent();
     }
 }
