@@ -4,6 +4,7 @@ namespace Test\app\Http\Controllers;
 
 use Ark4ne\JsonApi\Resources\JsonApiCollection;
 use Illuminate\Http\Resources\Json\ResourceCollection;
+use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Test\app\Http\JsonApiResources\CommentResource as CommentJsonApiResource;
 use Test\app\Http\Requests\CommentRequest;
@@ -45,5 +46,16 @@ class CommentController extends Controller
     public function show(CommentRequest $request, string $id): CommentResource|CommentJsonApiResource
     {
         return $this->apiShow($request, $id);
+    }
+
+    /**
+     * @param Comment $comment
+     * @oa-response-status 204
+     * @return Response
+     */
+    public function destroy(Comment $comment) : Response
+    {
+        $comment->delete();
+        return response()->noContent();
     }
 }

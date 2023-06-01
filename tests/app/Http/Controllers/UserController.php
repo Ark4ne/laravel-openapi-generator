@@ -4,6 +4,7 @@ namespace Test\app\Http\Controllers;
 
 use Ark4ne\JsonApi\Resources\JsonApiCollection;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Test\app\Http\JsonApiResources\UserResource as UserJsonApiResource;
 use Test\app\Http\Requests\UserRequest;
@@ -111,5 +112,16 @@ class UserController extends Controller
     public function store(UserStoreRequest $request, string $id): UserResource|UserJsonApiResource
     {
         return $this->apiShow($request, $id);
+    }
+
+    /**
+     * @param User $user
+     * @oa-response-status 204
+     * @return Response
+     */
+    public function destroy(User $user): Response
+    {
+        $user->delete();
+        return response()->noContent();
     }
 }
