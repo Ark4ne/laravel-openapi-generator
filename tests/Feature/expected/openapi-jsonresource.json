@@ -3332,168 +3332,161 @@
                         "description": "",
                         "type": "object",
                         "properties": {
-                          "data": {
+                          "id": {
+                            "description": "",
+                            "format": "string",
+                            "type": "string",
+                            "nullable": false,
+                            "example": "int|string"
+                          },
+                          "type": {
+                            "description": "",
+                            "format": "string",
+                            "type": "string",
+                            "nullable": false,
+                            "example": "post"
+                          },
+                          "attributes": {
                             "description": "",
                             "type": "object",
                             "properties": {
-                              "id": {
+                              "title": {
                                 "description": "",
                                 "format": "string",
                                 "type": "string",
                                 "nullable": false,
-                                "example": "int|string"
+                                "example": "string"
                               },
-                              "type": {
+                              "content": {
                                 "description": "",
                                 "format": "string",
                                 "type": "string",
                                 "nullable": false,
-                                "example": "post"
-                              },
-                              "attributes": {
+                                "example": "string"
+                              }
+                            },
+                            "nullable": false
+                          },
+                          "relationships": {
+                            "description": "",
+                            "type": "object",
+                            "properties": {
+                              "user": {
                                 "description": "",
                                 "type": "object",
                                 "properties": {
-                                  "title": {
-                                    "description": "",
-                                    "format": "string",
-                                    "type": "string",
-                                    "nullable": false,
-                                    "example": "string"
-                                  },
-                                  "content": {
-                                    "description": "",
-                                    "format": "string",
-                                    "type": "string",
-                                    "nullable": false,
-                                    "example": "string"
-                                  }
-                                },
-                                "nullable": false
-                              },
-                              "relationships": {
-                                "description": "",
-                                "type": "object",
-                                "properties": {
-                                  "user": {
+                                  "data": {
                                     "description": "",
                                     "type": "object",
                                     "properties": {
-                                      "data": {
+                                      "id": {
                                         "description": "",
-                                        "type": "object",
-                                        "properties": {
-                                          "id": {
-                                            "description": "",
-                                            "format": "string",
-                                            "type": "string",
-                                            "nullable": false,
-                                            "example": "int|string"
-                                          },
-                                          "type": {
-                                            "description": "",
-                                            "format": "string",
-                                            "type": "string",
-                                            "nullable": false,
-                                            "example": "user"
-                                          }
-                                        },
-                                        "nullable": false
+                                        "format": "string",
+                                        "type": "string",
+                                        "nullable": false,
+                                        "example": "int|string"
                                       },
-                                      "links": {
+                                      "type": {
                                         "description": "",
-                                        "type": "object",
-                                        "properties": {
-                                          "self": {
-                                            "description": "",
-                                            "format": "string",
-                                            "type": "string",
-                                            "nullable": false,
-                                            "example": "https:\/\/api.example.com\/posts\/0\/relationships\/user"
-                                          }
-                                        },
-                                        "nullable": false
+                                        "format": "string",
+                                        "type": "string",
+                                        "nullable": false,
+                                        "example": "user"
                                       }
                                     },
                                     "nullable": false
                                   },
-                                  "comments": {
+                                  "links": {
                                     "description": "",
                                     "type": "object",
                                     "properties": {
-                                      "data": {
+                                      "self": {
                                         "description": "",
-                                        "type": "array",
-                                        "items": {
+                                        "format": "string",
+                                        "type": "string",
+                                        "nullable": false,
+                                        "example": "https:\/\/api.example.com\/posts\/0\/relationships\/user"
+                                      }
+                                    },
+                                    "nullable": false
+                                  }
+                                },
+                                "nullable": false
+                              },
+                              "comments": {
+                                "description": "",
+                                "type": "object",
+                                "properties": {
+                                  "data": {
+                                    "description": "",
+                                    "type": "array",
+                                    "items": {
+                                      "description": "",
+                                      "type": "object",
+                                      "properties": {
+                                        "id": {
                                           "description": "",
-                                          "type": "object",
-                                          "properties": {
-                                            "id": {
-                                              "description": "",
-                                              "format": "string",
-                                              "type": "string",
-                                              "nullable": false,
-                                              "example": "int|string"
-                                            },
-                                            "type": {
-                                              "description": "",
-                                              "format": "string",
-                                              "type": "string",
-                                              "nullable": false,
-                                              "example": "comment"
-                                            }
-                                          },
-                                          "nullable": false
+                                          "format": "string",
+                                          "type": "string",
+                                          "nullable": false,
+                                          "example": "int|string"
                                         },
-                                        "nullable": false
+                                        "type": {
+                                          "description": "",
+                                          "format": "string",
+                                          "type": "string",
+                                          "nullable": false,
+                                          "example": "comment"
+                                        }
                                       },
-                                      "links": {
+                                      "nullable": false
+                                    },
+                                    "nullable": false
+                                  },
+                                  "links": {
+                                    "description": "",
+                                    "type": "object",
+                                    "properties": {
+                                      "self": {
                                         "description": "",
-                                        "type": "object",
-                                        "properties": {
-                                          "self": {
-                                            "description": "",
-                                            "format": "string",
-                                            "type": "string",
-                                            "nullable": false,
-                                            "example": "https:\/\/api.example.com\/posts\/0\/relationships\/comments"
-                                          },
-                                          "related": {
-                                            "description": "",
-                                            "format": "string",
-                                            "type": "string",
-                                            "nullable": false,
-                                            "example": "https:\/\/api.example.com\/posts\/0\/comments"
-                                          }
-                                        },
-                                        "nullable": false
+                                        "format": "string",
+                                        "type": "string",
+                                        "nullable": false,
+                                        "example": "https:\/\/api.example.com\/posts\/0\/relationships\/comments"
+                                      },
+                                      "related": {
+                                        "description": "",
+                                        "format": "string",
+                                        "type": "string",
+                                        "nullable": false,
+                                        "example": "https:\/\/api.example.com\/posts\/0\/comments"
                                       }
                                     },
                                     "nullable": false
                                   }
                                 },
                                 "nullable": false
-                              },
-                              "meta": {
+                              }
+                            },
+                            "nullable": false
+                          },
+                          "meta": {
+                            "description": "",
+                            "type": "object",
+                            "properties": {
+                              "created_at": {
                                 "description": "",
-                                "type": "object",
-                                "properties": {
-                                  "created_at": {
-                                    "description": "",
-                                    "format": "string",
-                                    "type": "string",
-                                    "nullable": false,
-                                    "example": "mixed"
-                                  },
-                                  "updated_at": {
-                                    "description": "",
-                                    "format": "string",
-                                    "type": "string",
-                                    "nullable": false,
-                                    "example": "mixed"
-                                  }
-                                },
-                                "nullable": false
+                                "format": "string",
+                                "type": "string",
+                                "nullable": false,
+                                "example": "mixed"
+                              },
+                              "updated_at": {
+                                "description": "",
+                                "format": "string",
+                                "type": "string",
+                                "nullable": false,
+                                "example": "mixed"
                               }
                             },
                             "nullable": false
