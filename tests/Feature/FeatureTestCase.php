@@ -10,9 +10,13 @@ abstract class FeatureTestCase extends TestCase
 {
     use RefreshDatabase, UseLocalApp;
 
+    protected function beforeRefreshingDatabase()
+    {
+        $this->loadMigrationsFrom(__DIR__ . '/../app/migrations.php');
+    }
+
     public function setUp(): void
     {
         parent::setUp();
-        $this->useLocalApp();
     }
 }
