@@ -111,9 +111,11 @@ trait JAResource
     protected function mergeResponseWithStructure(Response $response, array $structure)
     {
         $merge = static function ($data, $structure) {
+            $filter = static fn($v) => $v !== null && $v !== '' && $v !== [];
+
             $basic = static fn ($key, $structure, &$data) => $data[$key] = array_merge(
                 $structure['data'][$key] ?? [],
-                array_filter($data[$key] ?? [], static fn($v) => $v !== null && $v !== '' && $v !== [])
+                array_filter($data[$key] ?? [], $filter)
             );
             $basic('attributes', $structure, $data);
             $basic('meta', $structure, $data);
@@ -128,7 +130,10 @@ trait JAResource
                 ->map(fn($value, $key) => array_merge($structure['data']['relationships'][$key] ?? [], $value))
                 ->all();
 
-            return array_filter($data);
+            $data['id'] ??= $structure['id'];
+            $data['type'] ??= $structure['type'];
+
+            return array_filter($data, $filter);
         };
 
         $data = $response->getData(true);

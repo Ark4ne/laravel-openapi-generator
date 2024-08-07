@@ -1,15 +1,16 @@
 <?php
 
-namespace Test\app\Http\Controllers;
+namespace Test\app\Http\Controllers\JsonApi;
 
+use Ark4ne\JsonApi\Resources\JsonApiCollection;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Test\app\Http\Controllers\AsApiController;
+use Test\app\Http\JsonApiResources\UserResource;
 use Test\app\Http\Requests\UserRequest;
 use Test\app\Http\Requests\UserStoreRequest;
 use Test\app\Http\Requests\UserUpdateRequest;
-use Test\app\Http\Resources\UserResource;
 use Test\app\Models\User;
 
 class UserController extends Controller
@@ -32,9 +33,9 @@ class UserController extends Controller
     /**
      * @param \Test\app\Http\Requests\UserRequest $request
      *
-     * @return ResourceCollection<UserResource>
+     * @return JsonApiCollection<UserResource>
      */
-    public function index(UserRequest $request): ResourceCollection
+    public function index(UserRequest $request): JsonApiCollection
     {
         return $this->apiIndex($request);
     }
@@ -43,7 +44,7 @@ class UserController extends Controller
      * @param \Test\app\Http\Requests\UserRequest $request
      * @param string $id
      *
-     * @return \Test\app\Http\Resources\UserResource
+     * @return \Test\app\Http\JsonApiResources\UserResource
      */
     public function show(UserRequest $request, string $id): UserResource
     {
@@ -52,7 +53,7 @@ class UserController extends Controller
 
     /**
      * @param string $id
-     * @return UserResource
+     * @return UserJsonApiResource
      */
     public function updateNoRequest(string $id): UserResource
     {

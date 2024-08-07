@@ -64,7 +64,7 @@ trait AssertOpenApi
 
             foreach ($arr as &$item) {
                 if (is_array($item)) {
-                    $clean($item, $key);
+                    $clean($item, $key, $value);
                 }
             }
         };

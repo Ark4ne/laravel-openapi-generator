@@ -1,12 +1,13 @@
 <?php
 
-namespace Test\app\Http\Controllers;
+namespace Test\app\Http\Controllers\JsonApi;
 
-use Illuminate\Http\Resources\Json\ResourceCollection;
+use Ark4ne\JsonApi\Resources\JsonApiCollection;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Test\app\Http\Controllers\AsApiController;
+use Test\app\Http\JsonApiResources\CommentResource;
 use Test\app\Http\Requests\CommentRequest;
-use Test\app\Http\Resources\CommentResource;
 use Test\app\Models\Comment;
 
 class CommentController extends Controller
@@ -29,9 +30,9 @@ class CommentController extends Controller
     /**
      * @param \Test\app\Http\Requests\CommentRequest $request
      *
-     * @return \Illuminate\Http\Resources\Json\ResourceCollection<CommentResource>
+     * @return \Ark4ne\JsonApi\Resources\JsonApiCollection<CommentResource>
      */
-    public function index(CommentRequest $request): ResourceCollection
+    public function index(CommentRequest $request): JsonApiCollection
     {
         return $this->apiIndex($request);
     }

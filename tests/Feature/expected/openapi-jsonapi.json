@@ -63,7 +63,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Sat, 28 Jan 2023 21:42:22 GMT"
+                  "Wed, 07 Aug 2024 09:04:28 GMT"
                 ]
               },
               "Content-type": {
@@ -111,14 +111,14 @@
                                 "format": "string",
                                 "type": "string",
                                 "nullable": false,
-                                "example": "Julia Willms"
+                                "example": "Dr. Hubert Berge"
                               },
                               "email": {
                                 "description": "",
                                 "format": "string",
                                 "type": "string",
                                 "nullable": false,
-                                "example": "gregorio64@mraz.com"
+                                "example": "jedediah.bailey@gmail.com"
                               }
                             },
                             "nullable": false
@@ -247,14 +247,14 @@
                                 "format": "string",
                                 "type": "string",
                                 "nullable": false,
-                                "example": "2023-01-28T21:42:22+00:00"
+                                "example": "2024-08-07T09:04:28+00:00"
                               },
                               "updated_at": {
                                 "description": "",
                                 "format": "string",
                                 "type": "string",
                                 "nullable": false,
-                                "example": "2023-01-28T21:42:22+00:00"
+                                "example": "2024-08-07T09:04:28+00:00"
                               }
                             },
                             "nullable": false
@@ -279,9 +279,9 @@
         "tags": [
           "UserController"
         ],
-        "summary": "testapphttpcontrollersusercontroller.store",
+        "summary": "testapphttpcontrollersjsonapiusercontroller.store",
         "description": "",
-        "operationId": "POST:testapphttpcontrollersusercontroller.store",
+        "operationId": "POST:testapphttpcontrollersjsonapiusercontroller.store",
         "requestBody": {
           "content": {
             "application\/json": {
@@ -321,7 +321,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Sat, 28 Jan 2023 21:42:22 GMT"
+                  "Wed, 07 Aug 2024 09:04:29 GMT"
                 ]
               },
               "Content-type": {
@@ -348,7 +348,7 @@
                           "format": "integer",
                           "type": "integer",
                           "nullable": false,
-                          "example": 13
+                          "example": 8
                         },
                         "type": {
                           "description": "",
@@ -366,14 +366,14 @@
                               "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "Helga Crooks"
+                              "example": "Meagan Dare"
                             },
                             "email": {
                               "description": "",
                               "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "zulauf.elvera@yahoo.com"
+                              "example": "vilma92@hotmail.com"
                             }
                           },
                           "nullable": false
@@ -421,14 +421,14 @@
                                       "format": "string",
                                       "type": "string",
                                       "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/13\/relationships\/posts"
+                                      "example": "https:\/\/api.example.com\/user\/8\/relationships\/posts"
                                     },
                                     "related": {
                                       "description": "",
                                       "format": "string",
                                       "type": "string",
                                       "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/13\/posts"
+                                      "example": "https:\/\/api.example.com\/user\/8\/posts"
                                     }
                                   },
                                   "nullable": false
@@ -475,14 +475,14 @@
                                       "format": "string",
                                       "type": "string",
                                       "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/13\/relationships\/comments"
+                                      "example": "https:\/\/api.example.com\/user\/8\/relationships\/comments"
                                     },
                                     "related": {
                                       "description": "",
                                       "format": "string",
                                       "type": "string",
                                       "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/13\/comments"
+                                      "example": "https:\/\/api.example.com\/user\/8\/comments"
                                     }
                                   },
                                   "nullable": false
@@ -502,14 +502,14 @@
                               "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2023-01-28T21:42:22+00:00"
+                              "example": "2024-08-07T09:04:29+00:00"
                             },
                             "updated_at": {
                               "description": "",
                               "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2023-01-28T21:42:22+00:00"
+                              "example": "2024-08-07T09:04:29+00:00"
                             }
                           },
                           "nullable": false
@@ -592,7 +592,309 @@
                   "type": "string"
                 },
                 "example": [
-                  "Sat, 28 Jan 2023 21:42:22 GMT"
+                  "Wed, 07 Aug 2024 09:04:28 GMT"
+                ]
+              },
+              "Content-type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "application\/vnd.api+json"
+                ]
+              }
+            },
+            "content": {
+              "application\/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "description": "",
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "description": "",
+                          "format": "integer",
+                          "type": "integer",
+                          "nullable": false,
+                          "example": 4
+                        },
+                        "type": {
+                          "description": "",
+                          "format": "string",
+                          "type": "string",
+                          "nullable": false,
+                          "example": "user"
+                        },
+                        "attributes": {
+                          "description": "",
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "description": "",
+                              "format": "string",
+                              "type": "string",
+                              "nullable": false,
+                              "example": "Kristin Rolfson"
+                            },
+                            "email": {
+                              "description": "",
+                              "format": "string",
+                              "type": "string",
+                              "nullable": false,
+                              "example": "alarkin@muller.net"
+                            }
+                          },
+                          "nullable": false
+                        },
+                        "relationships": {
+                          "description": "",
+                          "type": "object",
+                          "properties": {
+                            "posts": {
+                              "description": "",
+                              "type": "object",
+                              "properties": {
+                                "data": {
+                                  "description": "",
+                                  "type": "array",
+                                  "items": {
+                                    "description": "",
+                                    "type": "object",
+                                    "properties": {
+                                      "id": {
+                                        "description": "",
+                                        "format": "string",
+                                        "type": "string",
+                                        "nullable": false,
+                                        "example": "int|string"
+                                      },
+                                      "type": {
+                                        "description": "",
+                                        "format": "string",
+                                        "type": "string",
+                                        "nullable": false,
+                                        "example": "post"
+                                      }
+                                    },
+                                    "nullable": false
+                                  },
+                                  "nullable": false
+                                },
+                                "links": {
+                                  "description": "",
+                                  "type": "object",
+                                  "properties": {
+                                    "self": {
+                                      "description": "",
+                                      "format": "string",
+                                      "type": "string",
+                                      "nullable": false,
+                                      "example": "https:\/\/api.example.com\/user\/4\/relationships\/posts"
+                                    },
+                                    "related": {
+                                      "description": "",
+                                      "format": "string",
+                                      "type": "string",
+                                      "nullable": false,
+                                      "example": "https:\/\/api.example.com\/user\/4\/posts"
+                                    }
+                                  },
+                                  "nullable": false
+                                }
+                              },
+                              "nullable": false
+                            },
+                            "comments": {
+                              "description": "",
+                              "type": "object",
+                              "properties": {
+                                "data": {
+                                  "description": "",
+                                  "type": "array",
+                                  "items": {
+                                    "description": "",
+                                    "type": "object",
+                                    "properties": {
+                                      "id": {
+                                        "description": "",
+                                        "format": "string",
+                                        "type": "string",
+                                        "nullable": false,
+                                        "example": "int|string"
+                                      },
+                                      "type": {
+                                        "description": "",
+                                        "format": "string",
+                                        "type": "string",
+                                        "nullable": false,
+                                        "example": "comment"
+                                      }
+                                    },
+                                    "nullable": false
+                                  },
+                                  "nullable": false
+                                },
+                                "links": {
+                                  "description": "",
+                                  "type": "object",
+                                  "properties": {
+                                    "self": {
+                                      "description": "",
+                                      "format": "string",
+                                      "type": "string",
+                                      "nullable": false,
+                                      "example": "https:\/\/api.example.com\/user\/4\/relationships\/comments"
+                                    },
+                                    "related": {
+                                      "description": "",
+                                      "format": "string",
+                                      "type": "string",
+                                      "nullable": false,
+                                      "example": "https:\/\/api.example.com\/user\/4\/comments"
+                                    }
+                                  },
+                                  "nullable": false
+                                }
+                              },
+                              "nullable": false
+                            }
+                          },
+                          "nullable": false
+                        },
+                        "meta": {
+                          "description": "",
+                          "type": "object",
+                          "properties": {
+                            "created_at": {
+                              "description": "",
+                              "format": "string",
+                              "type": "string",
+                              "nullable": false,
+                              "example": "2024-08-07T09:04:28+00:00"
+                            },
+                            "updated_at": {
+                              "description": "",
+                              "format": "string",
+                              "type": "string",
+                              "nullable": false,
+                              "example": "2024-08-07T09:04:28+00:00"
+                            }
+                          },
+                          "nullable": false
+                        }
+                      },
+                      "nullable": false
+                    }
+                  },
+                  "nullable": false
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "UserController"
+        ],
+        "summary": "user.destroy",
+        "description": "",
+        "operationId": "DELETE:user.destroy",
+        "parameters": [
+          {
+            "name": "user",
+            "in": "path",
+            "required": true,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "format": "string",
+              "type": "string",
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "",
+            "content": {
+              "text\/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Authorization-Bearer": []
+          }
+        ]
+      }
+    },
+    "\/user\/{id}": {
+      "put": {
+        "tags": [
+          "UserController"
+        ],
+        "summary": "testapphttpcontrollersjsonapiusercontroller.update",
+        "description": "",
+        "operationId": "PUT:testapphttpcontrollersjsonapiusercontroller.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "format": "string",
+              "type": "string",
+              "nullable": false
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application\/json": {
+              "schema": {
+                "properties": {
+                  "name": {
+                    "description": "",
+                    "format": "string",
+                    "type": "string",
+                    "nullable": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "no-cache, private"
+                ]
+              },
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "Wed, 07 Aug 2024 09:04:28 GMT"
                 ]
               },
               "Content-type": {
@@ -637,14 +939,14 @@
                               "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "Frederick Weissnat Sr."
+                              "example": "Ms. Ocie Dibbert"
                             },
                             "email": {
                               "description": "",
                               "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "qlind@yahoo.com"
+                              "example": "zieme.alek@hotmail.com"
                             }
                           },
                           "nullable": false
@@ -773,14 +1075,14 @@
                               "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2023-01-28T21:42:22+00:00"
+                              "example": "2024-08-07T09:04:28+00:00"
                             },
                             "updated_at": {
                               "description": "",
                               "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2023-01-28T21:42:22+00:00"
+                              "example": "2024-08-07T09:04:28+00:00"
                             }
                           },
                           "nullable": false
@@ -799,54 +1101,13 @@
           }
         }
       },
-      "delete": {
+      "patch": {
         "tags": [
           "UserController"
         ],
-        "summary": "user.destroy",
+        "summary": "testapphttpcontrollersjsonapiusercontroller.update",
         "description": "",
-        "operationId": "DELETE:user.destroy",
-        "parameters": [
-          {
-            "name": "user",
-            "in": "path",
-            "required": true,
-            "allowEmptyValue": false,
-            "schema": {
-              "description": "",
-              "format": "string",
-              "type": "string",
-              "nullable": false
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "",
-            "content": {
-              "text\/plain": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "Authorization-Bearer": []
-          }
-        ]
-      }
-    },
-    "\/user\/{id}": {
-      "put": {
-        "tags": [
-          "UserController"
-        ],
-        "summary": "testapphttpcontrollersusercontroller.update",
-        "description": "",
-        "operationId": "PUT:testapphttpcontrollersusercontroller.update",
+        "operationId": "PATCH:testapphttpcontrollersjsonapiusercontroller.update",
         "parameters": [
           {
             "name": "id",
@@ -894,1001 +1155,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Sat, 28 Jan 2023 21:42:22 GMT"
-                ]
-              },
-              "Content-type": {
-                "schema": {
-                  "type": "string"
-                },
-                "example": [
-                  "application\/vnd.api+json"
-                ]
-              }
-            },
-            "content": {
-              "application\/json": {
-                "schema": {
-                  "description": "",
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "description": "",
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "description": "",
-                          "format": "integer",
-                          "type": "integer",
-                          "nullable": false,
-                          "example": 7
-                        },
-                        "type": {
-                          "description": "",
-                          "format": "string",
-                          "type": "string",
-                          "nullable": false,
-                          "example": "user"
-                        },
-                        "attributes": {
-                          "description": "",
-                          "type": "object",
-                          "properties": {
-                            "name": {
-                              "description": "",
-                              "format": "string",
-                              "type": "string",
-                              "nullable": false,
-                              "example": "Vesta Stark"
-                            },
-                            "email": {
-                              "description": "",
-                              "format": "string",
-                              "type": "string",
-                              "nullable": false,
-                              "example": "rhills@auer.org"
-                            }
-                          },
-                          "nullable": false
-                        },
-                        "relationships": {
-                          "description": "",
-                          "type": "object",
-                          "properties": {
-                            "posts": {
-                              "description": "",
-                              "type": "object",
-                              "properties": {
-                                "data": {
-                                  "description": "",
-                                  "type": "array",
-                                  "items": {
-                                    "description": "",
-                                    "type": "object",
-                                    "properties": {
-                                      "id": {
-                                        "description": "",
-                                        "format": "string",
-                                        "type": "string",
-                                        "nullable": false,
-                                        "example": "int|string"
-                                      },
-                                      "type": {
-                                        "description": "",
-                                        "format": "string",
-                                        "type": "string",
-                                        "nullable": false,
-                                        "example": "post"
-                                      }
-                                    },
-                                    "nullable": false
-                                  },
-                                  "nullable": false
-                                },
-                                "links": {
-                                  "description": "",
-                                  "type": "object",
-                                  "properties": {
-                                    "self": {
-                                      "description": "",
-                                      "format": "string",
-                                      "type": "string",
-                                      "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/7\/relationships\/posts"
-                                    },
-                                    "related": {
-                                      "description": "",
-                                      "format": "string",
-                                      "type": "string",
-                                      "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/7\/posts"
-                                    }
-                                  },
-                                  "nullable": false
-                                }
-                              },
-                              "nullable": false
-                            },
-                            "comments": {
-                              "description": "",
-                              "type": "object",
-                              "properties": {
-                                "data": {
-                                  "description": "",
-                                  "type": "array",
-                                  "items": {
-                                    "description": "",
-                                    "type": "object",
-                                    "properties": {
-                                      "id": {
-                                        "description": "",
-                                        "format": "string",
-                                        "type": "string",
-                                        "nullable": false,
-                                        "example": "int|string"
-                                      },
-                                      "type": {
-                                        "description": "",
-                                        "format": "string",
-                                        "type": "string",
-                                        "nullable": false,
-                                        "example": "comment"
-                                      }
-                                    },
-                                    "nullable": false
-                                  },
-                                  "nullable": false
-                                },
-                                "links": {
-                                  "description": "",
-                                  "type": "object",
-                                  "properties": {
-                                    "self": {
-                                      "description": "",
-                                      "format": "string",
-                                      "type": "string",
-                                      "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/7\/relationships\/comments"
-                                    },
-                                    "related": {
-                                      "description": "",
-                                      "format": "string",
-                                      "type": "string",
-                                      "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/7\/comments"
-                                    }
-                                  },
-                                  "nullable": false
-                                }
-                              },
-                              "nullable": false
-                            }
-                          },
-                          "nullable": false
-                        },
-                        "meta": {
-                          "description": "",
-                          "type": "object",
-                          "properties": {
-                            "created_at": {
-                              "description": "",
-                              "format": "string",
-                              "type": "string",
-                              "nullable": false,
-                              "example": "2023-01-28T21:42:22+00:00"
-                            },
-                            "updated_at": {
-                              "description": "",
-                              "format": "string",
-                              "type": "string",
-                              "nullable": false,
-                              "example": "2023-01-28T21:42:22+00:00"
-                            }
-                          },
-                          "nullable": false
-                        }
-                      },
-                      "nullable": false
-                    }
-                  },
-                  "nullable": false
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Unprocessable Entity"
-          }
-        }
-      },
-      "patch": {
-        "tags": [
-          "UserController"
-        ],
-        "summary": "testapphttpcontrollersusercontroller.update",
-        "description": "",
-        "operationId": "PATCH:testapphttpcontrollersusercontroller.update",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "allowEmptyValue": false,
-            "schema": {
-              "description": "",
-              "format": "string",
-              "type": "string",
-              "nullable": false
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application\/json": {
-              "schema": {
-                "properties": {
-                  "name": {
-                    "description": "",
-                    "format": "string",
-                    "type": "string",
-                    "nullable": false
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "headers": {
-              "Cache-Control": {
-                "schema": {
-                  "type": "string"
-                },
-                "example": [
-                  "no-cache, private"
-                ]
-              },
-              "Date": {
-                "schema": {
-                  "type": "string"
-                },
-                "example": [
-                  "Sat, 28 Jan 2023 21:42:22 GMT"
-                ]
-              },
-              "Content-type": {
-                "schema": {
-                  "type": "string"
-                },
-                "example": [
-                  "application\/vnd.api+json"
-                ]
-              }
-            },
-            "content": {
-              "application\/json": {
-                "schema": {
-                  "description": "",
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "description": "",
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "description": "",
-                          "format": "integer",
-                          "type": "integer",
-                          "nullable": false,
-                          "example": 19
-                        },
-                        "type": {
-                          "description": "",
-                          "format": "string",
-                          "type": "string",
-                          "nullable": false,
-                          "example": "user"
-                        },
-                        "attributes": {
-                          "description": "",
-                          "type": "object",
-                          "properties": {
-                            "name": {
-                              "description": "",
-                              "format": "string",
-                              "type": "string",
-                              "nullable": false,
-                              "example": "Greta Boehm"
-                            },
-                            "email": {
-                              "description": "",
-                              "format": "string",
-                              "type": "string",
-                              "nullable": false,
-                              "example": "mosciski.anastacio@hammes.com"
-                            }
-                          },
-                          "nullable": false
-                        },
-                        "relationships": {
-                          "description": "",
-                          "type": "object",
-                          "properties": {
-                            "posts": {
-                              "description": "",
-                              "type": "object",
-                              "properties": {
-                                "data": {
-                                  "description": "",
-                                  "type": "array",
-                                  "items": {
-                                    "description": "",
-                                    "type": "object",
-                                    "properties": {
-                                      "id": {
-                                        "description": "",
-                                        "format": "string",
-                                        "type": "string",
-                                        "nullable": false,
-                                        "example": "int|string"
-                                      },
-                                      "type": {
-                                        "description": "",
-                                        "format": "string",
-                                        "type": "string",
-                                        "nullable": false,
-                                        "example": "post"
-                                      }
-                                    },
-                                    "nullable": false
-                                  },
-                                  "nullable": false
-                                },
-                                "links": {
-                                  "description": "",
-                                  "type": "object",
-                                  "properties": {
-                                    "self": {
-                                      "description": "",
-                                      "format": "string",
-                                      "type": "string",
-                                      "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/19\/relationships\/posts"
-                                    },
-                                    "related": {
-                                      "description": "",
-                                      "format": "string",
-                                      "type": "string",
-                                      "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/19\/posts"
-                                    }
-                                  },
-                                  "nullable": false
-                                }
-                              },
-                              "nullable": false
-                            },
-                            "comments": {
-                              "description": "",
-                              "type": "object",
-                              "properties": {
-                                "data": {
-                                  "description": "",
-                                  "type": "array",
-                                  "items": {
-                                    "description": "",
-                                    "type": "object",
-                                    "properties": {
-                                      "id": {
-                                        "description": "",
-                                        "format": "string",
-                                        "type": "string",
-                                        "nullable": false,
-                                        "example": "int|string"
-                                      },
-                                      "type": {
-                                        "description": "",
-                                        "format": "string",
-                                        "type": "string",
-                                        "nullable": false,
-                                        "example": "comment"
-                                      }
-                                    },
-                                    "nullable": false
-                                  },
-                                  "nullable": false
-                                },
-                                "links": {
-                                  "description": "",
-                                  "type": "object",
-                                  "properties": {
-                                    "self": {
-                                      "description": "",
-                                      "format": "string",
-                                      "type": "string",
-                                      "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/19\/relationships\/comments"
-                                    },
-                                    "related": {
-                                      "description": "",
-                                      "format": "string",
-                                      "type": "string",
-                                      "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/19\/comments"
-                                    }
-                                  },
-                                  "nullable": false
-                                }
-                              },
-                              "nullable": false
-                            }
-                          },
-                          "nullable": false
-                        },
-                        "meta": {
-                          "description": "",
-                          "type": "object",
-                          "properties": {
-                            "created_at": {
-                              "description": "",
-                              "format": "string",
-                              "type": "string",
-                              "nullable": false,
-                              "example": "2023-01-28T21:42:22+00:00"
-                            },
-                            "updated_at": {
-                              "description": "",
-                              "format": "string",
-                              "type": "string",
-                              "nullable": false,
-                              "example": "2023-01-28T21:42:22+00:00"
-                            }
-                          },
-                          "nullable": false
-                        }
-                      },
-                      "nullable": false
-                    }
-                  },
-                  "nullable": false
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Unprocessable Entity"
-          }
-        }
-      }
-    },
-    "\/user\/{id}\/basic-request": {
-      "put": {
-        "tags": [
-          "UserController"
-        ],
-        "summary": "testapphttpcontrollersusercontroller.updaterequest",
-        "description": "",
-        "operationId": "PUT:testapphttpcontrollersusercontroller.updaterequest",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "allowEmptyValue": false,
-            "schema": {
-              "description": "",
-              "format": "string",
-              "type": "string",
-              "nullable": false
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "headers": {
-              "Cache-Control": {
-                "schema": {
-                  "type": "string"
-                },
-                "example": [
-                  "no-cache, private"
-                ]
-              },
-              "Date": {
-                "schema": {
-                  "type": "string"
-                },
-                "example": [
-                  "Sat, 28 Jan 2023 21:42:22 GMT"
-                ]
-              },
-              "Content-type": {
-                "schema": {
-                  "type": "string"
-                },
-                "example": [
-                  "application\/vnd.api+json"
-                ]
-              }
-            },
-            "content": {
-              "application\/json": {
-                "schema": {
-                  "description": "",
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "description": "",
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "description": "",
-                          "format": "integer",
-                          "type": "integer",
-                          "nullable": false,
-                          "example": 9
-                        },
-                        "type": {
-                          "description": "",
-                          "format": "string",
-                          "type": "string",
-                          "nullable": false,
-                          "example": "user"
-                        },
-                        "attributes": {
-                          "description": "",
-                          "type": "object",
-                          "properties": {
-                            "name": {
-                              "description": "",
-                              "format": "string",
-                              "type": "string",
-                              "nullable": false,
-                              "example": "Myles Oberbrunner"
-                            },
-                            "email": {
-                              "description": "",
-                              "format": "string",
-                              "type": "string",
-                              "nullable": false,
-                              "example": "wgaylord@veum.biz"
-                            }
-                          },
-                          "nullable": false
-                        },
-                        "relationships": {
-                          "description": "",
-                          "type": "object",
-                          "properties": {
-                            "posts": {
-                              "description": "",
-                              "type": "object",
-                              "properties": {
-                                "data": {
-                                  "description": "",
-                                  "type": "array",
-                                  "items": {
-                                    "description": "",
-                                    "type": "object",
-                                    "properties": {
-                                      "id": {
-                                        "description": "",
-                                        "format": "string",
-                                        "type": "string",
-                                        "nullable": false,
-                                        "example": "int|string"
-                                      },
-                                      "type": {
-                                        "description": "",
-                                        "format": "string",
-                                        "type": "string",
-                                        "nullable": false,
-                                        "example": "post"
-                                      }
-                                    },
-                                    "nullable": false
-                                  },
-                                  "nullable": false
-                                },
-                                "links": {
-                                  "description": "",
-                                  "type": "object",
-                                  "properties": {
-                                    "self": {
-                                      "description": "",
-                                      "format": "string",
-                                      "type": "string",
-                                      "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/9\/relationships\/posts"
-                                    },
-                                    "related": {
-                                      "description": "",
-                                      "format": "string",
-                                      "type": "string",
-                                      "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/9\/posts"
-                                    }
-                                  },
-                                  "nullable": false
-                                }
-                              },
-                              "nullable": false
-                            },
-                            "comments": {
-                              "description": "",
-                              "type": "object",
-                              "properties": {
-                                "data": {
-                                  "description": "",
-                                  "type": "array",
-                                  "items": {
-                                    "description": "",
-                                    "type": "object",
-                                    "properties": {
-                                      "id": {
-                                        "description": "",
-                                        "format": "string",
-                                        "type": "string",
-                                        "nullable": false,
-                                        "example": "int|string"
-                                      },
-                                      "type": {
-                                        "description": "",
-                                        "format": "string",
-                                        "type": "string",
-                                        "nullable": false,
-                                        "example": "comment"
-                                      }
-                                    },
-                                    "nullable": false
-                                  },
-                                  "nullable": false
-                                },
-                                "links": {
-                                  "description": "",
-                                  "type": "object",
-                                  "properties": {
-                                    "self": {
-                                      "description": "",
-                                      "format": "string",
-                                      "type": "string",
-                                      "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/9\/relationships\/comments"
-                                    },
-                                    "related": {
-                                      "description": "",
-                                      "format": "string",
-                                      "type": "string",
-                                      "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/9\/comments"
-                                    }
-                                  },
-                                  "nullable": false
-                                }
-                              },
-                              "nullable": false
-                            }
-                          },
-                          "nullable": false
-                        },
-                        "meta": {
-                          "description": "",
-                          "type": "object",
-                          "properties": {
-                            "created_at": {
-                              "description": "",
-                              "format": "string",
-                              "type": "string",
-                              "nullable": false,
-                              "example": "2023-01-28T21:42:22+00:00"
-                            },
-                            "updated_at": {
-                              "description": "",
-                              "format": "string",
-                              "type": "string",
-                              "nullable": false,
-                              "example": "2023-01-28T21:42:22+00:00"
-                            }
-                          },
-                          "nullable": false
-                        }
-                      },
-                      "nullable": false
-                    }
-                  },
-                  "nullable": false
-                }
-              }
-            }
-          }
-        }
-      },
-      "patch": {
-        "tags": [
-          "UserController"
-        ],
-        "summary": "testapphttpcontrollersusercontroller.updaterequest",
-        "description": "",
-        "operationId": "PATCH:testapphttpcontrollersusercontroller.updaterequest",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "allowEmptyValue": false,
-            "schema": {
-              "description": "",
-              "format": "string",
-              "type": "string",
-              "nullable": false
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "headers": {
-              "Cache-Control": {
-                "schema": {
-                  "type": "string"
-                },
-                "example": [
-                  "no-cache, private"
-                ]
-              },
-              "Date": {
-                "schema": {
-                  "type": "string"
-                },
-                "example": [
-                  "Sat, 28 Jan 2023 21:42:23 GMT"
-                ]
-              },
-              "Content-type": {
-                "schema": {
-                  "type": "string"
-                },
-                "example": [
-                  "application\/vnd.api+json"
-                ]
-              }
-            },
-            "content": {
-              "application\/json": {
-                "schema": {
-                  "description": "",
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "description": "",
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "description": "",
-                          "format": "integer",
-                          "type": "integer",
-                          "nullable": false,
-                          "example": 21
-                        },
-                        "type": {
-                          "description": "",
-                          "format": "string",
-                          "type": "string",
-                          "nullable": false,
-                          "example": "user"
-                        },
-                        "attributes": {
-                          "description": "",
-                          "type": "object",
-                          "properties": {
-                            "name": {
-                              "description": "",
-                              "format": "string",
-                              "type": "string",
-                              "nullable": false,
-                              "example": "Henri Kemmer"
-                            },
-                            "email": {
-                              "description": "",
-                              "format": "string",
-                              "type": "string",
-                              "nullable": false,
-                              "example": "friesen.terrill@gmail.com"
-                            }
-                          },
-                          "nullable": false
-                        },
-                        "relationships": {
-                          "description": "",
-                          "type": "object",
-                          "properties": {
-                            "posts": {
-                              "description": "",
-                              "type": "object",
-                              "properties": {
-                                "data": {
-                                  "description": "",
-                                  "type": "array",
-                                  "items": {
-                                    "description": "",
-                                    "type": "object",
-                                    "properties": {
-                                      "id": {
-                                        "description": "",
-                                        "format": "string",
-                                        "type": "string",
-                                        "nullable": false,
-                                        "example": "int|string"
-                                      },
-                                      "type": {
-                                        "description": "",
-                                        "format": "string",
-                                        "type": "string",
-                                        "nullable": false,
-                                        "example": "post"
-                                      }
-                                    },
-                                    "nullable": false
-                                  },
-                                  "nullable": false
-                                },
-                                "links": {
-                                  "description": "",
-                                  "type": "object",
-                                  "properties": {
-                                    "self": {
-                                      "description": "",
-                                      "format": "string",
-                                      "type": "string",
-                                      "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/21\/relationships\/posts"
-                                    },
-                                    "related": {
-                                      "description": "",
-                                      "format": "string",
-                                      "type": "string",
-                                      "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/21\/posts"
-                                    }
-                                  },
-                                  "nullable": false
-                                }
-                              },
-                              "nullable": false
-                            },
-                            "comments": {
-                              "description": "",
-                              "type": "object",
-                              "properties": {
-                                "data": {
-                                  "description": "",
-                                  "type": "array",
-                                  "items": {
-                                    "description": "",
-                                    "type": "object",
-                                    "properties": {
-                                      "id": {
-                                        "description": "",
-                                        "format": "string",
-                                        "type": "string",
-                                        "nullable": false,
-                                        "example": "int|string"
-                                      },
-                                      "type": {
-                                        "description": "",
-                                        "format": "string",
-                                        "type": "string",
-                                        "nullable": false,
-                                        "example": "comment"
-                                      }
-                                    },
-                                    "nullable": false
-                                  },
-                                  "nullable": false
-                                },
-                                "links": {
-                                  "description": "",
-                                  "type": "object",
-                                  "properties": {
-                                    "self": {
-                                      "description": "",
-                                      "format": "string",
-                                      "type": "string",
-                                      "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/21\/relationships\/comments"
-                                    },
-                                    "related": {
-                                      "description": "",
-                                      "format": "string",
-                                      "type": "string",
-                                      "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/21\/comments"
-                                    }
-                                  },
-                                  "nullable": false
-                                }
-                              },
-                              "nullable": false
-                            }
-                          },
-                          "nullable": false
-                        },
-                        "meta": {
-                          "description": "",
-                          "type": "object",
-                          "properties": {
-                            "created_at": {
-                              "description": "",
-                              "format": "string",
-                              "type": "string",
-                              "nullable": false,
-                              "example": "2023-01-28T21:42:23+00:00"
-                            },
-                            "updated_at": {
-                              "description": "",
-                              "format": "string",
-                              "type": "string",
-                              "nullable": false,
-                              "example": "2023-01-28T21:42:23+00:00"
-                            }
-                          },
-                          "nullable": false
-                        }
-                      },
-                      "nullable": false
-                    }
-                  },
-                  "nullable": false
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "\/user\/{id}\/no-request": {
-      "put": {
-        "tags": [
-          "UserController"
-        ],
-        "summary": "testapphttpcontrollersusercontroller.updatenorequest",
-        "description": "",
-        "operationId": "PUT:testapphttpcontrollersusercontroller.updatenorequest",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "allowEmptyValue": false,
-            "schema": {
-              "description": "",
-              "format": "string",
-              "type": "string",
-              "nullable": false
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "headers": {
-              "Cache-Control": {
-                "schema": {
-                  "type": "string"
-                },
-                "example": [
-                  "no-cache, private"
-                ]
-              },
-              "Date": {
-                "schema": {
-                  "type": "string"
-                },
-                "example": [
-                  "Sat, 28 Jan 2023 21:42:22 GMT"
+                  "Wed, 07 Aug 2024 09:04:29 GMT"
                 ]
               },
               "Content-type": {
@@ -1933,14 +1200,14 @@
                               "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "Paula Labadie"
+                              "example": "Prof. Madison Zboncak"
                             },
                             "email": {
                               "description": "",
                               "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "floy05@schulist.biz"
+                              "example": "raegan98@kirlin.com"
                             }
                           },
                           "nullable": false
@@ -2069,14 +1336,14 @@
                               "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2023-01-28T21:42:22+00:00"
+                              "example": "2024-08-07T09:04:29+00:00"
                             },
                             "updated_at": {
                               "description": "",
                               "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2023-01-28T21:42:22+00:00"
+                              "example": "2024-08-07T09:04:29+00:00"
                             }
                           },
                           "nullable": false
@@ -2089,16 +1356,21 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "Unprocessable Entity"
           }
         }
-      },
-      "patch": {
+      }
+    },
+    "\/user\/{id}\/basic-request": {
+      "put": {
         "tags": [
           "UserController"
         ],
-        "summary": "testapphttpcontrollersusercontroller.updatenorequest",
+        "summary": "testapphttpcontrollersjsonapiusercontroller.updaterequest",
         "description": "",
-        "operationId": "PATCH:testapphttpcontrollersusercontroller.updatenorequest",
+        "operationId": "PUT:testapphttpcontrollersjsonapiusercontroller.updaterequest",
         "parameters": [
           {
             "name": "id",
@@ -2130,7 +1402,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Sat, 28 Jan 2023 21:42:23 GMT"
+                  "Wed, 07 Aug 2024 09:04:29 GMT"
                 ]
               },
               "Content-type": {
@@ -2157,7 +1429,7 @@
                           "format": "integer",
                           "type": "integer",
                           "nullable": false,
-                          "example": 23
+                          "example": 6
                         },
                         "type": {
                           "description": "",
@@ -2175,14 +1447,14 @@
                               "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "Aglae Herzog"
+                              "example": "London Collier"
                             },
                             "email": {
                               "description": "",
                               "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "chyna25@yahoo.com"
+                              "example": "hank97@gmail.com"
                             }
                           },
                           "nullable": false
@@ -2230,14 +1502,14 @@
                                       "format": "string",
                                       "type": "string",
                                       "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/23\/relationships\/posts"
+                                      "example": "https:\/\/api.example.com\/user\/6\/relationships\/posts"
                                     },
                                     "related": {
                                       "description": "",
                                       "format": "string",
                                       "type": "string",
                                       "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/23\/posts"
+                                      "example": "https:\/\/api.example.com\/user\/6\/posts"
                                     }
                                   },
                                   "nullable": false
@@ -2284,14 +1556,14 @@
                                       "format": "string",
                                       "type": "string",
                                       "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/23\/relationships\/comments"
+                                      "example": "https:\/\/api.example.com\/user\/6\/relationships\/comments"
                                     },
                                     "related": {
                                       "description": "",
                                       "format": "string",
                                       "type": "string",
                                       "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/23\/comments"
+                                      "example": "https:\/\/api.example.com\/user\/6\/comments"
                                     }
                                   },
                                   "nullable": false
@@ -2311,14 +1583,742 @@
                               "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2023-01-28T21:42:23+00:00"
+                              "example": "2024-08-07T09:04:29+00:00"
                             },
                             "updated_at": {
                               "description": "",
                               "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2023-01-28T21:42:23+00:00"
+                              "example": "2024-08-07T09:04:29+00:00"
+                            }
+                          },
+                          "nullable": false
+                        }
+                      },
+                      "nullable": false
+                    }
+                  },
+                  "nullable": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "UserController"
+        ],
+        "summary": "testapphttpcontrollersjsonapiusercontroller.updaterequest",
+        "description": "",
+        "operationId": "PATCH:testapphttpcontrollersjsonapiusercontroller.updaterequest",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "format": "string",
+              "type": "string",
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "no-cache, private"
+                ]
+              },
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "Wed, 07 Aug 2024 09:04:29 GMT"
+                ]
+              },
+              "Content-type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "application\/vnd.api+json"
+                ]
+              }
+            },
+            "content": {
+              "application\/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "description": "",
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "description": "",
+                          "format": "integer",
+                          "type": "integer",
+                          "nullable": false,
+                          "example": 12
+                        },
+                        "type": {
+                          "description": "",
+                          "format": "string",
+                          "type": "string",
+                          "nullable": false,
+                          "example": "user"
+                        },
+                        "attributes": {
+                          "description": "",
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "description": "",
+                              "format": "string",
+                              "type": "string",
+                              "nullable": false,
+                              "example": "Clara Brekke"
+                            },
+                            "email": {
+                              "description": "",
+                              "format": "string",
+                              "type": "string",
+                              "nullable": false,
+                              "example": "stark.walker@sauer.com"
+                            }
+                          },
+                          "nullable": false
+                        },
+                        "relationships": {
+                          "description": "",
+                          "type": "object",
+                          "properties": {
+                            "posts": {
+                              "description": "",
+                              "type": "object",
+                              "properties": {
+                                "data": {
+                                  "description": "",
+                                  "type": "array",
+                                  "items": {
+                                    "description": "",
+                                    "type": "object",
+                                    "properties": {
+                                      "id": {
+                                        "description": "",
+                                        "format": "string",
+                                        "type": "string",
+                                        "nullable": false,
+                                        "example": "int|string"
+                                      },
+                                      "type": {
+                                        "description": "",
+                                        "format": "string",
+                                        "type": "string",
+                                        "nullable": false,
+                                        "example": "post"
+                                      }
+                                    },
+                                    "nullable": false
+                                  },
+                                  "nullable": false
+                                },
+                                "links": {
+                                  "description": "",
+                                  "type": "object",
+                                  "properties": {
+                                    "self": {
+                                      "description": "",
+                                      "format": "string",
+                                      "type": "string",
+                                      "nullable": false,
+                                      "example": "https:\/\/api.example.com\/user\/12\/relationships\/posts"
+                                    },
+                                    "related": {
+                                      "description": "",
+                                      "format": "string",
+                                      "type": "string",
+                                      "nullable": false,
+                                      "example": "https:\/\/api.example.com\/user\/12\/posts"
+                                    }
+                                  },
+                                  "nullable": false
+                                }
+                              },
+                              "nullable": false
+                            },
+                            "comments": {
+                              "description": "",
+                              "type": "object",
+                              "properties": {
+                                "data": {
+                                  "description": "",
+                                  "type": "array",
+                                  "items": {
+                                    "description": "",
+                                    "type": "object",
+                                    "properties": {
+                                      "id": {
+                                        "description": "",
+                                        "format": "string",
+                                        "type": "string",
+                                        "nullable": false,
+                                        "example": "int|string"
+                                      },
+                                      "type": {
+                                        "description": "",
+                                        "format": "string",
+                                        "type": "string",
+                                        "nullable": false,
+                                        "example": "comment"
+                                      }
+                                    },
+                                    "nullable": false
+                                  },
+                                  "nullable": false
+                                },
+                                "links": {
+                                  "description": "",
+                                  "type": "object",
+                                  "properties": {
+                                    "self": {
+                                      "description": "",
+                                      "format": "string",
+                                      "type": "string",
+                                      "nullable": false,
+                                      "example": "https:\/\/api.example.com\/user\/12\/relationships\/comments"
+                                    },
+                                    "related": {
+                                      "description": "",
+                                      "format": "string",
+                                      "type": "string",
+                                      "nullable": false,
+                                      "example": "https:\/\/api.example.com\/user\/12\/comments"
+                                    }
+                                  },
+                                  "nullable": false
+                                }
+                              },
+                              "nullable": false
+                            }
+                          },
+                          "nullable": false
+                        },
+                        "meta": {
+                          "description": "",
+                          "type": "object",
+                          "properties": {
+                            "created_at": {
+                              "description": "",
+                              "format": "string",
+                              "type": "string",
+                              "nullable": false,
+                              "example": "2024-08-07T09:04:29+00:00"
+                            },
+                            "updated_at": {
+                              "description": "",
+                              "format": "string",
+                              "type": "string",
+                              "nullable": false,
+                              "example": "2024-08-07T09:04:29+00:00"
+                            }
+                          },
+                          "nullable": false
+                        }
+                      },
+                      "nullable": false
+                    }
+                  },
+                  "nullable": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "\/user\/{id}\/no-request": {
+      "put": {
+        "tags": [
+          "UserController"
+        ],
+        "summary": "testapphttpcontrollersjsonapiusercontroller.updatenorequest",
+        "description": "",
+        "operationId": "PUT:testapphttpcontrollersjsonapiusercontroller.updatenorequest",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "format": "string",
+              "type": "string",
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "no-cache, private"
+                ]
+              },
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "Wed, 07 Aug 2024 09:04:29 GMT"
+                ]
+              },
+              "Content-type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "application\/vnd.api+json"
+                ]
+              }
+            },
+            "content": {
+              "application\/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "description": "",
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "description": "",
+                          "format": "integer",
+                          "type": "integer",
+                          "nullable": false,
+                          "example": 7
+                        },
+                        "type": {
+                          "description": "",
+                          "format": "string",
+                          "type": "string",
+                          "nullable": false,
+                          "example": "user"
+                        },
+                        "attributes": {
+                          "description": "",
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "description": "",
+                              "format": "string",
+                              "type": "string",
+                              "nullable": false,
+                              "example": "Miss Gabriella Rath"
+                            },
+                            "email": {
+                              "description": "",
+                              "format": "string",
+                              "type": "string",
+                              "nullable": false,
+                              "example": "hansen.maud@labadie.biz"
+                            }
+                          },
+                          "nullable": false
+                        },
+                        "relationships": {
+                          "description": "",
+                          "type": "object",
+                          "properties": {
+                            "posts": {
+                              "description": "",
+                              "type": "object",
+                              "properties": {
+                                "data": {
+                                  "description": "",
+                                  "type": "array",
+                                  "items": {
+                                    "description": "",
+                                    "type": "object",
+                                    "properties": {
+                                      "id": {
+                                        "description": "",
+                                        "format": "string",
+                                        "type": "string",
+                                        "nullable": false,
+                                        "example": "int|string"
+                                      },
+                                      "type": {
+                                        "description": "",
+                                        "format": "string",
+                                        "type": "string",
+                                        "nullable": false,
+                                        "example": "post"
+                                      }
+                                    },
+                                    "nullable": false
+                                  },
+                                  "nullable": false
+                                },
+                                "links": {
+                                  "description": "",
+                                  "type": "object",
+                                  "properties": {
+                                    "self": {
+                                      "description": "",
+                                      "format": "string",
+                                      "type": "string",
+                                      "nullable": false,
+                                      "example": "https:\/\/api.example.com\/user\/7\/relationships\/posts"
+                                    },
+                                    "related": {
+                                      "description": "",
+                                      "format": "string",
+                                      "type": "string",
+                                      "nullable": false,
+                                      "example": "https:\/\/api.example.com\/user\/7\/posts"
+                                    }
+                                  },
+                                  "nullable": false
+                                }
+                              },
+                              "nullable": false
+                            },
+                            "comments": {
+                              "description": "",
+                              "type": "object",
+                              "properties": {
+                                "data": {
+                                  "description": "",
+                                  "type": "array",
+                                  "items": {
+                                    "description": "",
+                                    "type": "object",
+                                    "properties": {
+                                      "id": {
+                                        "description": "",
+                                        "format": "string",
+                                        "type": "string",
+                                        "nullable": false,
+                                        "example": "int|string"
+                                      },
+                                      "type": {
+                                        "description": "",
+                                        "format": "string",
+                                        "type": "string",
+                                        "nullable": false,
+                                        "example": "comment"
+                                      }
+                                    },
+                                    "nullable": false
+                                  },
+                                  "nullable": false
+                                },
+                                "links": {
+                                  "description": "",
+                                  "type": "object",
+                                  "properties": {
+                                    "self": {
+                                      "description": "",
+                                      "format": "string",
+                                      "type": "string",
+                                      "nullable": false,
+                                      "example": "https:\/\/api.example.com\/user\/7\/relationships\/comments"
+                                    },
+                                    "related": {
+                                      "description": "",
+                                      "format": "string",
+                                      "type": "string",
+                                      "nullable": false,
+                                      "example": "https:\/\/api.example.com\/user\/7\/comments"
+                                    }
+                                  },
+                                  "nullable": false
+                                }
+                              },
+                              "nullable": false
+                            }
+                          },
+                          "nullable": false
+                        },
+                        "meta": {
+                          "description": "",
+                          "type": "object",
+                          "properties": {
+                            "created_at": {
+                              "description": "",
+                              "format": "string",
+                              "type": "string",
+                              "nullable": false,
+                              "example": "2024-08-07T09:04:29+00:00"
+                            },
+                            "updated_at": {
+                              "description": "",
+                              "format": "string",
+                              "type": "string",
+                              "nullable": false,
+                              "example": "2024-08-07T09:04:29+00:00"
+                            }
+                          },
+                          "nullable": false
+                        }
+                      },
+                      "nullable": false
+                    }
+                  },
+                  "nullable": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "UserController"
+        ],
+        "summary": "testapphttpcontrollersjsonapiusercontroller.updatenorequest",
+        "description": "",
+        "operationId": "PATCH:testapphttpcontrollersjsonapiusercontroller.updatenorequest",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "format": "string",
+              "type": "string",
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "no-cache, private"
+                ]
+              },
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "Wed, 07 Aug 2024 09:04:29 GMT"
+                ]
+              },
+              "Content-type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "application\/vnd.api+json"
+                ]
+              }
+            },
+            "content": {
+              "application\/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "description": "",
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "description": "",
+                          "format": "integer",
+                          "type": "integer",
+                          "nullable": false,
+                          "example": 13
+                        },
+                        "type": {
+                          "description": "",
+                          "format": "string",
+                          "type": "string",
+                          "nullable": false,
+                          "example": "user"
+                        },
+                        "attributes": {
+                          "description": "",
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "description": "",
+                              "format": "string",
+                              "type": "string",
+                              "nullable": false,
+                              "example": "Jamar Bogan V"
+                            },
+                            "email": {
+                              "description": "",
+                              "format": "string",
+                              "type": "string",
+                              "nullable": false,
+                              "example": "chaz.armstrong@gmail.com"
+                            }
+                          },
+                          "nullable": false
+                        },
+                        "relationships": {
+                          "description": "",
+                          "type": "object",
+                          "properties": {
+                            "posts": {
+                              "description": "",
+                              "type": "object",
+                              "properties": {
+                                "data": {
+                                  "description": "",
+                                  "type": "array",
+                                  "items": {
+                                    "description": "",
+                                    "type": "object",
+                                    "properties": {
+                                      "id": {
+                                        "description": "",
+                                        "format": "string",
+                                        "type": "string",
+                                        "nullable": false,
+                                        "example": "int|string"
+                                      },
+                                      "type": {
+                                        "description": "",
+                                        "format": "string",
+                                        "type": "string",
+                                        "nullable": false,
+                                        "example": "post"
+                                      }
+                                    },
+                                    "nullable": false
+                                  },
+                                  "nullable": false
+                                },
+                                "links": {
+                                  "description": "",
+                                  "type": "object",
+                                  "properties": {
+                                    "self": {
+                                      "description": "",
+                                      "format": "string",
+                                      "type": "string",
+                                      "nullable": false,
+                                      "example": "https:\/\/api.example.com\/user\/13\/relationships\/posts"
+                                    },
+                                    "related": {
+                                      "description": "",
+                                      "format": "string",
+                                      "type": "string",
+                                      "nullable": false,
+                                      "example": "https:\/\/api.example.com\/user\/13\/posts"
+                                    }
+                                  },
+                                  "nullable": false
+                                }
+                              },
+                              "nullable": false
+                            },
+                            "comments": {
+                              "description": "",
+                              "type": "object",
+                              "properties": {
+                                "data": {
+                                  "description": "",
+                                  "type": "array",
+                                  "items": {
+                                    "description": "",
+                                    "type": "object",
+                                    "properties": {
+                                      "id": {
+                                        "description": "",
+                                        "format": "string",
+                                        "type": "string",
+                                        "nullable": false,
+                                        "example": "int|string"
+                                      },
+                                      "type": {
+                                        "description": "",
+                                        "format": "string",
+                                        "type": "string",
+                                        "nullable": false,
+                                        "example": "comment"
+                                      }
+                                    },
+                                    "nullable": false
+                                  },
+                                  "nullable": false
+                                },
+                                "links": {
+                                  "description": "",
+                                  "type": "object",
+                                  "properties": {
+                                    "self": {
+                                      "description": "",
+                                      "format": "string",
+                                      "type": "string",
+                                      "nullable": false,
+                                      "example": "https:\/\/api.example.com\/user\/13\/relationships\/comments"
+                                    },
+                                    "related": {
+                                      "description": "",
+                                      "format": "string",
+                                      "type": "string",
+                                      "nullable": false,
+                                      "example": "https:\/\/api.example.com\/user\/13\/comments"
+                                    }
+                                  },
+                                  "nullable": false
+                                }
+                              },
+                              "nullable": false
+                            }
+                          },
+                          "nullable": false
+                        },
+                        "meta": {
+                          "description": "",
+                          "type": "object",
+                          "properties": {
+                            "created_at": {
+                              "description": "",
+                              "format": "string",
+                              "type": "string",
+                              "nullable": false,
+                              "example": "2024-08-07T09:04:29+00:00"
+                            },
+                            "updated_at": {
+                              "description": "",
+                              "format": "string",
+                              "type": "string",
+                              "nullable": false,
+                              "example": "2024-08-07T09:04:29+00:00"
                             }
                           },
                           "nullable": false
@@ -2340,9 +2340,9 @@
         "tags": [
           "UserController"
         ],
-        "summary": "testapphttpcontrollersusercontroller.storerequest",
+        "summary": "testapphttpcontrollersjsonapiusercontroller.storerequest",
         "description": "",
-        "operationId": "POST:testapphttpcontrollersusercontroller.storerequest",
+        "operationId": "POST:testapphttpcontrollersjsonapiusercontroller.storerequest",
         "responses": {
           "200": {
             "description": "OK",
@@ -2360,7 +2360,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Sat, 28 Jan 2023 21:42:22 GMT"
+                  "Wed, 07 Aug 2024 09:04:29 GMT"
                 ]
               },
               "Content-type": {
@@ -2387,7 +2387,7 @@
                           "format": "integer",
                           "type": "integer",
                           "nullable": false,
-                          "example": 15
+                          "example": 9
                         },
                         "type": {
                           "description": "",
@@ -2405,14 +2405,14 @@
                               "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "Jack Altenwerth"
+                              "example": "Mrs. Henriette Kuhn"
                             },
                             "email": {
                               "description": "",
                               "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "ewhite@stark.com"
+                              "example": "rowan.collins@jacobs.com"
                             }
                           },
                           "nullable": false
@@ -2460,14 +2460,14 @@
                                       "format": "string",
                                       "type": "string",
                                       "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/15\/relationships\/posts"
+                                      "example": "https:\/\/api.example.com\/user\/9\/relationships\/posts"
                                     },
                                     "related": {
                                       "description": "",
                                       "format": "string",
                                       "type": "string",
                                       "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/15\/posts"
+                                      "example": "https:\/\/api.example.com\/user\/9\/posts"
                                     }
                                   },
                                   "nullable": false
@@ -2514,14 +2514,14 @@
                                       "format": "string",
                                       "type": "string",
                                       "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/15\/relationships\/comments"
+                                      "example": "https:\/\/api.example.com\/user\/9\/relationships\/comments"
                                     },
                                     "related": {
                                       "description": "",
                                       "format": "string",
                                       "type": "string",
                                       "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/15\/comments"
+                                      "example": "https:\/\/api.example.com\/user\/9\/comments"
                                     }
                                   },
                                   "nullable": false
@@ -2541,14 +2541,14 @@
                               "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2023-01-28T21:42:22+00:00"
+                              "example": "2024-08-07T09:04:29+00:00"
                             },
                             "updated_at": {
                               "description": "",
                               "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2023-01-28T21:42:22+00:00"
+                              "example": "2024-08-07T09:04:29+00:00"
                             }
                           },
                           "nullable": false
@@ -2570,9 +2570,9 @@
         "tags": [
           "UserController"
         ],
-        "summary": "testapphttpcontrollersusercontroller.storenorequest",
+        "summary": "testapphttpcontrollersjsonapiusercontroller.storenorequest",
         "description": "",
-        "operationId": "POST:testapphttpcontrollersusercontroller.storenorequest",
+        "operationId": "POST:testapphttpcontrollersjsonapiusercontroller.storenorequest",
         "responses": {
           "200": {
             "description": "OK",
@@ -2590,7 +2590,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Sat, 28 Jan 2023 21:42:22 GMT"
+                  "Wed, 07 Aug 2024 09:04:29 GMT"
                 ]
               },
               "Content-type": {
@@ -2617,7 +2617,7 @@
                           "format": "integer",
                           "type": "integer",
                           "nullable": false,
-                          "example": 17
+                          "example": 10
                         },
                         "type": {
                           "description": "",
@@ -2635,14 +2635,14 @@
                               "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "Javier Krajcik"
+                              "example": "Dr. Jacey Kiehn I"
                             },
                             "email": {
                               "description": "",
                               "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "crist.rae@hotmail.com"
+                              "example": "chadd48@hyatt.com"
                             }
                           },
                           "nullable": false
@@ -2690,14 +2690,14 @@
                                       "format": "string",
                                       "type": "string",
                                       "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/17\/relationships\/posts"
+                                      "example": "https:\/\/api.example.com\/user\/10\/relationships\/posts"
                                     },
                                     "related": {
                                       "description": "",
                                       "format": "string",
                                       "type": "string",
                                       "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/17\/posts"
+                                      "example": "https:\/\/api.example.com\/user\/10\/posts"
                                     }
                                   },
                                   "nullable": false
@@ -2744,14 +2744,14 @@
                                       "format": "string",
                                       "type": "string",
                                       "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/17\/relationships\/comments"
+                                      "example": "https:\/\/api.example.com\/user\/10\/relationships\/comments"
                                     },
                                     "related": {
                                       "description": "",
                                       "format": "string",
                                       "type": "string",
                                       "nullable": false,
-                                      "example": "https:\/\/api.example.com\/user\/17\/comments"
+                                      "example": "https:\/\/api.example.com\/user\/10\/comments"
                                     }
                                   },
                                   "nullable": false
@@ -2771,14 +2771,14 @@
                               "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2023-01-28T21:42:22+00:00"
+                              "example": "2024-08-07T09:04:29+00:00"
                             },
                             "updated_at": {
                               "description": "",
                               "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2023-01-28T21:42:22+00:00"
+                              "example": "2024-08-07T09:04:29+00:00"
                             }
                           },
                           "nullable": false
@@ -2846,7 +2846,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Sat, 28 Jan 2023 21:42:23 GMT"
+                  "Wed, 07 Aug 2024 09:04:29 GMT"
                 ]
               },
               "Content-type": {
@@ -2871,6 +2871,13 @@
                         "description": "",
                         "type": "object",
                         "properties": {
+                          "id": {
+                            "description": "",
+                            "format": "integer",
+                            "type": "integer",
+                            "nullable": false,
+                            "example": 0
+                          },
                           "type": {
                             "description": "",
                             "format": "string",
@@ -2887,7 +2894,7 @@
                                 "format": "string",
                                 "type": "string",
                                 "nullable": false,
-                                "example": "Similique eligendi voluptas et rerum debitis aliquam nostrum. In qui nihil nisi ex dolore. Maiores aut nostrum non et."
+                                "example": "Expedita rerum quo quia nostrum. Exercitationem dolor quod quisquam voluptatem dolor. Recusandae est expedita aut minus. Voluptatem est eveniet et in aut iure."
                               }
                             },
                             "nullable": false
@@ -3098,7 +3105,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Sat, 28 Jan 2023 21:42:23 GMT"
+                  "Wed, 07 Aug 2024 09:04:29 GMT"
                 ]
               },
               "Content-type": {
@@ -3120,6 +3127,13 @@
                       "description": "",
                       "type": "object",
                       "properties": {
+                        "id": {
+                          "description": "",
+                          "format": "integer",
+                          "type": "integer",
+                          "nullable": false,
+                          "example": 0
+                        },
                         "type": {
                           "description": "",
                           "format": "string",
@@ -3136,7 +3150,7 @@
                               "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "Quibusdam excepturi officia autem in eius. Enim natus atque quia dolorem consequatur quasi. Qui molestiae temporibus non."
+                              "example": "Autem facilis debitis magni nemo ut sed quos velit. Unde quos at voluptates. Consectetur quae doloribus facere facilis nostrum suscipit aliquid."
                             }
                           },
                           "nullable": false
@@ -3385,15 +3399,15 @@
                   "type": "string"
                 },
                 "example": [
-                  "Sat, 28 Jan 2023 21:42:23 GMT"
+                  "Wed, 07 Aug 2024 09:04:29 GMT"
                 ]
               },
-              "Content-Type": {
+              "Content-type": {
                 "schema": {
                   "type": "string"
                 },
                 "example": [
-                  "application\/json"
+                  "application\/vnd.api+json"
                 ]
               }
             },
@@ -3412,10 +3426,10 @@
                         "properties": {
                           "id": {
                             "description": "",
-                            "format": "string",
-                            "type": "string",
+                            "format": "integer",
+                            "type": "integer",
                             "nullable": false,
-                            "example": "int|string"
+                            "example": 0
                           },
                           "type": {
                             "description": "",
@@ -3433,14 +3447,14 @@
                                 "format": "string",
                                 "type": "string",
                                 "nullable": false,
-                                "example": "string"
+                                "example": "Prof."
                               },
                               "content": {
                                 "description": "",
                                 "format": "string",
                                 "type": "string",
                                 "nullable": false,
-                                "example": "string"
+                                "example": "Voluptatem illum aperiam rem a distinctio consequatur. Distinctio fuga asperiores non. Odit rem odio quia corrupti impedit occaecati sed. Beatae aliquam neque vel eum labore."
                               }
                             },
                             "nullable": false
@@ -3662,15 +3676,15 @@
                   "type": "string"
                 },
                 "example": [
-                  "Sat, 28 Jan 2023 21:42:23 GMT"
+                  "Wed, 07 Aug 2024 09:04:29 GMT"
                 ]
               },
-              "Content-Type": {
+              "Content-type": {
                 "schema": {
                   "type": "string"
                 },
                 "example": [
-                  "application\/json"
+                  "application\/vnd.api+json"
                 ]
               }
             },
@@ -3686,10 +3700,10 @@
                       "properties": {
                         "id": {
                           "description": "",
-                          "format": "string",
-                          "type": "string",
+                          "format": "integer",
+                          "type": "integer",
                           "nullable": false,
-                          "example": "int|string"
+                          "example": 0
                         },
                         "type": {
                           "description": "",
@@ -3707,14 +3721,14 @@
                               "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "string"
+                              "example": "Prof."
                             },
                             "content": {
                               "description": "",
                               "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "string"
+                              "example": "Tempore corrupti eum est cumque quaerat. Cum incidunt voluptatem aut ducimus sed veritatis non. Sit occaecati dolores qui aperiam."
                             }
                           },
                           "nullable": false

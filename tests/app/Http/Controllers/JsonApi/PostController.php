@@ -1,12 +1,13 @@
 <?php
 
-namespace Test\app\Http\Controllers;
+namespace Test\app\Http\Controllers\JsonApi;
 
-use Illuminate\Http\Resources\Json\ResourceCollection;
+use Ark4ne\JsonApi\Resources\JsonApiCollection;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Test\app\Http\Controllers\AsApiController;
+use Test\app\Http\JsonApiResources\PostResource;
 use Test\app\Http\Requests\PostRequest;
-use Test\app\Http\Resources\PostResource;
 use Test\app\Models\Post;
 
 class PostController extends Controller
@@ -29,9 +30,9 @@ class PostController extends Controller
     /**
      * @param \Test\app\Http\Requests\PostRequest $request
      *
-     * @return \Illuminate\Http\Resources\Json\ResourceCollection<PostResource>
+     * @return JsonApiCollection<PostResource>
      */
-    public function index(PostRequest $request): ResourceCollection
+    public function index(PostRequest $request): JsonApiCollection
     {
         return $this->apiIndex($request);
     }
