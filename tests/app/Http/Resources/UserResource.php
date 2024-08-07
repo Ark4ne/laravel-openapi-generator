@@ -15,6 +15,7 @@ class UserResource extends JsonResource
     public function toArray($request)
     {
         return [
+            'id' => $this->resource->id,
             'type' => 'user',
             'attributes' => [
                 'name' => $this->resource->name,
@@ -24,20 +25,6 @@ class UserResource extends JsonResource
                 'created_at' => $this->resource->created_at,
                 'updated_at' => $this->resource->updated_at,
             ]
-        ];
-    }
-
-    protected function toRelationships(Request $request): iterable
-    {
-        return [
-            'posts' => PostResource::relationship(fn() => $this->resource->posts, fn() => [
-                'self' => "https://api.example.com/user/{$this->resource->id}/relationships/posts",
-                'related' => "https://api.example.com/user/{$this->resource->id}/posts",
-            ])->asCollection(),
-            'comments' => CommentResource::relationship(fn() => $this->whenLoaded('comments'), fn() => [
-                'self' => "https://api.example.com/user/{$this->resource->id}/relationships/comments",
-                'related' => "https://api.example.com/user/{$this->resource->id}/comments",
-            ])->asCollection()
         ];
     }
 }

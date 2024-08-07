@@ -15,6 +15,7 @@ class CommentResource extends JsonResource
     public function toArray($request)
     {
         return [
+            'id' => $this->resource->id,
             'type' => 'comment',
             'attributes' => [
                 'content' => $this->resource->content,
@@ -23,24 +24,6 @@ class CommentResource extends JsonResource
                 'created_at' => $this->resource->created_at,
                 'updated_at' => $this->resource->updated_at,
             ]
-        ];
-    }
-
-    protected function toRelationships(Request $request): iterable
-    {
-        return [
-            'user' => $this->when(true, UserResource::relationship(fn() => $this->resource->user)
-                ->withLinks(fn() => [
-                    'self' => "https://api.example.com/comment/{$this->resource->id}/relationships/user",
-                    'related' => "https://api.example.com/comment/{$this->resource->id}/user",
-                ])
-                ->whenIncluded()),
-            'post' => PostResource::relationship(fn() => $this->resource->post)
-                ->withLinks(fn() => [
-                    'self' => "https://api.example.com/comment/{$this->resource->id}/relationships/post",
-                    'related' => "https://api.example.com/comment/{$this->resource->id}/post",
-                ])
-                ->whenIncluded(),
         ];
     }
 }
