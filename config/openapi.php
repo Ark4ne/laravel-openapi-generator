@@ -273,6 +273,7 @@ return [
             Http\Resources\Json\ResourceCollection::class => Parsers\Responses\ResourceCollectionParser::class,
             Http\Resources\Json\JsonResource::class => Parsers\Responses\JsonResourceParser::class,
             Http\JsonResponse::class => Parsers\Responses\JsonResponseParser::class,
+            Http\RedirectResponse::class => Parsers\Responses\RedirectResponseParser::class,
             Http\Response::class => Parsers\Responses\ResponseParser::class,
 
             /*
