@@ -5,6 +5,7 @@ namespace Ark4ne\OpenApi\Parsers\Requests;
 use Ark4ne\OpenApi\Documentation\Request\Parameter;
 use Ark4ne\OpenApi\Parsers\Requests\Concerns\Rules\CommonRules;
 use Ark4ne\OpenApi\Parsers\Requests\Concerns\Rules\CustomRules;
+use Ark4ne\OpenApi\Support\Facades\Logger;
 use Illuminate\Contracts\Validation\Rule;
 
 class RuleParser
@@ -29,8 +30,10 @@ class RuleParser
 
             if ($rule instanceof Rule) {
                 $this->parseCustomRules($rule, $parameters);
-            } else {
+            } elseif (method_exists($this, "parse$rule")) {
                 $this->{"parse$rule"}($parameters);
+            } else {
+                Logger::warn("No parser for Rule $rule.");
             }
         }
 
