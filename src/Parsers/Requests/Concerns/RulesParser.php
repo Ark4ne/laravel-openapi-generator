@@ -8,9 +8,11 @@ use Ark4ne\OpenApi\Documentation\Request\Parameter;
 use Ark4ne\OpenApi\Parsers\Requests\RuleParser;
 use Ark4ne\OpenApi\Support\Trans;
 use Closure;
-use Illuminate\Contracts\Validation\Rule as ValidationRule;
+use Illuminate\Contracts\Validation\Rule as DeprecatedValidationRule;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\ValidationRuleParser;
 
+use function str_starts_with;
 use function str_contains;
 
 trait RulesParser
@@ -47,12 +49,12 @@ trait RulesParser
     }
 
     /**
-     * @param string|array|ValidationRule|\Closure                      $ruleRaw
-     * @param array{rule: string|ValidationRule, parameters:string[]}[] $rules
+     * @param string|array|DeprecatedValidationRule|ValidationRule|\Closure                      $ruleRaw
+     * @param array{rule: string|DeprecatedValidationRule, parameters:string[]}[] $rules
      *
-     * @return array{rule: string|ValidationRule, parameters:string[]}[]
+     * @return array{rule: string|DeprecatedValidationRule, parameters:string[]}[]
      */
-    protected function prepareRules(string|array|ValidationRule|Closure $ruleRaw, array &$rules = []): array
+    protected function prepareRules(string|array|DeprecatedValidationRule|ValidationRule|Closure $ruleRaw, array &$rules = []): array
     {
         if ($ruleRaw instanceof Closure) {
             return $rules;
@@ -66,6 +68,12 @@ trait RulesParser
             foreach ($ruleRaw as $rule) {
                 $this->prepareRules($rule, $rules);
             }
+            return $rules;
+        }
+
+        if ($ruleRaw instanceof ValidationRule || $ruleRaw instanceof DeprecatedValidationRule) {
+            $rules[] = ['rule' => $ruleRaw, 'parameters' => []];
+
             return $rules;
         }
 

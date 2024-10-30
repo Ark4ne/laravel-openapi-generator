@@ -7,6 +7,7 @@ use Ark4ne\OpenApi\Parsers\Requests\Concerns\Rules\CommonRules;
 use Ark4ne\OpenApi\Parsers\Requests\Concerns\Rules\CustomRules;
 use Ark4ne\OpenApi\Support\Facades\Logger;
 use Illuminate\Contracts\Validation\Rule;
+use Illuminate\Contracts\Validation\ValidationRule;
 
 class RuleParser
 {
@@ -28,7 +29,7 @@ class RuleParser
             $rule = $entry['rule'];
             $parameters = $entry['parameters'];
 
-            if ($rule instanceof Rule) {
+            if ($rule instanceof ValidationRule || $rule instanceof Rule) {
                 $this->parseCustomRules($rule, $parameters);
             } elseif (method_exists($this, "parse$rule")) {
                 $this->{"parse$rule"}($parameters);
