@@ -26,7 +26,7 @@ trait AssertOpenApi
         foreach ($errors as $pointer => $error) {
             $lists[] = "$pointer:";
             foreach ($error as $e) {
-                $lists[] = "  [{$e['constraint']}] {$e['message']}";
+                $lists[] = "  [{$e['constraint']['name']}] {$e['message']}";
             }
         }
         $this->assertTrue($validator->isValid(), implode("\n", $lists));
