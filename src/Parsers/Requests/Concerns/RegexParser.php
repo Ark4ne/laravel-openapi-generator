@@ -53,6 +53,8 @@ trait RegexParser
 
         if (preg_match('/^[\w-]+(?:\|[\w-]+)+$/', $regex)) {
             $param->enum(explode("|", $regex));
+        } elseif (preg_match('/^(?<delimiter>.)(?<pattern>(?:\s|.)+)\k<delimiter>(?<modifier>[gmiuxsUAJD]+)?$/', $regex, $matches)) {
+            $param->pattern("regex:" . $matches['delimiter'] . $matches['pattern'] . $matches['delimiter'] . ($matches['modifier'] ?? ''));
         } else {
             $param->pattern("regex:" . ($regex[0] === $regex[strlen($regex) - 1]) ? $regex : "/$regex/");
         }
