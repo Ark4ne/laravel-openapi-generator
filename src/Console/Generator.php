@@ -84,7 +84,7 @@ class Generator extends Command
             foreach ($errors as $pointer => $error) {
                 Logger::start($pointer);
                 foreach ($error as $e) {
-                    Logger::error("[{$e['constraint']}] {$e['message']}");
+                    Logger::error("[{$e['constraint']['name']}] {$e['message']}");
                 }
                 Logger::end();
             }
