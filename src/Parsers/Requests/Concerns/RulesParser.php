@@ -58,7 +58,7 @@ trait RulesParser
             return $rules;
         }
 
-        if (is_string($ruleRaw) && strpos($ruleRaw, '|')) {
+        if ($this->shouldBeSlit($ruleRaw)) {
             $ruleRaw = explode('|', $ruleRaw);
         }
 
@@ -75,12 +75,17 @@ trait RulesParser
             return $rules;
         }
 
-        if (is_string($rule) && str_contains($rule, '|')) {
+        if ($this->shouldBeSlit($rule)) {
             return $this->prepareRules(explode('|', $rule), $rules);
         }
 
         $rules[] = ['rule' => $rule, 'parameters' => $parameters];
 
         return $rules;
+    }
+
+    private function shouldBeSlit($rule): bool
+    {
+        return is_string($rule) && !str_starts_with($rule, 'regex:') && str_contains($rule, '|');
     }
 }
