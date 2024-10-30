@@ -6,6 +6,7 @@ use Ark4ne\OpenApi\Contracts\Entry;
 use Ark4ne\OpenApi\Descriptors\Requests\Rule;
 use Ark4ne\OpenApi\Documentation\Request\Parameter;
 use Ark4ne\OpenApi\Parsers\Requests\RuleParser;
+use Ark4ne\OpenApi\Support\ClassHelper;
 use Ark4ne\OpenApi\Support\Trans;
 use Closure;
 use Illuminate\Contracts\Validation\Rule as DeprecatedValidationRule;
@@ -19,7 +20,7 @@ trait RulesParser
 {
     /**
      * @param \Ark4ne\OpenApi\Contracts\Entry $entry
-     * @param iterable                        $rules
+     * @param iterable $rules
      *
      * @return \Illuminate\Support\Collection&iterable<Parameter>
      */
@@ -49,12 +50,12 @@ trait RulesParser
     }
 
     /**
-     * @param string|array|DeprecatedValidationRule|ValidationRule|\Closure                      $ruleRaw
+     * @param string|array|DeprecatedValidationRule|ValidationRule|\Closure $ruleRaw
      * @param array{rule: string|DeprecatedValidationRule, parameters:string[]}[] $rules
      *
      * @return array{rule: string|DeprecatedValidationRule, parameters:string[]}[]
      */
-    protected function prepareRules(string|array|DeprecatedValidationRule|ValidationRule|Closure $ruleRaw, array &$rules = []): array
+    protected function prepareRules(mixed $ruleRaw, array &$rules = []): array
     {
         if ($ruleRaw instanceof Closure) {
             return $rules;
@@ -71,7 +72,7 @@ trait RulesParser
             return $rules;
         }
 
-        if ($ruleRaw instanceof ValidationRule || $ruleRaw instanceof DeprecatedValidationRule) {
+        if (ClassHelper::isInstanceOf($ruleRaw, ValidationRule::class) || ClassHelper::isInstanceOf($ruleRaw, DeprecatedValidationRule::class)) {
             $rules[] = ['rule' => $ruleRaw, 'parameters' => []];
 
             return $rules;

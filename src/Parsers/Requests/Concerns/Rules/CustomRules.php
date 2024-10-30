@@ -7,7 +7,13 @@ use Illuminate\Contracts\Validation\ValidationRule;
 
 trait CustomRules
 {
-    public function parseCustomRules(ValidationRule | Rule $rule, array $parameters)
+    /**
+     * @param Rule|ValidationRule $rule
+     * @param array $parameters
+     * @return void
+     * @throws \Illuminate\Contracts\Container\BindingResolutionException
+     */
+    public function parseCustomRules(object $rule, array $parameters)
     {
         foreach (config('openapi.parsers.rules') as $ruleClass => $parserClass) {
             if ($rule instanceof $ruleClass) {
