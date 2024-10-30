@@ -17,6 +17,7 @@ jobs:
     strategy:
       matrix:
         php_version: ['8.1', '8.2', '8.3']
+        laravel_version: ['^9.0', '^10.0', '^11.0']
 
     steps:
     - uses: actions/checkout@v3
@@ -33,10 +34,10 @@ jobs:
         path: vendor
         key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
         restore-keys: |
-          ${{ runner.os }}-php-${{ matrix.php_version }}
+          ${{ runner.os }}-php-${{ matrix.php_version }}-laravel-${{ matrix.laravel_version }}
 
     - name: Install dependencies
-      run: composer install --prefer-dist --no-progress
+      run: composer require laravel/framework ${{ matrix.laravel_version }} --prefer-dist --no-progress
 
     #- name: PHPStan
     #  run: vendor/bin/phpstan analyze
