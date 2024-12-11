@@ -29,6 +29,8 @@ class Logger
         'PUT' => 'ff00ff',
         'PATCH' => 'ff00ff',
         'DELETE' => 'error',
+        'TRACE' => 'info',
+        'OPTIONS' => 'comment',
     ];
 
     protected array $interceptors = [];
@@ -36,7 +38,7 @@ class Logger
 
     public function request(string $method, string $uri): void
     {
-        $this->write($method, self::METHODS[$method], newline: true);
+        $this->write($method, self::METHODS[$method] ?? 'comment', newline: true);
         $this->write(str_pad('', 8 - strlen($method), '.'), 'comment', newline: false);
         $this->start($uri, newline: false);
     }

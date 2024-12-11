@@ -131,7 +131,7 @@ class DocumentationGenerator
         $request = $entry->request();
 
         /** @var Operation $operation */
-        $operation = Operation::$method();
+        $operation = Operation::create()->action(strtolower($method));
         $operation = $operation
             ->operationId("$method:{$entry->getRouteName()}")
             ->summary($entry->getName())
