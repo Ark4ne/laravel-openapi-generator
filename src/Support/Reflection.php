@@ -95,7 +95,7 @@ class Reflection
 
     /**
      * @param \ReflectionMethod $method
-     * @param bool              $allowBuiltin
+     * @param bool $allowBuiltin
      *
      * @return \Ark4ne\OpenApi\Support\Reflection\Type[]|\Ark4ne\OpenApi\Support\Reflection\Type|null
      */
@@ -111,20 +111,21 @@ class Reflection
 
     /**
      * @param \ReflectionType|null $type
-     * @param \Reflector           $from
-     * @param string               $typeName
-     * @param string|null          $typeAccess
-     * @param bool                 $allowBuiltin
+     * @param \Reflector $from
+     * @param string $typeName
+     * @param string|null $typeAccess
+     * @param bool $allowBuiltin
      *
      * @return \Ark4ne\OpenApi\Support\Reflection\Type[]|\Ark4ne\OpenApi\Support\Reflection\Type|null
      */
     public static function parseType(
         ?ReflectionType $type,
-        Reflector $from,
-        string $typeName,
-        null|string $typeAccess = null,
-        bool $allowBuiltin = false
-    ): null|Type|array {
+        Reflector       $from,
+        string          $typeName,
+        null|string     $typeAccess = null,
+        bool            $allowBuiltin = false
+    ): null|Type|array
+    {
         $trueType = self::parseTrueType($type, $from, $typeName, $typeAccess, $allowBuiltin);
 
         if (!($docblock = self::docblock($from))) {
@@ -156,11 +157,12 @@ class Reflection
 
     public static function parseTrueType(
         ?ReflectionType $type,
-        Reflector $from,
-        string $typeName,
-        null|string $typeAccess = null,
-        bool $allowBuiltin = false
-    ) {
+        Reflector       $from,
+        string          $typeName,
+        null|string     $typeAccess = null,
+        bool            $allowBuiltin = false
+    )
+    {
         if ($type instanceof ReflectionUnionType) {
             return collect($type->getTypes())
                 ->map(fn($unionType) => self::parseTrueType($unionType, $from, $typeName, $typeAccess, $allowBuiltin))
@@ -177,24 +179,26 @@ class Reflection
 
     /**
      * @param \phpDocumentor\Reflection\DocBlock\Tag $tag
-     * @param string|null                            $reflectionType
-     * @param bool                                   $allowBuiltin
+     * @param string|null $reflectionType
+     * @param bool $allowBuiltin
      *
      * @return \Ark4ne\OpenApi\Support\Reflection\Type[]|\Ark4ne\OpenApi\Support\Reflection\Type|null
      */
     public static function parseDoctag(
         DocBlock\Tag $tag,
-        ?string $reflectionType = null,
-        bool $allowBuiltin = false
-    ): null|array|Type {
+        ?string      $reflectionType = null,
+        bool         $allowBuiltin = false
+    ): null|array|Type
+    {
         return self::parseDocType($tag->getType(), $reflectionType, $allowBuiltin);
     }
 
     public static function parseDocType(
         ?\phpDocumentor\Reflection\Type $type,
-        ?string $reflectionType = null,
-        bool $allowBuiltin = false
-    ) {
+        ?string                         $reflectionType = null,
+        bool                            $allowBuiltin = false
+    )
+    {
         if ($type instanceof Collection) {
             return Type::make($type->getFqsen())
                 ->sub($type->getValueType())
@@ -284,9 +288,10 @@ class Reflection
 
     protected static function getPropertyTypeFromProperties(
         ReflectionClass $class,
-        string $prop,
-        bool $allowBuiltin
-    ): ?Type {
+        string          $prop,
+        bool            $allowBuiltin
+    ): ?Type
+    {
         try {
             $property = $class->getProperty($prop);
         } catch (\ReflectionException $e) {
@@ -316,9 +321,10 @@ class Reflection
 
     protected static function getPropertyTypeFromClass(
         ReflectionClass $class,
-        string $property,
-        bool $allowBuiltin
-    ): ?Type {
+        string          $property,
+        bool            $allowBuiltin
+    ): ?Type
+    {
         if (!($docblock = self::docblock($class))) {
             return null;
         }
@@ -343,8 +349,13 @@ class Reflection
             $block = self::docblock($reflector);
 
             if (!empty($tags = $block?->getTagsByName($fromTag))) {
-                /** @var \phpDocumentor\Reflection\DocBlock\Tags\BaseTag $tag */
+                /** @var DocBlock\Tags\BaseTag|DocBlock\Tags\TagWithType|DocBlock\Tags\Extends_ $tag */
                 $tag = $tags[0];
+
+                if ($tag instanceof DocBlock\Tags\Extends_) {
+                    return self::parseDoctag($tag);
+                }
+
                 $description = $tag->getDescription()?->getBodyTemplate() ?? '';
 
                 preg_match('/([\\\\\w]+)(?:<([\\\\\w]+)>)?/', $description, $matches);
@@ -369,11 +380,11 @@ class Reflection
 
     /**
      * @param string|object $object
-     * @param string        $method
-     * @param array<mixed>  ...$args
+     * @param string $method
+     * @param array<mixed> ...$args
      *
-     * @throws \ReflectionException
      * @return mixed
+     * @throws \ReflectionException
      */
     public static function call(string|object $object, string $method, mixed ...$args): mixed
     {

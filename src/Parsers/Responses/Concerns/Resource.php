@@ -192,6 +192,10 @@ trait Resource
         }
 
         if ($type = Reflection::tryParseGeneric($class, 'extends')) {
+            if ($type->isGeneric()) {
+                return $type->getSub();
+            }
+
             return $type->getType();
         }
 
