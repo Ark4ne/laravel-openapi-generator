@@ -67,7 +67,7 @@ class Generator extends Command
         return 0;
     }
 
-    protected function generate(string $version, string $lang = null): void
+    protected function generate(string $version, null|string $lang = null): void
     {
         Logger::start("Generate: $version" . ($lang ? " - $lang" : ''));
         /** @var DocumentationGenerator $generator */
