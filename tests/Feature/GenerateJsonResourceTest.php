@@ -2,6 +2,7 @@
 
 namespace Test\Feature;
 
+use Ark4ne\OpenApi\Support\Facades\Logger;
 use Test\Concerns\AssertOpenApi;
 
 class GenerateJsonResourceTest extends FeatureTestCase

@@ -21,7 +21,10 @@ class UserResource extends JsonApiResource
     {
         return [
             'name' => $this->string(),
-            $this->string('email')
+            $this->string('email'),
+            'struct' => $this->struct(fn() => [
+                'age' => $this->integer(fn() => 10)
+            ]),
         ];
     }
 

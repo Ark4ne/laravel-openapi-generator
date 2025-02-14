@@ -5,6 +5,7 @@ namespace Ark4ne\OpenApi\Parsers\Responses\Concerns;
 use Ark4ne\JsonApi\Descriptors\Describer;
 use Ark4ne\JsonApi\Descriptors\Relations\Relation;
 use Ark4ne\JsonApi\Descriptors\Relations\RelationMany;
+use Ark4ne\JsonApi\Descriptors\Values\ValueStruct;
 use Ark4ne\JsonApi\Resources\Concerns\PrepareData;
 use Ark4ne\JsonApi\Resources\Relationship;
 use Ark4ne\JsonApi\Support\Values;
@@ -214,52 +215,66 @@ trait JAResource
      */
     private function getSamples($instance, string $method, $request = null): array
     {
-        return $this->mapSamples($instance, $method, function ($value, $key) {
-            $key = Describer::retrieveName($value, $key);
+        return $this->mapSamples(
+            $instance,
+            $method,
+            fn ($value, $key) => $this->mapValue($instance, $value, $key),
+            $request
+        );
+    }
 
-            if ($this->isBool($value)) {
-                return [$key => 'bool'];
-            }
-            if ($this->isInt($value)) {
-                return [$key => 'integer'];
-            }
-            if ($this->isFloat($value)) {
-                return [$key => 'float'];
-            }
-            if ($this->isString($value)) {
-                return [$key => 'string'];
-            }
-            if ($this->isArray($value)) {
-                return [$key => 'array'];
-            }
-            if ($this->isDate($value)) {
-                $sample = 'date';
+    private function mapValue($instance, $value, $key): array
+    {
+        $key = Describer::retrieveName($value, $key);
 
-                if ($this->isDescriber($value)) {
-                    $format = null;
-                    try {
-                        $format = Reflection::read($value, 'format');
-                    } catch (\Throwable $e) {
-                    }
+        if ($this->isBool($value)) {
+            return [$key => 'bool'];
+        }
+        if ($this->isInt($value)) {
+            return [$key => 'integer'];
+        }
+        if ($this->isFloat($value)) {
+            return [$key => 'float'];
+        }
+        if ($this->isString($value)) {
+            return [$key => 'string'];
+        }
+        if ($this->isArray($value)) {
+            return [$key => 'array'];
+        }
+        if ($this->isDate($value)) {
+            $sample = 'date';
 
-                    if (!$format && class_exists(\Ark4ne\JsonApi\Support\Config::class)) {
-                        $format = \Ark4ne\JsonApi\Support\Config::$date;
-                    }
-
-                    if (!$format) {
-                        $format = config('jsonapi.describer.date');
-                    }
-
-                    if ($format) {
-                        $sample = "date{{$format}}";
-                    }
+            if ($this->isDescriber($value)) {
+                $format = null;
+                try {
+                    $format = Reflection::read($value, 'format');
+                } catch (\Throwable $e) {
                 }
 
-                return [$key => $sample];
+                if (!$format && class_exists(\Ark4ne\JsonApi\Support\Config::class)) {
+                    $format = \Ark4ne\JsonApi\Support\Config::$date;
+                }
+
+                if (!$format) {
+                    $format = config('jsonapi.describer.date');
+                }
+
+                if ($format) {
+                    $sample = "date{{$format}}";
+                }
             }
 
-            return [$key => 'mixed'];
-        }, $request);
+            return [$key => $sample];
+        }
+        if ($this->isStruct($value)) {
+            /** @var ValueStruct $value */
+            $attributes = ($value->retriever())($instance, $key);
+
+            return [$key => collect($attributes)->flatMap(fn($value, $key) => $this->mapValue($instance, $value, $key))->all()];
+        }
+
+        return [$key => 'mixed'];
     }
 
     private function getType(string $class): string

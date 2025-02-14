@@ -119,6 +119,20 @@
                                 "type": "string",
                                 "nullable": false,
                                 "example": "jedediah.bailey@gmail.com"
+                              },
+                              "struct": {
+                                "description": "",
+                                "type": "object",
+                                "properties": {
+                                  "age": {
+                                    "description": "",
+                                    "format": "integer",
+                                    "type": "integer",
+                                    "nullable": false,
+                                    "example": 10
+                                  }
+                                },
+                                "nullable": false
                               }
                             },
                             "nullable": false
@@ -374,6 +388,20 @@
                               "type": "string",
                               "nullable": false,
                               "example": "vilma92@hotmail.com"
+                            },
+                            "struct": {
+                              "description": "",
+                              "type": "object",
+                              "properties": {
+                                "age": {
+                                  "description": "",
+                                  "format": "integer",
+                                  "type": "integer",
+                                  "nullable": false,
+                                  "example": 10
+                                }
+                              },
+                              "nullable": false
                             }
                           },
                           "nullable": false
@@ -645,6 +673,20 @@
                               "type": "string",
                               "nullable": false,
                               "example": "alarkin@muller.net"
+                            },
+                            "struct": {
+                              "description": "",
+                              "type": "object",
+                              "properties": {
+                                "age": {
+                                  "description": "",
+                                  "format": "integer",
+                                  "type": "integer",
+                                  "nullable": false,
+                                  "example": 10
+                                }
+                              },
+                              "nullable": false
                             }
                           },
                           "nullable": false
@@ -947,6 +989,20 @@
                               "type": "string",
                               "nullable": false,
                               "example": "zieme.alek@hotmail.com"
+                            },
+                            "struct": {
+                              "description": "",
+                              "type": "object",
+                              "properties": {
+                                "age": {
+                                  "description": "",
+                                  "format": "integer",
+                                  "type": "integer",
+                                  "nullable": false,
+                                  "example": 10
+                                }
+                              },
+                              "nullable": false
                             }
                           },
                           "nullable": false
@@ -1208,6 +1264,20 @@
                               "type": "string",
                               "nullable": false,
                               "example": "raegan98@kirlin.com"
+                            },
+                            "struct": {
+                              "description": "",
+                              "type": "object",
+                              "properties": {
+                                "age": {
+                                  "description": "",
+                                  "format": "integer",
+                                  "type": "integer",
+                                  "nullable": false,
+                                  "example": 10
+                                }
+                              },
+                              "nullable": false
                             }
                           },
                           "nullable": false
@@ -1455,6 +1525,20 @@
                               "type": "string",
                               "nullable": false,
                               "example": "hank97@gmail.com"
+                            },
+                            "struct": {
+                              "description": "",
+                              "type": "object",
+                              "properties": {
+                                "age": {
+                                  "description": "",
+                                  "format": "integer",
+                                  "type": "integer",
+                                  "nullable": false,
+                                  "example": 10
+                                }
+                              },
+                              "nullable": false
                             }
                           },
                           "nullable": false
@@ -1697,6 +1781,20 @@
                               "type": "string",
                               "nullable": false,
                               "example": "stark.walker@sauer.com"
+                            },
+                            "struct": {
+                              "description": "",
+                              "type": "object",
+                              "properties": {
+                                "age": {
+                                  "description": "",
+                                  "format": "integer",
+                                  "type": "integer",
+                                  "nullable": false,
+                                  "example": 10
+                                }
+                              },
+                              "nullable": false
                             }
                           },
                           "nullable": false
@@ -1941,6 +2039,20 @@
                               "type": "string",
                               "nullable": false,
                               "example": "hansen.maud@labadie.biz"
+                            },
+                            "struct": {
+                              "description": "",
+                              "type": "object",
+                              "properties": {
+                                "age": {
+                                  "description": "",
+                                  "format": "integer",
+                                  "type": "integer",
+                                  "nullable": false,
+                                  "example": 10
+                                }
+                              },
+                              "nullable": false
                             }
                           },
                           "nullable": false
@@ -2183,6 +2295,20 @@
                               "type": "string",
                               "nullable": false,
                               "example": "chaz.armstrong@gmail.com"
+                            },
+                            "struct": {
+                              "description": "",
+                              "type": "object",
+                              "properties": {
+                                "age": {
+                                  "description": "",
+                                  "format": "integer",
+                                  "type": "integer",
+                                  "nullable": false,
+                                  "example": 10
+                                }
+                              },
+                              "nullable": false
                             }
                           },
                           "nullable": false
@@ -2413,6 +2539,20 @@
                               "type": "string",
                               "nullable": false,
                               "example": "rowan.collins@jacobs.com"
+                            },
+                            "struct": {
+                              "description": "",
+                              "type": "object",
+                              "properties": {
+                                "age": {
+                                  "description": "",
+                                  "format": "integer",
+                                  "type": "integer",
+                                  "nullable": false,
+                                  "example": 10
+                                }
+                              },
+                              "nullable": false
                             }
                           },
                           "nullable": false
@@ -2643,6 +2783,20 @@
                               "type": "string",
                               "nullable": false,
                               "example": "chadd48@hyatt.com"
+                            },
+                            "struct": {
+                              "description": "",
+                              "type": "object",
+                              "properties": {
+                                "age": {
+                                  "description": "",
+                                  "format": "integer",
+                                  "type": "integer",
+                                  "nullable": false,
+                                  "example": 10
+                                }
+                              },
+                              "nullable": false
                             }
                           },
                           "nullable": false
