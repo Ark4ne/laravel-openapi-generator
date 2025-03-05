@@ -74,12 +74,11 @@ class DocumentationEntry implements Entry
         /** @var \Symfony\Component\Routing\CompiledRoute $compileRoute */
         $compileRoute = Reflection::call($this->route, 'compileRoute');
 
-        $parameters = $compileRoute->getPathVariables();
+        $pathVariables = $compileRoute->getPathVariables();
 
-        $parameters = array_merge(
-            array_fill_keys($parameters, null),
-            $this->route->action['wheres'] ?? [],
-            $this->route->wheres
+        $parameters = array_map(
+            fn ($parameter) => $this->route->action['wheres'][$parameter] ?? $this->route->wheres[$parameter] ?? null,
+            array_combine($pathVariables, $pathVariables)
         );
 
         return $this->parameters = $parameters;
