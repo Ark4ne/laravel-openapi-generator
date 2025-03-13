@@ -9,6 +9,7 @@ use Ark4ne\OpenApi\Parsers\Responses\Concerns\JAResource;
 use Ark4ne\OpenApi\Support\Facades\Logger;
 use Ark4ne\OpenApi\Support\Reflection;
 use Ark4ne\OpenApi\Support\Reflection\Type;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class JsonApiCollectionParser implements ResponseParserContract
 {
@@ -33,7 +34,14 @@ class JsonApiCollectionParser implements ResponseParserContract
         $structure = $this->generateStructure($resourceInstance, $class);
 
         try {
-            $instance->collection = collect($this->getModelFromResource($resourceClass, 2))->mapInto($resource);
+            $collection = collect($this->getModelFromResource($resourceClass, 2))->mapInto($resource);
+
+            if ($entry->getDocResponsePaginate()) {
+                $collection = new LengthAwarePaginator($collection, $collection->count(), 15);
+            }
+
+            $instance->resource = $collection;
+            $instance->collection = $collection;
 
             /** @var \Illuminate\Http\JsonResponse $response */
             $response = $instance->response();

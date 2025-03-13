@@ -92,6 +92,7 @@ trait Resource
                 $collection = new LengthAwarePaginator($collection, $collection->count(), 15);
             }
 
+            $instance->resource = $collection;
             $instance->collection = $collection;
 
             return $instance->response();
