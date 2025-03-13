@@ -150,7 +150,7 @@ trait Resource
                     collect($resources instanceof Collection ? $resources : [$resources])->map(fn($resource
                     ) => $resource->wasRecentlyCreated = false);
                     return $resources;
-                } catch (QueryException $e) {
+                } catch (Throwable $e) {
                     Logger::warn(["Can create concrete model [$resourceClass] with factory::create.", $e->getMessage()]);
                     Logger::notice("Use factory::make instead.");
                 }
