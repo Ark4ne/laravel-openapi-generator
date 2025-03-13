@@ -65,6 +65,10 @@ trait RulesParser
             $ruleRaw = explode('|', $ruleRaw);
         }
 
+        if (is_object($ruleRaw) && method_exists($ruleRaw, 'toArray')) {
+            $ruleRaw = $ruleRaw->toArray();
+        }
+
         if (is_array($ruleRaw)) {
             foreach ($ruleRaw as $rule) {
                 $this->prepareRules($rule, $rules);
