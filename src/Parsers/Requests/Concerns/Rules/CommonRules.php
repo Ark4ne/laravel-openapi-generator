@@ -257,24 +257,16 @@ trait CommonRules
      */
     public function parseDigits(array $parameters): void
     {
-        $this->parameter->string(false);
+        $this->parameter->string();
 
-        if ($this->parameter->type === Parameter::TYPE_INTEGER || $this->parameter->type === Parameter::TYPE_NUMBER) {
-            if (isset($parameters[0], $parameters[1])) {
-                $this->parameter->min(10 ** ((int)$parameters[0] - 1));
-                $this->parameter->max(10 ** (int)$parameters[1] - 1);
-            } else if (isset($parameters[0])) {
-                $this->parameter->min(10 ** ((int)$parameters[0] - 1));
-                $this->parameter->max(10 ** (int)$parameters[0] - 1);
-            }
-        } else if (isset($parameters[0], $parameters[1])) {
+        if (isset($parameters[0], $parameters[1])) {
             $this->parameter->pattern('digits:/[0-9]+/\{' . $parameters[0] . ', ' . $parameters[1] . '}');
             $this->parameter->min((int)$parameters[0]);
             $this->parameter->max((int)$parameters[1]);
-        }
-        else if (isset($parameters[0])) {
+        } else if (isset($parameters[0])) {
             $this->parameter->pattern('digits:/[0-9]+/\{' . $parameters[0] .'}');
             $this->parameter->min((int)$parameters[0]);
+            $this->parameter->max((int)$parameters[0]);
         }
     }
 
