@@ -259,8 +259,9 @@ trait CommonRules
     {
         $this->parameter->string(false);
 
-        if ($this->parameter->type === Parameter::TYPE_INTEGER) {
+        if ($this->parameter->type === Parameter::TYPE_INTEGER || $this->parameter->type === Parameter::TYPE_NUMBER) {
             if (isset($parameters[0], $parameters[1])) {
+                $this->parameter->min(10 ** (int)$parameters[0]);
                 $this->parameter->max(10 ** ((int)$parameters[1] + 1) - 1);
             } else if (isset($parameters[0])) {
                 $this->parameter->min(10 ** (int)$parameters[0]);
