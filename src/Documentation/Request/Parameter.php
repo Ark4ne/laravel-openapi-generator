@@ -288,16 +288,23 @@ class Parameter implements OASSchematable
         }
 
         if ($this->type === self::TYPE_NUMBER || $this->type === self::TYPE_INTEGER) {
-            if (($this->min ?? null) && ($this->exclusiveMin ?? null)) {
+            if (null !== ($this->min ?? null) && null !== ($this->exclusiveMin ?? null)) {
                 $schema = $schema->exclusiveMinimum($this->min);
-            } elseif ($this->min ?? null) {
+            } elseif (null !== ($this->min ?? null)) {
                 $schema = $schema->minimum($this->min);
             }
 
-            if (($this->max ?? null) && ($this->exclusiveMax ?? null)) {
+            if (null !== ($this->max ?? null) && null !== ($this->exclusiveMax ?? null)) {
                 $schema = $schema->exclusiveMaximum($this->max);
-            } elseif ($this->max ?? null) {
+            } elseif (null !== ($this->max ?? null)) {
                 $schema = $schema->maximum($this->max);
+            }
+        } elseif($this->type === self::TYPE_STRING) {
+            if (null !== ($this->min ?? null)) {
+                $schema = $schema->minLength($this->min);
+            }
+            if (null !== ($this->max ?? null)) {
+                $schema = $schema->maxLength($this->max);
             }
         }
 
