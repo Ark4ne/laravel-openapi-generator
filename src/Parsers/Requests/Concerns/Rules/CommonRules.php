@@ -512,7 +512,9 @@ trait CommonRules
      */
     public function parseMax(array $parameters): void
     {
-        $this->parameter->max((float)$parameters[0]);
+        if (is_numeric($parameters[0])) {
+            $this->parameter->max((float)$parameters[0]);
+        }
     }
 
     /**
@@ -536,7 +538,9 @@ trait CommonRules
      */
     public function parseMin(array $parameters): void
     {
-        $this->parameter->min((float)$parameters[0]);
+        if (is_numeric($parameters[0])) {
+            $this->parameter->min((float)$parameters[0]);
+        }
     }
 
     /**
