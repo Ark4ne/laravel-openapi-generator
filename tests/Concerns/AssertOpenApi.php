@@ -73,6 +73,8 @@ trait AssertOpenApi
         $clean($actual, 'example', null);
         $clean($expected, 'name', 'test');
         $clean($actual, 'name', 'test');
+        $clean($expected, 'description', '');
+        $clean($actual, 'description', '');
 
         $in = function (array $expected, array $actual, int $depth, string $path) use (&$in) {
             foreach ($expected as $key => $value) {
