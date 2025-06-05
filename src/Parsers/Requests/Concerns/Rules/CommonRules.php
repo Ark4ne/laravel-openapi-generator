@@ -230,6 +230,15 @@ trait CommonRules
         }
     }
 
+    public function parseDecimal(array $parameters): void
+    {
+        $this->parameter->float(true);
+
+        $decimal = $parameters[1] ?? $parameters[0] ?? 0;
+
+        $this->parameter->multipleOf(1 / (10 ** (int)$decimal));
+    }
+
     public function parseDeclined(): void
     {
         $this->parameter->string()->enum(['no', 'off', '0', 'false']);
@@ -707,8 +716,9 @@ trait CommonRules
     public function parseSize(array $parameters): void
     {
         match ($this->parameter->type) {
-            Parameter::TYPE_ARRAY, Parameter::TYPE_STRING => $this->parameter->min((int)$parameters[0])->max((int)$parameters[0]),
             Parameter::TYPE_INTEGER, Parameter::TYPE_NUMBER => $this->parameter->min((float)$parameters[0])->max((float)$parameters[0]),
+            /* Parameter::TYPE_ARRAY, Parameter::TYPE_STRING, */
+            default => $this->parameter->min((int)$parameters[0])->max((int)$parameters[0]),
         };
     }
 
