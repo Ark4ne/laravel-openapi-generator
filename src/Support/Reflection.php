@@ -9,6 +9,7 @@ use phpDocumentor\Reflection\DocBlockFactory;
 use phpDocumentor\Reflection\Types\Collection;
 use phpDocumentor\Reflection\Types\Compound;
 use phpDocumentor\Reflection\Types\ContextFactory;
+use ReflectionEnum;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionNamedType;
@@ -19,11 +20,13 @@ use Reflector;
 
 class Reflection
 {
-    public static function reflection(string|object $class): ReflectionClass
+    public static function reflection(string|object $class): ReflectionClass|ReflectionEnum
     {
         static $reflects;
 
-        return $reflects[is_string($class) ? $class : get_class($class)] ??= new ReflectionClass($class);
+        return $reflects[is_string($class) ? $class : get_class($class)] ??= enum_exists($class)
+            ? new ReflectionEnum($class)
+            : new ReflectionClass($class);
     }
 
     public static function method(string|object $class, string $method): ReflectionMethod

@@ -27,7 +27,7 @@ trait Resource
 
     /**
      * @param \Ark4ne\OpenApi\Support\Reflection\Type<JsonResource|ResourceCollection> $element
-     * @param \Ark4ne\OpenApi\Contracts\Entry                                          $entry
+     * @param \Ark4ne\OpenApi\Contracts\Entry $entry
      *
      * @return ResponseEntry
      */
@@ -75,10 +75,11 @@ trait Resource
     }
 
     private function getResponseFromCollection(
-        Entry $entry,
+        Entry              $entry,
         ResourceCollection $instance,
-        Reflection\Type $type
-    ): ?JsonResponse {
+        Reflection\Type    $type
+    ): ?JsonResponse
+    {
         try {
             if (!($resource = $this->getResourceFromCollection($instance, $type))) {
                 Logger::error("Can't determinate resource type for collection : " . $instance::class);
@@ -86,7 +87,7 @@ trait Resource
             }
 
             $instance->collects = $resource;
-            $collection = collect($this->getModelFromResource(new ReflectionClass($resource), 2))->mapInto($resource);
+            $collection = collect($this->getModelFromResource(Reflection::reflection($resource), 2))->mapInto($resource);
 
             if ($entry->getDocResponsePaginate()) {
                 $collection = new LengthAwarePaginator($collection, $collection->count(), 15);
@@ -106,11 +107,12 @@ trait Resource
     }
 
     private function getResponseFromResource(
-        Entry $entry,
-        JsonResource $instance,
+        Entry           $entry,
+        JsonResource    $instance,
         Reflection\Type $type,
         ReflectionClass $class
-    ): ?JsonResponse {
+    ): ?JsonResponse
+    {
         try {
             $instance->resource = $this->getModelFromResource($class);
 
@@ -140,6 +142,19 @@ trait Resource
     private function getModelFromResource(ReflectionClass $class, int $count = 1): mixed
     {
         $resourceClass = $resource = $this->getResourceClass($class);
+
+        if (enum_exists($resource)) {
+            /** @var \BackedEnum $resource */
+            $cases = $resource::cases();
+
+            if ($count > 1) {
+                $cases = array_slice($cases, 0, $count);
+            } else {
+                $cases = [$cases[array_rand($cases)]];
+            }
+
+            return collect($cases)->map(fn($case) => $case->value);
+        }
 
         if ($resource && Support::method($resource, 'factory')) {
             $factory = static fn() => $count > 1

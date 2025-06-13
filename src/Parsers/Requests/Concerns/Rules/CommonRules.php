@@ -325,13 +325,7 @@ trait CommonRules
      */
     public function parseEnum(array $parameters): void
     {
-        $isNumber = array_reduce(
-            $parameters,
-            static fn(bool $isNumber, string $value) => $isNumber && is_numeric($value),
-            true
-        );
-
-        $this->parameter->{$isNumber ? 'string' : 'number'}()->enum($parameters);
+        $this->parameter->string()->enum($parameters);
     }
 
     /**
