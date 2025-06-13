@@ -24,7 +24,9 @@ class Reflection
     {
         static $reflects;
 
-        return $reflects[is_string($class) ? $class : get_class($class)] ??= enum_exists($class)
+        $classStr = is_string($class) ? $class : get_class($class);
+
+        return $reflects[$classStr] ??= enum_exists($classStr)
             ? new ReflectionEnum($class)
             : new ReflectionClass($class);
     }
