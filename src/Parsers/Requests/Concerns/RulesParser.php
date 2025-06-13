@@ -12,6 +12,7 @@ use Closure;
 use Illuminate\Contracts\Validation\Rule as DeprecatedValidationRule;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\ValidationRuleParser;
+use Stringable;
 
 use function str_starts_with;
 use function str_contains;
@@ -59,6 +60,10 @@ trait RulesParser
     {
         if ($ruleRaw instanceof Closure) {
             return $rules;
+        }
+
+        if (class_exists(Stringable::class) && $ruleRaw instanceof Stringable) {
+            $ruleRaw = $ruleRaw->toString();
         }
 
         if ($this->shouldBeSlit($ruleRaw)) {
