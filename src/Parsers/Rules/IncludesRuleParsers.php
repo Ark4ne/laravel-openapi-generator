@@ -2,13 +2,13 @@
 
 namespace Ark4ne\OpenApi\Parsers\Rules;
 
-use Ark4ne\OpenApi\Contracts\CustomRuleParser;
+use Ark4ne\OpenApi\Contracts\CustomRuleParserContract;
 use Ark4ne\OpenApi\Documentation\Request\Component;
 use Ark4ne\OpenApi\Documentation\Request\Parameter;
 use Ark4ne\OpenApi\Support\Reflection;
 use Illuminate\Contracts\Validation\Rule;
 
-class IncludesRuleParsers implements CustomRuleParser
+class IncludesRuleParsers implements CustomRuleParserContract
 {
     /**
      * @param \Ark4ne\OpenApi\Documentation\Request\Parameter $parameter

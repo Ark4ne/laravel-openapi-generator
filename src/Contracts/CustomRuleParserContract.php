@@ -6,7 +6,7 @@ use Ark4ne\OpenApi\Documentation\Request\Parameter;
 use Illuminate\Contracts\Validation\Rule;
 use Illuminate\Contracts\Validation\ValidationRule;
 
-interface CustomRuleParser
+interface CustomRuleParserContract
 {
     /**
      * @param \Ark4ne\OpenApi\Documentation\Request\Parameter $parameter
