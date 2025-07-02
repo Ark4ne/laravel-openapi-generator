@@ -7,6 +7,7 @@ use Ark4ne\OpenApi\Documentation\Request\Component;
 use Ark4ne\OpenApi\Documentation\Request\Parameter;
 use Ark4ne\OpenApi\Support\Reflection;
 use Illuminate\Contracts\Validation\Rule;
+use Illuminate\Contracts\Validation\ValidationRule;
 
 class FieldsRuleParsers implements CustomRuleParserContract
 {
@@ -18,7 +19,7 @@ class FieldsRuleParsers implements CustomRuleParserContract
      *
      * @return void
      */
-    public function parse(Parameter $parameter, Rule $rule, array $parameters, array $rules): void
+    public function parse(Parameter $parameter, ValidationRule|Rule $rule, array $parameters, array $rules): void
     {
         try {
             $resource = Reflection::read($rule, 'resource');
