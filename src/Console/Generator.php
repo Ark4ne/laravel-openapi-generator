@@ -3,6 +3,8 @@
 namespace Ark4ne\OpenApi\Console;
 
 use Ark4ne\OpenApi\Documentation\DocumentationGenerator;
+use Ark4ne\OpenApi\Documentation\Request\Component;
+use Ark4ne\OpenApi\Support\ArrayCache;
 use Ark4ne\OpenApi\Support\Config;
 use Ark4ne\OpenApi\Support\Facades\Logger;
 use Ark4ne\OpenApi\Support\Trans;
@@ -69,6 +71,8 @@ class Generator extends Command
 
     protected function generate(string $version, null|string $lang = null): void
     {
+        ArrayCache::clear();
+
         Logger::start("Generate: $version" . ($lang ? " - $lang" : ''));
         /** @var DocumentationGenerator $generator */
         $generator = app()->make(DocumentationGenerator::class);

@@ -5,11 +5,16 @@ namespace Ark4ne\OpenApi\Parsers\Responses\Concerns;
 use Ark4ne\JsonApi\Descriptors\Describer;
 use Ark4ne\JsonApi\Descriptors\Relations\Relation;
 use Ark4ne\JsonApi\Descriptors\Relations\RelationMany;
+use Ark4ne\JsonApi\Descriptors\Values\Value;
 use Ark4ne\JsonApi\Resources\Relationship;
 use Ark4ne\OpenApi\Documentation\Request\Component;
 use Ark4ne\OpenApi\Documentation\Request\Parameter;
+use Ark4ne\OpenApi\Parsers\Common\EnumToRef;
+use Ark4ne\OpenApi\Support\ArrayCache;
+use Ark4ne\OpenApi\Support\Facades\Logger;
 use Ark4ne\OpenApi\Support\Reflection;
 use Illuminate\Http\Resources\Json\ResourceCollection;
+use Illuminate\Support\Str;
 
 trait JAResourceRef
 {
@@ -26,7 +31,7 @@ trait JAResourceRef
 
         $type = $this->getType($instance::class);
 
-        $ref = "resource-$type";
+        $ref = "resource-" . Str::slug(str_replace('\\', '-', $instance::class));
 
         if (Component::has($ref, Component::SCOPE_SCHEMAS)) {
             return Component::get($ref, Component::SCOPE_SCHEMAS)?->ref();
@@ -36,26 +41,36 @@ trait JAResourceRef
 
         $component = Component::create($ref, Component::SCOPE_SCHEMAS);
 
-        $properties[] = (new Parameter('id'))->string();
-        $properties[] = (new Parameter('type'))->string();
-        $properties[] = $this->getRefAttributes($instance, $request);
-        $properties[] = $this->getRefRelations($instance, $request);
-        $properties[] = $this->getRefLinks($instance, $request);
-        $properties[] = $this->getRefMeta($instance, $request);
+        try {
+            $properties[] = (new Parameter('id'))->string();
+            $properties[] = (new Parameter('type'))->string()->default($type);
+            $properties[] = $this->getRefAttributes($instance, $request);
+            $properties[] = $this->getRefRelations($instance, $request);
+            $properties[] = $this->getRefLinks($instance, $request);
+            $properties[] = $this->getRefMeta($instance, $request);
 
-        $param = (new Parameter($ref))
-            ->object()
-            ->properties(...array_filter($properties));
+            $param = (new Parameter($ref))
+                ->object()
+                ->properties(...array_filter($properties));
 
-        $component->object($param);
+            $component->object($param);
 
-        return $component->ref();
+            return $component->ref();
+        } catch (\Throwable $e) {
+            Component::drop($ref, Component::SCOPE_SCHEMAS);
+            Logger::error('Error generating resource ref: ' . $e->getMessage());
+            throw $e;
+        }
     }
 
     private function getRefSamples($instance, $request, $method, $name)
     {
-        $attributes = array_values($this->mapSamples($instance, $method, function ($value, $name) {
+        $attributes = array_values($this->mapSamples($instance, $method, function ($value, $name) use ($instance) {
             $param = (new Parameter(Describer::retrieveName($value, $name)));
+
+            if ($this->instanceof($value, Value::class) && $value->isNullable()) {
+                $param->nullable();
+            }
 
             return [
                 $name => match (true) {
@@ -64,7 +79,12 @@ trait JAResourceRef
                     $this->isFloat($value) => $param->float(),
                     $this->isString($value) => $param->string(),
                     $this->isDate($value) => $param->date(),
-                    $this->isArray($value) => $param->array(),
+                    $this->isArray($value) => $param->array()->items((new Parameter('entry'))->string()),
+                    $this->isEnum($value) => when(
+                        self::describeEnum($this->getResourceClass(Reflection::reflection($instance)), $name),
+                        fn($enum) => $param->ref((new EnumToRef($enum))->toRef()),
+                        fn() => $param->string()
+                    ),
                     default => $param->string()->example('mixed'),
                 }
             ];
@@ -96,8 +116,12 @@ trait JAResourceRef
 
     private function getRefRelations($instance, $request)
     {
+        if (!Reflection::hasMethod($instance, 'toRelationships')) {
+            return null;
+        }
+
         $relations = collect(Reflection::call($instance, 'toRelationships', $request))
-            ->mapWithKeys(function ($relationship, $name) {
+            ->mapWithKeys(function ($relationship, $name) use ($instance) {
                 $name = Describer::retrieveName($relationship, $name);
 
                 if ($relationship instanceof Relationship) {
@@ -124,7 +148,10 @@ trait JAResourceRef
                     $resource = $collects;
                 }
 
-                $param->example($this->resourceToRef($resource));
+                ArrayCache::fetch(
+                    ['ja-resource-ref', $instance::class, $this->resourceToRef($resource)],
+                    fn () => $this->resourceToRef($resource)
+                );
 
                 $type = (new Parameter('type'))->string()->example($this->getType($resource));
 

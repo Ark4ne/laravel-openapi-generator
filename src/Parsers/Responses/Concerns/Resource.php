@@ -5,6 +5,7 @@ namespace Ark4ne\OpenApi\Parsers\Responses\Concerns;
 use Ark4ne\OpenApi\Contracts\Entry;
 use Ark4ne\OpenApi\Documentation\Request\Parameter;
 use Ark4ne\OpenApi\Documentation\ResponseEntry;
+use Ark4ne\OpenApi\Support\ArrayCache;
 use Ark4ne\OpenApi\Support\Facades\Logger;
 use Ark4ne\OpenApi\Support\Fake;
 use Ark4ne\OpenApi\Support\Reflection;
@@ -153,7 +154,7 @@ trait Resource
                 $cases = [$cases[array_rand($cases)]];
             }
 
-            return collect($cases)->map(fn($case) => $case->value);
+            return collect($cases)->map(fn($case) => $case);
         }
 
         if ($resource && Support::method($resource, 'factory')) {
@@ -199,23 +200,25 @@ trait Resource
 
     private function getResourceClass(ReflectionClass $class): ?string
     {
-        if ($type = $this->getResourceTypeFromConstructor($class)) {
-            return $type;
-        }
-
-        if ($type = Reflection::getPropertyType($class->getName(), 'resource', false)) {
-            return $type->getType();
-        }
-
-        if ($type = Reflection::tryParseGeneric($class, 'extends')) {
-            if ($type->isGeneric()) {
-                return $type->getSub();
+        return ArrayCache::fetch(['Resource', 'getResourceClass', $class->getName()], function () use ($class) {
+            if ($type = $this->getResourceTypeFromConstructor($class)) {
+                return $type;
             }
 
-            return $type->getType();
-        }
+            if ($type = Reflection::getPropertyType($class->getName(), 'resource', false)) {
+                return $type->getType();
+            }
 
-        return null;
+            if ($type = Reflection::tryParseGeneric($class, 'extends')) {
+                if ($type->isGeneric()) {
+                    return $type->getSub();
+                }
+
+                return $type->getType();
+            }
+
+            return null;
+        });
     }
 
     protected function getResourceTypeFromConstructor(ReflectionClass $class): ?string
