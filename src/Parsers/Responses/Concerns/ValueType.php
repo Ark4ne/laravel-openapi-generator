@@ -6,6 +6,7 @@ use Ark4ne\JsonApi\Descriptors\Describer;
 use Ark4ne\JsonApi\Descriptors\Values\ValueArray;
 use Ark4ne\JsonApi\Descriptors\Values\ValueBool;
 use Ark4ne\JsonApi\Descriptors\Values\ValueDate;
+use Ark4ne\JsonApi\Descriptors\Values\ValueEnum;
 use Ark4ne\JsonApi\Descriptors\Values\ValueFloat;
 use Ark4ne\JsonApi\Descriptors\Values\ValueInteger;
 use Ark4ne\JsonApi\Descriptors\Values\ValueString;
@@ -55,6 +56,11 @@ trait ValueType
     public function isStruct(mixed $value): bool
     {
         return $this->instanceof($value, ValueStruct::class);
+    }
+
+    public function isEnum(mixed $value): bool
+    {
+        return $this->instanceof($value, ValueEnum::class);
     }
 
     public function isDescriber(mixed $value): bool

@@ -383,6 +383,15 @@ class Reflection
         return null;
     }
 
+    public static function hasMethod(string|object $object, string $method): bool
+    {
+        try {
+            return self::reflection($object)->hasMethod($method);
+        } catch (\ReflectionException) {
+            return false;
+        }
+    }
+
     /**
      * @param string|object $object
      * @param string $method
