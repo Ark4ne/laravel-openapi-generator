@@ -7,6 +7,8 @@ use Ark4ne\OpenApi\Support\Reflection;
 
 class ResourceFactoryReader
 {
+    private ResourceFactory $attribute;
+
     public function __construct(private string $resourceClass)
     {
 
@@ -14,6 +16,10 @@ class ResourceFactoryReader
 
     public function getResourceFactory(): ?ResourceFactory
     {
+        if (isset($this->attribute)) {
+            return $this->attribute;
+        }
+
         $reflection = Reflection::reflection($this->resourceClass);
         $attributes = $reflection->getAttributes(ResourceFactory::class);
 
@@ -23,7 +29,7 @@ class ResourceFactoryReader
 
         $attribute = $attributes[0];
 
-        return $attribute->newInstance();
+        return $this->attribute = $attribute->newInstance();
     }
 
     public function hasResourceFactory(): bool
@@ -51,12 +57,14 @@ class ResourceFactoryReader
             throw new \InvalidArgumentException("Method {$method} not found in {$factoryClass}");
         }
 
+        $factory = new $factoryClass();
+
         if ($count === 1) {
-            return $factoryClass::$method($parameters);
+            return $factory->$method($parameters);
         }
 
         return array_map(
-            fn() => $factoryClass::$method($parameters),
+            fn() => $factory->$method($parameters),
             range(1, $count)
         );
     }

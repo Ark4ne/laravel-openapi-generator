@@ -143,16 +143,15 @@ trait Resource
 
     private function getModelFromResource(ReflectionClass $class, int $count = 1): mixed
     {
-        $resourceClass = $resource = $this->getResourceClass($class);
-
-
-        $resourceFactoryReader = new ResourceFactoryReader($resourceClass);
+        $resourceFactoryReader = new ResourceFactoryReader($class->getName());
 
         if ($resourceFactoryReader->hasResourceFactory()) {
             return $resourceFactoryReader->createFromResourceFactory($count);
         }
 
-        if (enum_exists($resource)) {
+        $resourceClass = $resource = $this->getResourceClass($class);
+
+        if ($resource && enum_exists($resource)) {
             /** @var \BackedEnum $resource */
             $cases = $resource::cases();
 
