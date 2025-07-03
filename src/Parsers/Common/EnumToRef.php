@@ -20,14 +20,21 @@ class EnumToRef
             return Component::get($ref, Component::SCOPE_SCHEMAS)?->ref();
         }
 
-        $param = (new Parameter($ref))
-            ->string()
-            ->enum($this->describeEnumValues($this->enum));
+        $param = $this->applyOnParameter(new Parameter($ref));
 
         $component = Component::create($ref, Component::SCOPE_SCHEMAS);
         $component->object($param);
 
         return $component->ref();
+    }
+
+    public function applyOnParameter(Parameter $parameter): Parameter
+    {
+        $parameter
+            ->string()
+            ->enum($this->describeEnumValues($this->enum));
+
+        return $parameter;
     }
 
     private function describeEnumValues(string|\UnitEnum|\BackedEnum $enum)
