@@ -2,8 +2,6 @@
 
 namespace Ark4ne\OpenApi\Service;
 
-use Illuminate\Support\Facades\Log;
-
 class Logger
 {
     const ICONS = [
@@ -43,13 +41,13 @@ class Logger
         $this->start($uri, newline: false);
     }
 
-    public function start(string $name, string $lvl = 'line', bool $newline = null): void
+    public function start(string $name, string $lvl = 'line', null|bool $newline = null): void
     {
         $this->$lvl("$name ", $newline);
         $this->operations[] = ['name' => $name, 'actions' => []];
     }
 
-    public function end(string $lvl = null, string $message = null): void
+    public function end(string $lvl = null, null|string $message = null): void
     {
         $newline = empty($this->operations) || (bool) count($this->operations[array_key_last($this->operations)]['actions']);
 

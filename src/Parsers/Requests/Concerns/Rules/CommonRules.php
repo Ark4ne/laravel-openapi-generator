@@ -63,8 +63,11 @@ trait CommonRules
      */
     public function parseArray(array $parameters): void
     {
-        // TODO : handle params
-        $this->parameter->array();
+        $this->parameter
+            ->array()
+            // Set default item type to string
+            ->items((new Parameter(''))->string())
+        ;
     }
 
     /**

@@ -7,6 +7,7 @@ use Ark4ne\OpenApi\Documentation\Request\Concerns\Typable;
 use Ark4ne\OpenApi\Documentation\Request\Concerns\HasCondition;
 use Ark4ne\OpenApi\Support\Date;
 use DateTimeInterface;
+use GoldSpecDigital\ObjectOrientedOAS\Contracts\SchemaContract;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Parameter as OASParameter;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Schema;
 use Illuminate\Support\Arr;
@@ -108,7 +109,7 @@ class Parameter implements OASSchematable
      * @var array<self>|null
      */
     protected ?array $properties;
-    protected ?self $items;
+    protected null|self|SchemaContract $items;
 
     protected ?string $title;
     protected ?string $typeDescription;
@@ -172,7 +173,7 @@ class Parameter implements OASSchematable
         return $this;
     }
 
-    public function default(bool $default = true): static
+    public function default(mixed $default = null): static
     {
         $this->default = $default;
         return $this;
@@ -231,7 +232,7 @@ class Parameter implements OASSchematable
         return $this;
     }
 
-    public function items(self $items): static
+    public function items(null|self|SchemaContract $items): static
     {
         $this->items = $items;
         return $this;
@@ -274,7 +275,7 @@ class Parameter implements OASSchematable
             ->enum(...($this->enum ?? []))
             ->pattern($this->pattern ?? null)
             ->default($this->default ?? null)
-            ->multipleOf($this->multipleOf ?? null)// ->additionalProperties($additionalProperties)  // TODO
+            ->multipleOf($this->multipleOf ?? null)
         ;
 
         if ($this->properties ?? null) {
@@ -284,10 +285,13 @@ class Parameter implements OASSchematable
         }
 
         if ($this->items ?? null) {
-            $schema = $schema->items($this->items->oasSchema());
+            $schema = $schema->items($this->items instanceof self ? $this->items->oasSchema() : $this->items);
         }
 
-        if ($this->type === self::TYPE_NUMBER || $this->type === self::TYPE_INTEGER) {
+        if (
+            $this->type === self::TYPE_NUMBER
+            || $this->type === self::TYPE_INTEGER
+            || ($this->type === self::TYPE_STRING && in_array($this->format, [self::FORMAT_DATE, self::FORMAT_DATETIME], true))) {
             if (null !== ($this->min ?? null) && null !== ($this->exclusiveMin ?? null)) {
                 $schema = $schema->exclusiveMinimum($this->min);
             } elseif (null !== ($this->min ?? null)) {
@@ -417,7 +421,9 @@ class Parameter implements OASSchematable
                     fn($value, $key) => self::fromJson($value, $key)
                 )->all());
             } else {
-                $parameter->array();
+                $parameter
+                    ->array()
+                    ->items((new self('entry'))->object()->example('mixed'));
             }
         }
 

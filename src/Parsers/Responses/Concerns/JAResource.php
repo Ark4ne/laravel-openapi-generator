@@ -31,7 +31,10 @@ trait JAResource
                     'id' => 'int|string',
                     'type' => $this->getType($instance::class),
                     'attributes' => $this->getSamples($instance, 'toAttributes', $request),
-                    'relationships' => collect($this->mergeValues(Reflection::call($instance, 'toRelationships', $request)))
+                    'relationships' => collect($this->mergeValues(Reflection::hasMethod($instance, 'toRelationships')
+                        ? Reflection::call($instance, 'toRelationships', $request)
+                        : []
+                    ))
                         ->mapWithKeys(function ($relationship, $name) use ($instance) {
                             $name = Describer::retrieveName($relationship, $name);
 
@@ -114,7 +117,7 @@ trait JAResource
         $merge = static function ($data, $structure) {
             $filter = static fn($v) => $v !== null && $v !== '' && $v !== [];
 
-            $basic = static fn ($key, $structure, &$data) => $data[$key] = array_merge(
+            $basic = static fn($key, $structure, &$data) => $data[$key] = array_merge(
                 $structure['data'][$key] ?? [],
                 array_filter($data[$key] ?? [], $filter)
             );
@@ -159,8 +162,7 @@ trait JAResource
             // Available for json-api v1.3
             if (class_exists(Values::class)) {
                 $mergeValues = static fn($values) => Values::mergeValues($values);
-            }
-            // Available for json-api v1.2
+            } // Available for json-api v1.2
             elseif (trait_exists(PrepareData::class)) {
                 $stub = new class {
                     use PrepareData;
@@ -170,8 +172,7 @@ trait JAResource
                 $method->setAccessible(true);
 
                 $mergeValues = static fn($values) => $method->invoke($stub, $values);
-            }
-            // no merge values
+            } // no merge values
             else {
                 $mergeValues = static fn($values) => $values;
             }
@@ -182,7 +183,7 @@ trait JAResource
 
     /**
      * @param                                                          $instance
-     * @param string                                                   $method
+     * @param string $method
      * @param callable(string $key, mixed $value):array<string, mixed> $map
      * @param                                                          $request
      *
@@ -191,6 +192,10 @@ trait JAResource
     private function mapSamples($instance, string $method, callable $map, $request = null): array
     {
         $request ??= request();
+
+        if (!Reflection::hasMethod($instance, $method)) {
+            return [];
+        }
 
         try {
             return collect($this->mergeValues(Reflection::call($instance, $method, $request) ?? []))
@@ -218,7 +223,7 @@ trait JAResource
         return $this->mapSamples(
             $instance,
             $method,
-            fn ($value, $key) => $this->mapValue($instance, $value, $key),
+            fn($value, $key) => $this->mapValue($instance, $value, $key),
             $request
         );
     }
@@ -273,8 +278,56 @@ trait JAResource
 
             return [$key => collect($attributes)->flatMap(fn($value, $key) => $this->mapValue($instance, $value, $key))->all()];
         }
+        if ($this->isEnum($value)) {
+            $enum = self::describeEnum($this->getResourceClass(Reflection::reflection($instance)), $key);
+
+            if ($enum) {
+                $values = self::describeEnumValues($enum);
+
+                return [$key => implode('|', $values)];
+            }
+
+            return [$key => 'string'];
+        }
 
         return [$key => 'mixed'];
+    }
+
+    private static function describeEnum($resourceModel, $key)
+    {
+        if (!$resourceModel) {
+            return null;
+        }
+        if (enum_exists($resourceModel)) {
+            return $resourceModel;
+        } else {
+            $reflectionModel = Reflection::reflection($resourceModel);
+            $cast = Reflection::call($reflectionModel->newInstanceWithoutConstructor(), 'casts');
+
+            if (!isset($cast[$key])) {
+                return null;
+            }
+
+            $enum = $cast[$key];
+
+            if (enum_exists($enum)) {
+                return $enum;
+            }
+        }
+
+        return null;
+    }
+
+    private static function describeEnumValues(string|\UnitEnum|\BackedEnum $enum)
+    {
+        $values = array_map(
+            fn($case) => $case instanceof \BackedEnum
+                ? $case->value
+                : $case->name,
+            $enum::cases()
+        );
+
+        return $values;
     }
 
     private function getType(string $class): string

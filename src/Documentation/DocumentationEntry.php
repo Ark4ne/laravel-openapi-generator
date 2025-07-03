@@ -3,6 +3,7 @@
 namespace Ark4ne\OpenApi\Documentation;
 
 use Ark4ne\OpenApi\Contracts\Entry;
+use Ark4ne\OpenApi\Support\Annotations\ResponseAttributeReader;
 use Ark4ne\OpenApi\Support\ArrayInsensitive;
 use Ark4ne\OpenApi\Support\Config;
 use Ark4ne\OpenApi\Support\Reflection;
@@ -146,6 +147,15 @@ class DocumentationEntry implements Entry
 
     public function getDocResponseStatus(): ?string
     {
+        $responseAttributeReader = new ResponseAttributeReader($this->getControllerClass(), $this->getAction());
+
+        if ($responseAttributeReader->hasResponseAttribute()) {
+            return trim(implode(' ', array_filter([
+                $responseAttributeReader->getResponseAttribute()->statusCode,
+                $responseAttributeReader->getResponseAttribute()->statusText
+            ])));
+        }
+
         return trim(($this->getDocTag('response-status')[0] ?? null)?->getDescription()?->getBodyTemplate());
     }
 
@@ -177,6 +187,12 @@ class DocumentationEntry implements Entry
 
     public function getDocResponsePaginate(): bool
     {
+        $responseAttributeReader = new ResponseAttributeReader($this->getControllerClass(), $this->getAction());
+
+        if ($responseAttributeReader->hasResponseAttribute()) {
+            return $responseAttributeReader->getResponseAttribute()->paginated;
+        }
+
         return (bool)($this->getDocTag('response-paginate')[0] ?? false);
     }
 
@@ -185,13 +201,21 @@ class DocumentationEntry implements Entry
      */
     public function getDocResponseHeaders(): ArrayInsensitive
     {
+        $responseAttributeReader = new ResponseAttributeReader($this->getControllerClass(), $this->getAction());
+
+        if ($responseAttributeReader->hasResponseAttribute()) {
+            $headers = $responseAttributeReader->getResponseAttribute()->headers;
+        } else {
+            $headers = $this->getDocTag('response-header');
+        }
+
         $entries = array_map(
             static function ($tag) {
                 $parts = explode(' ', $tag->getDescription()?->getBodyTemplate(), 2);
 
                 return [$parts[0], $parts[1] ?? ''];
             },
-            $this->getDocTag('response-header')
+            $headers
         );
 
         return new ArrayInsensitive(array_combine(

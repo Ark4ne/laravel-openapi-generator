@@ -14,11 +14,11 @@ class Arr extends \Illuminate\Support\Arr
             return $array;
         }
 
-        if (static::exists($array, $key)) {
+        if (is_string($key) && static::exists($array, $key)) {
             return $array[$key];
         }
 
-        if (!str_contains($key, '.')) {
+        if (is_string($key) && !str_contains($key, '.')) {
             return $array[$key] ?? value($default);
         }
 
@@ -36,7 +36,42 @@ class Arr extends \Illuminate\Support\Arr
         return value($default);
     }
 
-    public static function undot($array, string $saveKey = null)
+    public static function fetch($array, $key, $default = null): mixed
+    {
+        if (!self::accessible($array)) {
+            return value($default);
+        }
+
+        if (is_null($key)) {
+            return $array;
+        }
+
+        if (is_string($key) && static::exists($array, $key)) {
+            return $array[$key];
+        }
+
+        if (is_string($key) && !str_contains($key, '.')) {
+            return $array[$key] ?? value($default);
+        }
+
+        if (is_string($key)) {
+            $keys = explode('.', $key);
+        } else {
+            $keys = (array)$key;
+        }
+
+        foreach ($keys as $segment) {
+            if (static::accessible($array) && static::exists($array, $segment)) {
+                $array = $array[$segment];
+            } else {
+                return value($default);
+            }
+        }
+
+        return $array;
+    }
+
+    public static function undot($array, null|string $saveKey = null)
     {
         $results = [];
 
@@ -47,13 +82,16 @@ class Arr extends \Illuminate\Support\Arr
         return $results;
     }
 
-    public static function apply(&$array, $key, $value, string $saveKey = null): mixed
+    public static function apply(&$array, $key, $value, null|string $saveKey = null): mixed
     {
         if (is_null($key)) {
             return $array = $value;
         }
 
-        $keys = explode('.', $key);
+        if (is_string($key))
+            $keys = explode('.', $key);
+        else
+            $keys = (array)$key;
 
         foreach ($keys as $i => $key) {
             if (count($keys) === 1) {

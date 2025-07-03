@@ -216,6 +216,18 @@ return [
                     'flat' => 'all'
                 ],
             ],
+
+            /*
+            |------------------------------------------------------------------
+            | Use ref
+            |------------------------------------------------------------------
+            |
+            | Use ref to describe resources.
+            | If set to true, the parser will use the ref to describe resources.
+            | If set to false, the parser will use the object definition.
+            |
+             */
+            'use-ref' => true,
         ],
     ],
 

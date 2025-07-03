@@ -45,7 +45,7 @@ class FieldsRuleParsers implements CustomRuleParserContract
             $resources = $this->extractSchemas($name, $relationship, $resources);
         }
 
-        $ref = 'fields:' . implode('-', array_keys($resources));
+        $ref = 'fields-' . implode('-', array_keys($resources));
 
         if (Component::has($ref, Component::SCOPE_SCHEMAS)) {
             return Component::get($ref, Component::SCOPE_SCHEMAS)?->ref();

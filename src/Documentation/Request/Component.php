@@ -3,7 +3,9 @@
 namespace Ark4ne\OpenApi\Documentation\Request;
 
 use Ark4ne\OpenApi\Contracts\OASSchematable;
+use Ark4ne\OpenApi\Support\ArrayCache;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Components;
+use function Symfony\Component\String\s;
 
 class Component
 {
@@ -17,36 +19,41 @@ class Component
     public const SCOPE_LINKS = 'links';
     public const SCOPE_CALLBACKS = 'callbacks';
 
-    /**
-     * @var array<string, self[]>
-     */
-    private static array $refs = [];
-
     protected OASSchematable $object;
 
     private function __construct(
         protected string $id,
         protected string $scope = self::SCOPE_SCHEMAS
-    ) {
+    )
+    {
     }
 
     public static function create(string $id, string $scope = self::SCOPE_SCHEMAS): self
     {
-        if (isset(self::$refs[$scope][$id])) {
+        if (ArrayCache::has([self::class, $scope, $id])) {
             throw new \InvalidArgumentException('Already exists');
         }
 
-        return self::$refs[$scope][$id] = new self($id, $scope);
+        return ArrayCache::set([self::class, $scope, $id], new self($id, $scope));
     }
 
     public static function has(string $id, string $scope = self::SCOPE_SCHEMAS): bool
     {
-        return isset(self::$refs[$scope][$id]);
+        return ArrayCache::has([self::class, $scope, $id]);
     }
 
     public static function get(string $id, string $scope = self::SCOPE_SCHEMAS): ?self
     {
-        return self::$refs[$scope][$id] ?? null;
+        return ArrayCache::get([self::class, $scope, $id]);
+    }
+
+    public static function drop(string $id, string $scope = self::SCOPE_SCHEMAS): void
+    {
+        $cache = ArrayCache::get([self::class, $scope]) ?? [];
+
+        unset($cache[$id]);
+
+        ArrayCache::set([self::class, $scope], $cache);
     }
 
     public function ref(): string
@@ -63,13 +70,15 @@ class Component
 
     public static function toComponents(): ?Components
     {
-        if (empty(self::$refs)) {
+        $elements = ArrayCache::get([self::class]);
+
+        if (empty($elements)) {
             return null;
         }
 
         $components = Components::create();
 
-        foreach (self::$refs as $scope => $sub) {
+        foreach ($elements as $scope => $sub) {
             $components = $components->$scope(...array_map(
                 static fn(self $component) => $component->object->oasSchema(),
                 array_values($sub)
