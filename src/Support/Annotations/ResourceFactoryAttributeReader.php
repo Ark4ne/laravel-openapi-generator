@@ -5,13 +5,13 @@ namespace Ark4ne\OpenApi\Support\Annotations;
 use Ark4ne\OpenApi\Attributes\ResourceFactory;
 use Ark4ne\OpenApi\Support\Reflection;
 
-class ResourceFactoryReader
+class ResourceFactoryAttributeReader
 {
     private ResourceFactory $attribute;
 
-    public function __construct(private string $resourceClass)
-    {
-
+    public function __construct(
+        private readonly string $resourceClass
+    ) {
     }
 
     public function getResourceFactory(): ?ResourceFactory
