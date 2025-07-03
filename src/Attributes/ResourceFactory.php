@@ -1,6 +1,6 @@
 <?php
 
-namespace Ark4ne\OpenApi\Annotations;
+namespace Ark4ne\OpenApi\Attributes;
 
 use Attribute;
 
