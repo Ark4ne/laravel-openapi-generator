@@ -2,7 +2,7 @@
 
 namespace Ark4ne\OpenApi\Support\Annotations;
 
-use Ark4ne\OpenApi\Annotations\ResourceFactory;
+use Ark4ne\OpenApi\Attributes\ResourceFactory;
 use Ark4ne\OpenApi\Support\Reflection;
 
 class ResourceFactoryReader
