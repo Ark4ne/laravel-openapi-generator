@@ -5,14 +5,13 @@ namespace Ark4ne\OpenApi\Parsers\Responses\Concerns;
 use Ark4ne\OpenApi\Contracts\Entry;
 use Ark4ne\OpenApi\Documentation\Request\Parameter;
 use Ark4ne\OpenApi\Documentation\ResponseEntry;
-use Ark4ne\OpenApi\Support\Annotations\ResourceFactoryReader;
+use Ark4ne\OpenApi\Support\Annotations\ResourceFactoryAttributeReader;
 use Ark4ne\OpenApi\Support\ArrayCache;
 use Ark4ne\OpenApi\Support\Facades\Logger;
 use Ark4ne\OpenApi\Support\Fake;
 use Ark4ne\OpenApi\Support\Reflection;
 use Ark4ne\OpenApi\Support\Support;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\MediaType;
-use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Resources\Json\ResourceCollection;
@@ -143,7 +142,7 @@ trait Resource
 
     private function getModelFromResource(ReflectionClass $class, int $count = 1): mixed
     {
-        $resourceFactoryReader = new ResourceFactoryReader($class->getName());
+        $resourceFactoryReader = new ResourceFactoryAttributeReader($class->getName());
 
         if ($resourceFactoryReader->hasResourceFactory()) {
             return $resourceFactoryReader->createFromResourceFactory($count);
