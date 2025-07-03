@@ -7,6 +7,7 @@ use Illuminate\Support\Str;
 /**
  * @method static string title()
  * @method static string description()
+ * @method static bool useRef()
  * @method static string[] routes()
  * @method static array nameBy()
  * @method static array tagBy()

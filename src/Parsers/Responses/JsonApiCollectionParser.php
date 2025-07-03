@@ -9,6 +9,7 @@ use Ark4ne\OpenApi\Documentation\ResponseEntry;
 use Ark4ne\OpenApi\Parsers\Responses\Concerns\JAResource;
 use Ark4ne\OpenApi\Parsers\Responses\Concerns\JAResourceRef;
 use Ark4ne\OpenApi\Support\ArrayCache;
+use Ark4ne\OpenApi\Support\Config;
 use Ark4ne\OpenApi\Support\Facades\Logger;
 use Ark4ne\OpenApi\Support\Reflection;
 use Ark4ne\OpenApi\Support\Reflection\Type;
@@ -50,6 +51,10 @@ class JsonApiCollectionParser implements ResponseParserContract
 
     private function generateBody($resource, $resourceClass): ?Parameter
     {
+        if (!Config::useRef()) {
+            return null;
+        }
+
         try {
             $properties = [
                 (new Parameter('data'))

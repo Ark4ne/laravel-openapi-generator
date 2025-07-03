@@ -11,6 +11,7 @@ use Ark4ne\OpenApi\Documentation\Request\Component;
 use Ark4ne\OpenApi\Documentation\Request\Parameter;
 use Ark4ne\OpenApi\Parsers\Common\EnumToRef;
 use Ark4ne\OpenApi\Support\ArrayCache;
+use Ark4ne\OpenApi\Support\Config;
 use Ark4ne\OpenApi\Support\Facades\Logger;
 use Ark4ne\OpenApi\Support\Reflection;
 use Illuminate\Http\Resources\Json\ResourceCollection;
@@ -82,7 +83,10 @@ trait JAResourceRef
                     $this->isArray($value) => $param->array()->items((new Parameter('entry'))->string()),
                     $this->isEnum($value) => when(
                         self::describeEnum($this->getResourceClass(Reflection::reflection($instance)), $name),
-                        fn($enum) => $param->ref((new EnumToRef($enum))->toRef()),
+                        fn($enum) =>
+                            Config::useRef()
+                            ? $param->ref((new EnumToRef($enum))->toRef())
+                            : (new EnumToRef($enum))->applyOnParameter($param),
                         fn() => $param->string()
                     ),
                     default => $param->string()->example('mixed'),
