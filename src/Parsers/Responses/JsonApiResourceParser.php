@@ -9,6 +9,7 @@ use Ark4ne\OpenApi\Documentation\ResponseEntry;
 use Ark4ne\OpenApi\Parsers\Responses\Concerns\JAResource;
 use Ark4ne\OpenApi\Parsers\Responses\Concerns\JAResourceRef;
 use Ark4ne\OpenApi\Support\ArrayCache;
+use Ark4ne\OpenApi\Support\Config;
 use Ark4ne\OpenApi\Support\Facades\Logger;
 use Ark4ne\OpenApi\Support\Reflection;
 use Ark4ne\OpenApi\Support\Reflection\Type;
@@ -25,7 +26,7 @@ class JsonApiResourceParser implements ResponseParserContract
         $class = Reflection::reflection($type->getType());
         $instance = $this->createResourceInstance($class);
 
-        $body = $this->generateBody($instance);
+        $body = $this->generateBody($instance, $class);
         $response = $this->generateResponse($instance, $body, $class);
 
         return $this->toResponseEntry($response, $entry, $body);
@@ -39,10 +40,16 @@ class JsonApiResourceParser implements ResponseParserContract
         return $instance;
     }
 
-    private function generateBody($instance): ?Parameter
+    private function generateBody($instance, $class): ?Parameter
     {
+        if (!Config::useRef()) {
+            return null;
+        }
+
         try {
-            $properties = [(new Parameter('data'))->ref($this->resourceToRef($instance))];
+            $properties = [
+                (new Parameter('data'))->ref($this->resourceToRef($instance))
+            ];
 
             $includedRefs = ArrayCache::get(['ja-resource-ref', $instance::class]);
             if (!empty($includedRefs)) {
@@ -54,7 +61,7 @@ class JsonApiResourceParser implements ResponseParserContract
                 ->properties(...$properties);
 
         } catch (\Throwable $e) {
-            Logger::error('Failed to generate body for JSON API collection response: ' . $e->getMessage());
+            Logger::error('Failed to generate body for JSON API resource response: ' . $e->getMessage());
             return null;
         }
     }
@@ -87,7 +94,14 @@ class JsonApiResourceParser implements ResponseParserContract
 
         } catch (\Throwable $e) {
             if (!$body) {
-                return response()->json($this->generateStructure($instance, $class));
+                Logger::warn([
+                    "Failed to generate response for resource - (class: " . $instance::class . ")",
+                    $e->getMessage()
+                ]);
+                Logger::notice('Use fallback structure instead.');
+
+                $structure = $this->generateStructure($instance, $class);
+                return response()->json($structure);
             }
 
             return response()->json();

@@ -29,14 +29,13 @@ class JsonApiCollectionParser implements ResponseParserContract
         $resource = $this->getResourceFromCollection($instance, $type);
 
         if (!$resource) {
-            Logger::warn("Can't determinate resource type for collection : " . $instance::class);
+            Logger::warn("Can't determine resource type for collection: " . $instance::class);
             return $this->createFallbackResponse($entry);
         }
 
         $instance->collects = $resource;
         $resourceClass = Reflection::reflection($resource);
-        $resourceInstance = $resourceClass->newInstanceWithoutConstructor();
-        $resourceInstance->resource = $this->getModelFromResource($resourceClass);
+        $resourceInstance = $this->createResourceInstance($resourceClass);
 
         $body = $this->generateBody($resource, $resourceClass);
         $collection = $this->createCollection($resourceClass, $resource, $entry);
@@ -47,6 +46,14 @@ class JsonApiCollectionParser implements ResponseParserContract
         $response = $this->generateResponse($instance, $body, $resourceInstance, $resourceClass);
 
         return $this->toResponseEntry($response, $entry, $body);
+    }
+
+    private function createResourceInstance($class)
+    {
+        $instance = $class->newInstanceWithoutConstructor();
+        $instance->resource = $this->getModelFromResource($class);
+
+        return $instance;
     }
 
     private function generateBody($resource, $resourceClass): ?Parameter
@@ -64,16 +71,7 @@ class JsonApiCollectionParser implements ResponseParserContract
 
             $includedRefs = ArrayCache::get(['ja-resource-ref', $resourceClass->getName()]);
             if (!empty($includedRefs)) {
-                $properties[] = (new Parameter('included'))
-                    ->array()
-                    ->items(
-                        (new AnyOf())->schemas(
-                            ...array_values(array_map(
-                                fn($ref) => Schema::ref($ref),
-                                $includedRefs
-                            ))
-                        )
-                    );
+                $properties[] = $this->createIncludedParameter($includedRefs);
             }
 
             return (new Parameter('body'))
@@ -84,6 +82,20 @@ class JsonApiCollectionParser implements ResponseParserContract
             Logger::error('Failed to generate body for JSON API collection response: ' . $e->getMessage());
             return null;
         }
+    }
+
+    private function createIncludedParameter(array $refs): Parameter
+    {
+        return (new Parameter('included'))
+            ->array()
+            ->items(
+                (new AnyOf())->schemas(
+                    ...array_values(array_map(
+                        fn($ref) => Schema::ref($ref),
+                        $refs
+                    ))
+                )
+            );
     }
 
     private function createCollection($resourceClass, $resource, Entry $entry)
@@ -112,7 +124,7 @@ class JsonApiCollectionParser implements ResponseParserContract
         } catch (\Throwable $e) {
             if (!$body) {
                 Logger::warn([
-                    "Fail to generate response for collection - (collect class : " . $instance::class . ", resource class : " . $resourceClass->getName() . ")",
+                    "Failed to generate response for collection - (collect class: " . $instance::class . ", resource class: " . $resourceClass->getName() . ")",
                     $e->getMessage()
                 ]);
                 Logger::notice('Use resource structure instead.');
