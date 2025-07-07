@@ -10,12 +10,12 @@ class ResourceFactory
     /**
      * @param string $factory
      * @param array<mixed> $parameters
-     * @param string $method
+     * @param string|null $method
      */
     public function __construct(
         public string  $factory,
         public array   $parameters = [],
-        public string  $method = 'make'
+        public ?string $method = null
     )
     {
     }
