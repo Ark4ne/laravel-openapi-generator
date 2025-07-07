@@ -205,18 +205,26 @@ class DocumentationEntry implements Entry
 
         if ($responseAttributeReader->hasResponseAttribute()) {
             $headers = $responseAttributeReader->getResponseAttribute()->headers;
+
+            $entries = array_map(
+                static function ($key, $value) {
+                    return [$key, is_array($value) ? implode(', ', $value) : $value];
+                },
+                array_keys($headers),
+                $headers
+            );
         } else {
             $headers = $this->getDocTag('response-header');
+
+            $entries = array_map(
+                static function ($tag) {
+                    $parts = explode(' ', $tag->getDescription()?->getBodyTemplate(), 2);
+
+                    return [$parts[0], $parts[1] ?? ''];
+                },
+                $headers
+            );
         }
-
-        $entries = array_map(
-            static function ($tag) {
-                $parts = explode(' ', $tag->getDescription()?->getBodyTemplate(), 2);
-
-                return [$parts[0], $parts[1] ?? ''];
-            },
-            $headers
-        );
 
         return new ArrayInsensitive(array_combine(
             array_column($entries, 0),
