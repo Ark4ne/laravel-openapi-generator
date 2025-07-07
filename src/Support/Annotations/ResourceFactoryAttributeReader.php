@@ -3,6 +3,7 @@
 namespace Ark4ne\OpenApi\Support\Annotations;
 
 use Ark4ne\OpenApi\Attributes\ResourceFactory;
+use Ark4ne\OpenApi\Support\Config;
 use Ark4ne\OpenApi\Support\Reflection;
 
 class ResourceFactoryAttributeReader
@@ -46,7 +47,7 @@ class ResourceFactoryAttributeReader
         }
 
         $factoryClass = $resourceFactory->factory;
-        $method = $resourceFactory->method;
+        $method = $resourceFactory->method ?? (Config::connections('use-transaction') ? 'create' : 'make');
         $parameters = $resourceFactory->parameters;
 
         if (!class_exists($factoryClass)) {
