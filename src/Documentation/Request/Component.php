@@ -5,7 +5,6 @@ namespace Ark4ne\OpenApi\Documentation\Request;
 use Ark4ne\OpenApi\Contracts\OASSchematable;
 use Ark4ne\OpenApi\Support\ArrayCache;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Components;
-use function Symfony\Component\String\s;
 
 class Component
 {
