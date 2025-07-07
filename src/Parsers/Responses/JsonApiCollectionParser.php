@@ -112,7 +112,7 @@ class JsonApiCollectionParser implements ResponseParserContract
         } catch (\Throwable $e) {
             if (!$body) {
                 Logger::warn([
-                    'Fail to generate response for collection - (collect class : \{$instance::class})',
+                    "Fail to generate response for collection - (collect class : " . $instance::class . ")",
                     $e->getMessage()
                 ]);
                 Logger::notice('Use resource structure instead.');
