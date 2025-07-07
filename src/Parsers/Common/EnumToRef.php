@@ -4,12 +4,17 @@ namespace Ark4ne\OpenApi\Parsers\Common;
 
 use Ark4ne\OpenApi\Documentation\Request\Component;
 use Ark4ne\OpenApi\Documentation\Request\Parameter;
+use Ark4ne\OpenApi\Support\ArrayCache;
 use Illuminate\Support\Str;
 
 class EnumToRef
 {
     public function __construct(private string|\UnitEnum|\BackedEnum $enum)
     {
+        ArrayCache::fetch([self::class, $this->enum::class], fn () => [
+            'values' => [],
+            'ref' => null,
+        ]);
     }
 
     public function toRef(): string
@@ -25,7 +30,7 @@ class EnumToRef
         $component = Component::create($ref, Component::SCOPE_SCHEMAS);
         $component->object($param);
 
-        return $component->ref();
+        return ArrayCache::set([self::class, $this->enum::class, 'ref'], $component->ref());
     }
 
     public function applyOnParameter(Parameter $parameter): Parameter
@@ -46,6 +51,36 @@ class EnumToRef
             $enum::cases()
         );
 
+        ArrayCache::set([self::class, $this->enum::class, 'values'], $values);
+
         return $values;
+    }
+    
+    public static function fromValues(array $values): string
+    {
+        $discovered = ArrayCache::get([self::class]);
+
+        foreach ($discovered as $enum => $cases) {
+            if (array_diff($values, $cases['values']) === [] && array_diff($cases['values'], $values) === []) {
+                return $cases['ref'];
+            }
+        }
+
+        $keys = md5(json_encode($values));
+
+        $ref = "enum-" . $keys;
+
+        if (Component::has($ref, Component::SCOPE_SCHEMAS)) {
+            return Component::get($ref, Component::SCOPE_SCHEMAS)?->ref();
+        }
+
+        $parameter = (new Parameter($ref))
+            ->string()
+            ->enum($values);
+
+        $component = Component::create($ref, Component::SCOPE_SCHEMAS);
+        $component->object($parameter);
+
+        return ArrayCache::set([self::class, $keys, 'ref'], $component->ref());
     }
 }
