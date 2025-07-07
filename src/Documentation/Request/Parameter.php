@@ -8,8 +8,12 @@ use Ark4ne\OpenApi\Documentation\Request\Concerns\HasCondition;
 use Ark4ne\OpenApi\Support\Date;
 use DateTimeInterface;
 use GoldSpecDigital\ObjectOrientedOAS\Contracts\SchemaContract;
+use GoldSpecDigital\ObjectOrientedOAS\Objects\AllOf;
+use GoldSpecDigital\ObjectOrientedOAS\Objects\AnyOf;
+use GoldSpecDigital\ObjectOrientedOAS\Objects\OneOf;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Parameter as OASParameter;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Schema;
+use GoldSpecDigital\ObjectOrientedOAS\Objects\SchemaComposition;
 use Illuminate\Support\Arr;
 
 /**
@@ -106,7 +110,7 @@ class Parameter implements OASSchematable
     protected ?bool $exclusiveMax;
 
     /**
-     * @var array<self>|null
+     * @var array<self|SchemaContract>|null
      */
     protected ?array $properties;
     protected null|self|SchemaContract $items;
@@ -115,6 +119,9 @@ class Parameter implements OASSchematable
     protected ?string $typeDescription;
     protected ?string $description;
     protected mixed $example;
+
+    /** @var null|array{class-string, self[]}  */
+    protected null|array $composition;
 
     protected ?string $ref;
 
@@ -226,7 +233,7 @@ class Parameter implements OASSchematable
         return $this;
     }
 
-    public function properties(self ...$properties): static
+    public function properties(self|SchemaContract ...$properties): static
     {
         $this->properties = $properties;
         return $this;
@@ -280,7 +287,7 @@ class Parameter implements OASSchematable
 
         if ($this->properties ?? null) {
             $schema = $schema->properties(...array_map(
-                static fn(self $param) => $param->oasSchema(), $this->properties ?? []
+                static fn($param) => $param instanceof self ? $param->oasSchema() : $param, $this->properties ?? []
             ));
         }
 
