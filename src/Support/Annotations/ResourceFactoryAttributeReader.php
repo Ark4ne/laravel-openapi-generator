@@ -46,7 +46,7 @@ class ResourceFactoryAttributeReader
         }
 
         $factoryClass = $resourceFactory->factory;
-        $method = $resourceFactory->method ?? 'create';
+        $method = $resourceFactory->method;
         $parameters = $resourceFactory->parameters;
 
         if (!class_exists($factoryClass)) {
