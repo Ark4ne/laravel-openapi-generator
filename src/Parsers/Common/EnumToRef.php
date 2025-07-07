@@ -11,10 +11,8 @@ class EnumToRef
 {
     public function __construct(private string|\UnitEnum|\BackedEnum $enum)
     {
-        ArrayCache::fetch([self::class, $this->enum::class], fn () => [
-            'values' => [],
-            'ref' => null,
-        ]);
+        ArrayCache::fetch([self::class, $this->enum::class, 'values'], fn () => []);
+        ArrayCache::fetch([self::class, $this->enum::class, 'ref'], fn () => null);
     }
 
     public function toRef(): string
@@ -53,6 +51,8 @@ class EnumToRef
 
         ArrayCache::set([self::class, $this->enum::class, 'values'], $values);
 
+        dd(ArrayCache::get([self::class, $this->enum::class]));
+
         return $values;
     }
 
@@ -80,6 +80,8 @@ class EnumToRef
 
         $component = Component::create($ref, Component::SCOPE_SCHEMAS);
         $component->object($parameter);
+
+        ArrayCache::set([self::class, $keys, 'values'], $values);
 
         return ArrayCache::set([self::class, $keys, 'ref'], $component->ref());
     }
