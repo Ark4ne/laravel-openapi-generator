@@ -2,6 +2,7 @@
 
 namespace Ark4ne\OpenApi\Parsers\Requests\Concerns\Rules;
 
+use Ark4ne\OpenApi\Parsers\Common\EnumToRef;
 use Ark4ne\OpenApi\Support\Reflection;
 use Illuminate\Contracts\Validation\Rule;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -102,6 +103,7 @@ trait CustomRules
 
         $type = $typeProperty->getValue($enum);
 
+        $this->parameter->ref((new EnumToRef($type))->toRef());
         $this->parseEnum(collect($type::cases())->map(fn($case) => $case->value)->toArray());
     }
 
