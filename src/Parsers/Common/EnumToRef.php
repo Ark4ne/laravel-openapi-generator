@@ -55,12 +55,12 @@ class EnumToRef
 
         return $values;
     }
-    
+
     public static function fromValues(array $values): string
     {
         $discovered = ArrayCache::get([self::class]);
 
-        foreach ($discovered as $enum => $cases) {
+        foreach ($discovered ?? [] as $enum => $cases) {
             if (array_diff($values, $cases['values']) === [] && array_diff($cases['values'], $values) === []) {
                 return $cases['ref'];
             }
