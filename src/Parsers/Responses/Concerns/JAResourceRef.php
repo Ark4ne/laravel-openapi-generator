@@ -13,6 +13,7 @@ use Ark4ne\OpenApi\Parsers\Common\EnumToRef;
 use Ark4ne\OpenApi\Support\ArrayCache;
 use Ark4ne\OpenApi\Support\Config;
 use Ark4ne\OpenApi\Support\Facades\Logger;
+use Ark4ne\OpenApi\Support\Ref;
 use Ark4ne\OpenApi\Support\Reflection;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Support\Str;
@@ -32,7 +33,7 @@ trait JAResourceRef
 
         $type = $this->getType($instance::class);
 
-        $ref = "resource-" . Str::slug(str_replace('\\', '-', $instance::class));
+        $ref = Ref::resourceRef($instance::class);
 
         if (Component::has($ref, Component::SCOPE_SCHEMAS)) {
             return Component::get($ref, Component::SCOPE_SCHEMAS)?->ref();
@@ -51,6 +52,8 @@ trait JAResourceRef
             $properties[] = $this->getRefMeta($instance, $request);
 
             $param = (new Parameter($ref))
+                ->title(Str::studly($type))
+                ->description('resource')
                 ->object()
                 ->properties(...array_filter($properties));
 
