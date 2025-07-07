@@ -17,9 +17,9 @@ use GoldSpecDigital\ObjectOrientedOAS\Objects\SchemaComposition;
 use Illuminate\Support\Arr;
 
 /**
- * @property-read array<int|string>                                 $enum
- * @property-read string                                            $type
- * @property-read string                                            $name
+ * @property-read array<int|string> $enum
+ * @property-read string $type
+ * @property-read string $name
  * @property-read \Ark4ne\OpenApi\Documentation\Request\Condition[] $conditions
  */
 class Parameter implements OASSchematable
@@ -114,13 +114,14 @@ class Parameter implements OASSchematable
      */
     protected ?array $properties;
     protected null|self|SchemaContract $items;
+    protected null|self $additionalProperties;
 
     protected ?string $title;
     protected ?string $typeDescription;
     protected ?string $description;
     protected mixed $example;
 
-    /** @var null|array{class-string, self[]}  */
+    /** @var null|array{class-string, self[]} */
     protected null|array $composition;
 
     protected ?string $ref;
@@ -130,7 +131,8 @@ class Parameter implements OASSchematable
 
     public function __construct(
         protected string $name,
-    ) {
+    )
+    {
         $this->type(self::TYPE_STRING);
     }
 
@@ -245,6 +247,12 @@ class Parameter implements OASSchematable
         return $this;
     }
 
+    public function additionalProperties(null|self $additionalProperties): static
+    {
+        $this->additionalProperties = $additionalProperties;
+        return $this;
+    }
+
     public function ref(string $ref): static
     {
         $this->ref = $ref;
@@ -282,13 +290,16 @@ class Parameter implements OASSchematable
             ->enum(...($this->enum ?? []))
             ->pattern($this->pattern ?? null)
             ->default($this->default ?? null)
-            ->multipleOf($this->multipleOf ?? null)
-        ;
+            ->multipleOf($this->multipleOf ?? null);
 
         if ($this->properties ?? null) {
             $schema = $schema->properties(...array_map(
                 static fn($param) => $param instanceof self ? $param->oasSchema() : $param, $this->properties ?? []
             ));
+        }
+
+        if ($this->additionalProperties ?? null) {
+            $schema = $schema->additionalProperties($this->additionalProperties->oasSchema());
         }
 
         if ($this->items ?? null) {
@@ -310,7 +321,7 @@ class Parameter implements OASSchematable
             } elseif (null !== ($this->max ?? null)) {
                 $schema = $schema->maximum($this->max);
             }
-        } elseif($this->type === self::TYPE_STRING) {
+        } elseif ($this->type === self::TYPE_STRING) {
             if (null !== ($this->min ?? null)) {
                 $schema = $schema->minLength($this->min);
             }
