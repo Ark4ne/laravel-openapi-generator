@@ -5,6 +5,7 @@ namespace Ark4ne\OpenApi\Parsers\Rules;
 use Ark4ne\OpenApi\Contracts\CustomRuleParserContract;
 use Ark4ne\OpenApi\Documentation\Request\Component;
 use Ark4ne\OpenApi\Documentation\Request\Parameter;
+use Ark4ne\OpenApi\Support\Ref;
 use Ark4ne\OpenApi\Support\Reflection;
 use Illuminate\Contracts\Validation\Rule;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -45,7 +46,7 @@ class FieldsRuleParsers implements CustomRuleParserContract
             $resources = $this->extractSchemas($name, $relationship, $resources);
         }
 
-        $ref = 'fields-' . implode('-', array_keys($resources));
+        $ref = Ref::fieldsRef(implode('-', array_keys($resources)));
 
         if (Component::has($ref, Component::SCOPE_SCHEMAS)) {
             return Component::get($ref, Component::SCOPE_SCHEMAS)?->ref();
