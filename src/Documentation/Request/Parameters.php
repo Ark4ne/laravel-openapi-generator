@@ -96,6 +96,8 @@ class Parameters
             $self = $parameter[self::key()] ?? (new Parameter($name));
             unset($parameter[self::key()]);
 
+            $self->undot();
+
             if (isset($parameter['*'])) {
                 $self->array();
                 $self->items($unstar($parameter['*'], ''));
