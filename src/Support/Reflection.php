@@ -36,6 +36,14 @@ class Reflection
         return self::reflection($class)->getMethod($method);
     }
 
+    public static function property(string|object $class, string $property): ReflectionProperty
+    {
+        $propertyReflection = self::reflection($class)->getProperty($property);
+        $propertyReflection->setAccessible(true);
+
+        return $propertyReflection;
+    }
+
     public static function docComment(Reflector $reflector): ?string
     {
         if (!method_exists($reflector, 'getDocComment')) {
