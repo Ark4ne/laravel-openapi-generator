@@ -63,7 +63,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Mon, 07 Jul 2025 15:46:46 GMT"
+                  "Tue, 08 Jul 2025 08:02:48 GMT"
                 ]
               },
               "Content-Type": {
@@ -161,7 +161,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Mon, 07 Jul 2025 15:46:46 GMT"
+                  "Tue, 08 Jul 2025 08:02:48 GMT"
                 ]
               },
               "Content-Type": {
@@ -272,7 +272,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Mon, 07 Jul 2025 15:46:46 GMT"
+                  "Tue, 08 Jul 2025 08:02:48 GMT"
                 ]
               },
               "Content-Type": {
@@ -414,7 +414,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Mon, 07 Jul 2025 15:46:46 GMT"
+                  "Tue, 08 Jul 2025 08:02:48 GMT"
                 ]
               },
               "Content-Type": {
@@ -515,7 +515,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Mon, 07 Jul 2025 15:46:47 GMT"
+                  "Tue, 08 Jul 2025 08:02:48 GMT"
                 ]
               },
               "Content-Type": {
@@ -602,7 +602,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Mon, 07 Jul 2025 15:46:46 GMT"
+                  "Tue, 08 Jul 2025 08:02:48 GMT"
                 ]
               },
               "Content-Type": {
@@ -684,7 +684,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Mon, 07 Jul 2025 15:46:47 GMT"
+                  "Tue, 08 Jul 2025 08:02:49 GMT"
                 ]
               },
               "Content-Type": {
@@ -768,7 +768,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Mon, 07 Jul 2025 15:46:46 GMT"
+                  "Tue, 08 Jul 2025 08:02:48 GMT"
                 ]
               },
               "Content-Type": {
@@ -850,7 +850,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Mon, 07 Jul 2025 15:46:47 GMT"
+                  "Tue, 08 Jul 2025 08:02:49 GMT"
                 ]
               },
               "Content-Type": {
@@ -920,7 +920,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Mon, 07 Jul 2025 15:46:46 GMT"
+                  "Tue, 08 Jul 2025 08:02:48 GMT"
                 ]
               },
               "Content-Type": {
@@ -990,7 +990,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Mon, 07 Jul 2025 15:46:47 GMT"
+                  "Tue, 08 Jul 2025 08:02:48 GMT"
                 ]
               },
               "Content-Type": {
@@ -1086,7 +1086,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Mon, 07 Jul 2025 15:46:47 GMT"
+                  "Tue, 08 Jul 2025 08:02:49 GMT"
                 ]
               },
               "Content-Type": {
@@ -1202,7 +1202,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Mon, 07 Jul 2025 15:46:47 GMT"
+                  "Tue, 08 Jul 2025 08:02:49 GMT"
                 ]
               },
               "Content-Type": {
@@ -1329,7 +1329,7 @@
             "required": false,
             "allowEmptyValue": false,
             "schema": {
-              "description": "`=2025-07-07T15:46:47+00:00`",
+              "description": "`=2025-07-08T08:02:49+00:00`",
               "format": "datetime",
               "type": "string",
               "nullable": false
@@ -1353,7 +1353,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Mon, 07 Jul 2025 15:46:47 GMT"
+                  "Tue, 08 Jul 2025 08:02:49 GMT"
                 ]
               },
               "Content-Type": {
@@ -1458,7 +1458,7 @@
             "required": false,
             "allowEmptyValue": false,
             "schema": {
-              "description": "`=2025-07-07T15:46:47+00:00`",
+              "description": "`=2025-07-08T08:02:49+00:00`",
               "format": "datetime",
               "type": "string",
               "nullable": false
@@ -1482,7 +1482,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Mon, 07 Jul 2025 15:46:47 GMT"
+                  "Tue, 08 Jul 2025 08:02:49 GMT"
                 ]
               },
               "Content-Type": {
@@ -1605,12 +1605,89 @@
                 "type": "string",
                 "nullable": true
               },
-              "struct": {
+              "struct-set": {
                 "description": "",
-                "format": "string",
-                "type": "string",
-                "nullable": true,
-                "example": "mixed"
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "description": "",
+                    "format": "string",
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "email": {
+                    "description": "",
+                    "format": "string",
+                    "type": "string",
+                    "nullable": false
+                  },
+                  "casted": {
+                    "description": "",
+                    "format": "string",
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "1": {
+                    "description": "",
+                    "format": "string",
+                    "type": "string",
+                    "nullable": false,
+                    "example": "mixed"
+                  },
+                  "closure": {
+                    "description": "",
+                    "format": "string",
+                    "type": "string",
+                    "nullable": false,
+                    "example": "mixed"
+                  },
+                  "missing": {
+                    "description": "",
+                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
+                    "example": "mixed"
+                  },
+                  "sub-struct": {
+                    "description": "",
+                    "type": "object",
+                    "properties": {
+                      "int": {
+                        "description": "",
+                        "format": "float",
+                        "type": "number",
+                        "nullable": true
+                      },
+                      "float": {
+                        "description": "",
+                        "format": "float",
+                        "type": "number",
+                        "nullable": true
+                      }
+                    },
+                    "nullable": true
+                  },
+                  "third-struct": {
+                    "description": "",
+                    "type": "object",
+                    "properties": {
+                      "int": {
+                        "description": "",
+                        "format": "float",
+                        "type": "number",
+                        "nullable": true
+                      },
+                      "float": {
+                        "description": "",
+                        "format": "float",
+                        "type": "number",
+                        "nullable": true
+                      }
+                    },
+                    "nullable": true
+                  }
+                },
+                "nullable": true
               }
             },
             "nullable": false
