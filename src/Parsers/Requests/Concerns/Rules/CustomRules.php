@@ -3,6 +3,7 @@
 namespace Ark4ne\OpenApi\Parsers\Requests\Concerns\Rules;
 
 use Ark4ne\OpenApi\Parsers\Common\EnumToRef;
+use Ark4ne\OpenApi\Support\Config;
 use Ark4ne\OpenApi\Support\Reflection;
 use Illuminate\Contracts\Validation\Rule;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -96,15 +97,13 @@ trait CustomRules
      */
     public function parseCustomEnum($enum): void
     {
-        $ruleClass = Reflection::reflection($enum);
+        $type = Reflection::property($enum, 'type')->getValue($enum);
 
-        $typeProperty = $ruleClass->getProperty('type');
-        $typeProperty->setAccessible(true);
-
-        $type = $typeProperty->getValue($enum);
-
-        $this->parameter->ref((new EnumToRef($type))->toRef());
-        $this->parseEnum(collect($type::cases())->map(fn($case) => $case->value)->toArray());
+        if (Config::useRef()) {
+            $this->parameter->ref((new EnumToRef($type))->toRef());
+        } else {
+            $this->parseEnum(collect($type::cases())->map(fn($case) => $case->value)->toArray());
+        }
     }
 
     /**

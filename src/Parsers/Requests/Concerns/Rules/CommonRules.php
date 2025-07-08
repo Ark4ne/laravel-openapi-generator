@@ -5,6 +5,7 @@ namespace Ark4ne\OpenApi\Parsers\Requests\Concerns\Rules;
 use Ark4ne\OpenApi\Documentation\Request\Parameter;
 use Ark4ne\OpenApi\Parsers\Common\EnumToRef;
 use Ark4ne\OpenApi\Parsers\Requests\Concerns\RegexParser;
+use Ark4ne\OpenApi\Support\Config;
 use Ark4ne\OpenApi\Support\Date;
 
 trait CommonRules
@@ -329,7 +330,11 @@ trait CommonRules
      */
     public function parseEnum(array $parameters): void
     {
-        $this->parameter->string()->ref(EnumToRef::fromValues($parameters));
+        if (Config::useRef()) {
+            $this->parameter->string()->ref(EnumToRef::fromValues($parameters));
+        } else {
+            $this->parameter->string()->enum($parameters);
+        }
     }
 
     /**
