@@ -69,33 +69,12 @@ trait JAResourceRef
 
     private function getRefSamples($instance, $request, $method, $name)
     {
-        $attributes = array_values($this->mapSamples($instance, $method, function ($value, $name) use ($instance) {
-            $param = (new Parameter(Describer::retrieveName($value, $name)));
-
-            if ($this->instanceof($value, Value::class) && $value->isNullable()) {
-                $param->nullable();
-            }
-
-            return [
-                $name => match (true) {
-                    $this->isBool($value) => $param->bool(),
-                    $this->isInt($value) => $param->int(),
-                    $this->isFloat($value) => $param->float(),
-                    $this->isString($value) => $param->string(),
-                    $this->isDate($value) => $param->date(),
-                    $this->isArray($value) => $param->array()->items((new Parameter('entry'))->string()),
-                    $this->isEnum($value) => when(
-                        self::describeEnum($this->getResourceClass(Reflection::reflection($instance)), $name),
-                        fn($enum) =>
-                            Config::useRef()
-                            ? $param->ref((new EnumToRef($enum))->toRef())
-                            : (new EnumToRef($enum))->applyOnParameter($param),
-                        fn() => $param->string()
-                    ),
-                    default => $param->string()->example('mixed'),
-                }
-            ];
-        }, $request));
+        $attributes = array_values($this->mapSamples(
+            $instance,
+            $method,
+            fn ($value, $name) => $this->getRefValue($instance, $value, $name),
+            $request
+        ));
 
         if (empty($attributes)) {
             return null;
@@ -104,6 +83,40 @@ trait JAResourceRef
         return (new Parameter($name))
             ->object()
             ->properties(...$attributes);
+    }
+
+    private function getRefValue($instance, $value, $name)
+    {
+        $param = (new Parameter(Describer::retrieveName($value, $name)));
+
+        if ($this->instanceof($value, Value::class) && $value->isNullable()) {
+            $param->nullable();
+        }
+
+        return [
+            $name => match (true) {
+                $this->isBool($value) => $param->bool(),
+                $this->isInt($value) => $param->int(),
+                $this->isFloat($value) => $param->float(),
+                $this->isString($value) => $param->string(),
+                $this->isDate($value) => $param->date(),
+                $this->isArray($value) => $param->array()->items((new Parameter('entry'))->string()),
+                $this->isStruct($value) => $param->object()->properties(
+                    ...collect(($value->retriever())($instance, $name))
+                    ->mapWithKeys(fn($value, $key) => $this->getRefValue($instance, $value, $key))
+                    ->values()
+                    ->all()
+                ),
+                $this->isEnum($value) => when(
+                    self::describeEnum($this->getResourceClass(Reflection::reflection($instance)), $name),
+                    fn($enum) => Config::useRef()
+                        ? $param->ref((new EnumToRef($enum))->toRef())
+                        : (new EnumToRef($enum))->applyOnParameter($param),
+                    fn() => $param->string()
+                ),
+                default => $param->string()->example('mixed'),
+            }
+        ];
     }
 
     private function getRefAttributes($instance, $request)

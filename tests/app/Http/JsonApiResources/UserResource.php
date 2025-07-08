@@ -22,8 +22,23 @@ class UserResource extends JsonApiResource
         return [
             'name' => $this->string(),
             $this->string('email'),
-            'struct' => $this->struct(fn() => [
-                'age' => $this->integer(fn() => 10)
+            'struct-set' => $this->struct(fn () => [
+                $this->string('name'),
+                'email' => $this->resource->email,
+                'casted' => $this->string(fn() => 'string'),
+                $this->applyWhen(fn () => true, [
+                    'with-apply-conditional-raw' => 'huge-data-set',
+                ]),
+                'closure' => fn() => 'closure',
+                'missing' => $this->mixed(fn() => 'value')->when(false),
+                'sub-struct' => $this->struct(fn () => [
+                    'int' => $this->float(fn () => 200),
+                    'float' => $this->float(fn () => 1.1),
+                ]),
+                'third-struct' => $this->struct(fn () => [
+                    'int' => $this->float(fn () => 300),
+                    'float' => $this->float(fn () => 3.1),
+                ])->when(false),
             ]),
         ];
     }
