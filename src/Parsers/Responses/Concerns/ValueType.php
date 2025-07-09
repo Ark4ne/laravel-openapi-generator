@@ -25,7 +25,7 @@ trait ValueType
 
     public function isBool(mixed $value): bool
     {
-        return is_bool($value) || $this->instanceof($this, ValueBool::class);
+        return is_bool($value) || $this->instanceof($value, ValueBool::class);
     }
 
     public function isInt(mixed $value): bool
