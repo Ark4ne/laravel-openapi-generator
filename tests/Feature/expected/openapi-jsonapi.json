@@ -63,7 +63,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Tue, 08 Jul 2025 08:02:48 GMT"
+                  "Wed, 09 Jul 2025 15:41:37 GMT"
                 ]
               },
               "Content-Type": {
@@ -161,7 +161,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Tue, 08 Jul 2025 08:02:48 GMT"
+                  "Wed, 09 Jul 2025 15:41:37 GMT"
                 ]
               },
               "Content-Type": {
@@ -272,7 +272,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Tue, 08 Jul 2025 08:02:48 GMT"
+                  "Wed, 09 Jul 2025 15:41:37 GMT"
                 ]
               },
               "Content-Type": {
@@ -414,7 +414,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Tue, 08 Jul 2025 08:02:48 GMT"
+                  "Wed, 09 Jul 2025 15:41:37 GMT"
                 ]
               },
               "Content-Type": {
@@ -515,7 +515,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Tue, 08 Jul 2025 08:02:48 GMT"
+                  "Wed, 09 Jul 2025 15:41:37 GMT"
                 ]
               },
               "Content-Type": {
@@ -602,7 +602,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Tue, 08 Jul 2025 08:02:48 GMT"
+                  "Wed, 09 Jul 2025 15:41:37 GMT"
                 ]
               },
               "Content-Type": {
@@ -684,7 +684,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Tue, 08 Jul 2025 08:02:49 GMT"
+                  "Wed, 09 Jul 2025 15:41:37 GMT"
                 ]
               },
               "Content-Type": {
@@ -768,7 +768,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Tue, 08 Jul 2025 08:02:48 GMT"
+                  "Wed, 09 Jul 2025 15:41:37 GMT"
                 ]
               },
               "Content-Type": {
@@ -850,7 +850,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Tue, 08 Jul 2025 08:02:49 GMT"
+                  "Wed, 09 Jul 2025 15:41:37 GMT"
                 ]
               },
               "Content-Type": {
@@ -920,7 +920,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Tue, 08 Jul 2025 08:02:48 GMT"
+                  "Wed, 09 Jul 2025 15:41:37 GMT"
                 ]
               },
               "Content-Type": {
@@ -990,7 +990,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Tue, 08 Jul 2025 08:02:48 GMT"
+                  "Wed, 09 Jul 2025 15:41:37 GMT"
                 ]
               },
               "Content-Type": {
@@ -1086,7 +1086,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Tue, 08 Jul 2025 08:02:49 GMT"
+                  "Wed, 09 Jul 2025 15:41:37 GMT"
                 ]
               },
               "Content-Type": {
@@ -1202,7 +1202,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Tue, 08 Jul 2025 08:02:49 GMT"
+                  "Wed, 09 Jul 2025 15:41:37 GMT"
                 ]
               },
               "Content-Type": {
@@ -1329,7 +1329,7 @@
             "required": false,
             "allowEmptyValue": false,
             "schema": {
-              "description": "`=2025-07-08T08:02:49+00:00`",
+              "description": "`=2025-07-09T15:41:37+00:00`",
               "format": "datetime",
               "type": "string",
               "nullable": false
@@ -1353,7 +1353,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Tue, 08 Jul 2025 08:02:49 GMT"
+                  "Wed, 09 Jul 2025 15:41:37 GMT"
                 ]
               },
               "Content-Type": {
@@ -1458,7 +1458,7 @@
             "required": false,
             "allowEmptyValue": false,
             "schema": {
-              "description": "`=2025-07-08T08:02:49+00:00`",
+              "description": "`=2025-07-09T15:41:37+00:00`",
               "format": "datetime",
               "type": "string",
               "nullable": false
@@ -1482,7 +1482,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Tue, 08 Jul 2025 08:02:49 GMT"
+                  "Wed, 09 Jul 2025 15:41:37 GMT"
                 ]
               },
               "Content-Type": {
@@ -1711,13 +1711,15 @@
                     },
                     "type": {
                       "description": "",
+                      "default": "post",
                       "format": "string",
                       "type": "string",
                       "nullable": false,
                       "example": "post"
                     }
                   },
-                  "nullable": false
+                  "nullable": false,
+                  "x-ref": "#\/components\/schemas\/resource-6c97a4-post-resource"
                 },
                 "nullable": false
               },
@@ -1736,21 +1738,44 @@
                     },
                     "type": {
                       "description": "",
+                      "default": "comment",
                       "format": "string",
                       "type": "string",
                       "nullable": false,
                       "example": "comment"
                     }
                   },
-                  "nullable": false
+                  "nullable": false,
+                  "x-ref": "#\/components\/schemas\/resource-6c97a4-comment-resource"
                 },
                 "nullable": false
               }
             },
             "nullable": false
+          },
+          "meta": {
+            "description": "",
+            "type": "object",
+            "properties": {
+              "created_at": {
+                "description": "`=2025-07-09`",
+                "format": "date",
+                "type": "string",
+                "nullable": true
+              },
+              "updated_at": {
+                "description": "`=2025-07-09`",
+                "format": "date",
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "nullable": false
           }
         },
-        "nullable": false
+        "nullable": false,
+        "x-type": "resource",
+        "x-name": "User"
       },
       "resource-6c97a4-post-resource": {
         "description": "",
@@ -1804,13 +1829,15 @@
                   },
                   "type": {
                     "description": "",
+                    "default": "user",
                     "format": "string",
                     "type": "string",
                     "nullable": false,
                     "example": "user"
                   }
                 },
-                "nullable": false
+                "nullable": false,
+                "x-ref": "#\/components\/schemas\/resource-6c97a4-user-resource"
               },
               "comments": {
                 "description": "",
@@ -1827,21 +1854,46 @@
                     },
                     "type": {
                       "description": "",
+                      "default": "comment",
                       "format": "string",
                       "type": "string",
                       "nullable": false,
                       "example": "comment"
                     }
                   },
-                  "nullable": false
+                  "nullable": false,
+                  "x-ref": "#\/components\/schemas\/resource-6c97a4-comment-resource"
                 },
                 "nullable": false
               }
             },
             "nullable": false
+          },
+          "meta": {
+            "description": "",
+            "type": "object",
+            "properties": {
+              "created_at": {
+                "description": "",
+                "format": "string",
+                "type": "string",
+                "nullable": false,
+                "example": "mixed"
+              },
+              "updated_at": {
+                "description": "",
+                "format": "string",
+                "type": "string",
+                "nullable": false,
+                "example": "mixed"
+              }
+            },
+            "nullable": false
           }
         },
-        "nullable": false
+        "nullable": false,
+        "x-type": "resource",
+        "x-name": "Post"
       },
       "resource-6c97a4-comment-resource": {
         "description": "",
@@ -1889,13 +1941,15 @@
                   },
                   "type": {
                     "description": "",
+                    "default": "user",
                     "format": "string",
                     "type": "string",
                     "nullable": false,
                     "example": "user"
                   }
                 },
-                "nullable": false
+                "nullable": false,
+                "x-ref": "#\/components\/schemas\/resource-6c97a4-user-resource"
               },
               "post": {
                 "description": "",
@@ -1909,19 +1963,42 @@
                   },
                   "type": {
                     "description": "",
+                    "default": "post",
                     "format": "string",
                     "type": "string",
                     "nullable": false,
                     "example": "post"
                   }
                 },
-                "nullable": false
+                "nullable": false,
+                "x-ref": "#\/components\/schemas\/resource-6c97a4-post-resource"
+              }
+            },
+            "nullable": false
+          },
+          "meta": {
+            "description": "",
+            "type": "object",
+            "properties": {
+              "created_at": {
+                "description": "`=2025-07-09`",
+                "format": "date",
+                "type": "string",
+                "nullable": true
+              },
+              "updated_at": {
+                "description": "`=2025-07-09`",
+                "format": "date",
+                "type": "string",
+                "nullable": true
               }
             },
             "nullable": false
           }
         },
-        "nullable": false
+        "nullable": false,
+        "x-type": "resource",
+        "x-name": "Comment"
       }
     },
     "securitySchemes": {
