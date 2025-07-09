@@ -6,6 +6,7 @@ use Ark4ne\OpenApi\Documentation\Request\Component;
 use Ark4ne\OpenApi\Documentation\Request\Parameter;
 use Ark4ne\OpenApi\Support\ArrayCache;
 use Ark4ne\OpenApi\Support\Ref;
+use Ark4ne\OpenApi\Support\Reflection;
 use Illuminate\Support\Str;
 
 class EnumToRef
@@ -40,10 +41,10 @@ class EnumToRef
     public function applyOnParameter(Parameter $parameter): Parameter
     {
         $parameter
-            ->title(Str::studly($this->enumClass()))
-            ->description('enum')
             ->string()
-            ->enum($this->describeEnumValues($this->enum));
+            ->enum($this->describeEnumValues($this->enum))
+            ->x('type', 'enum')
+            ->x('name', Str::studly(Reflection::reflection($this->enum)->getShortName()));;
 
         return $parameter;
     }
@@ -72,25 +73,31 @@ class EnumToRef
             }
         }
 
-        $keys = md5(json_encode($values));
+        $strKeys = implode('-', array_map(Str::pascal(...), $values));
 
-        $ref = Ref::enumRef($keys);
+        if (strlen($strKeys) <= 32) {
+            $key = $strKeys;
+        } else {
+            $key = md5($strKeys);
+        }
+
+        $ref = Ref::enumRef($key);
 
         if (Component::has($ref, Component::SCOPE_SCHEMAS)) {
             return Component::get($ref, Component::SCOPE_SCHEMAS)?->ref();
         }
 
         $parameter = (new Parameter($ref))
-            ->title(Str::studly($keys))
-            ->description('enum')
             ->string()
-            ->enum($values);
+            ->enum($values)
+            ->x('type', 'enum')
+            ->x('name', Str::studly($key));
 
         $component = Component::create($ref, Component::SCOPE_SCHEMAS);
         $component->object($parameter);
 
-        ArrayCache::set([self::class, $keys, 'values'], $values);
+        ArrayCache::set([self::class, $key, 'values'], $values);
 
-        return ArrayCache::set([self::class, $keys, 'ref'], $component->ref());
+        return ArrayCache::set([self::class, $key, 'ref'], $component->ref());
     }
 }

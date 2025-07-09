@@ -52,10 +52,10 @@ trait JAResourceRef
             $properties[] = $this->getRefMeta($instance, $request);
 
             $param = (new Parameter($ref))
-                ->title(Str::studly($type))
-                ->description('resource')
                 ->object()
-                ->properties(...array_filter($properties));
+                ->properties(...array_filter($properties))
+                ->x('type', 'resource')
+                ->x('name', Str::studly($type));
 
             $component->object($param);
 
@@ -168,23 +168,30 @@ trait JAResourceRef
                     $resource = $collects;
                 }
 
-                ArrayCache::fetch(
+                $ref = ArrayCache::fetch(
                     ['ja-resource-ref', $instance::class, $this->resourceToRef($resource)],
                     fn () => $this->resourceToRef($resource)
                 );
 
-                $type = (new Parameter('type'))->string()->example($this->getType($resource));
+                $resourceType = $this->getType($resource);
+                $type = (new Parameter('type'))
+                    ->string()
+                    ->default($resourceType)
+                    ->example($resourceType);
 
                 if ($isCollection) {
                     $param
                         ->array()
                         ->items((new Parameter('entry'))
                             ->object()
-                            ->properties($id, $type));
+                            ->properties($id, $type)
+                            ->x('ref', $ref)
+                        );
                 } else {
                     $param
                         ->object()
-                        ->properties($id, $type);
+                        ->properties($id, $type)
+                        ->x('ref', $ref);
                 }
 
                 return [$name => $param];
