@@ -14,6 +14,7 @@ use GoldSpecDigital\ObjectOrientedOAS\Objects\OneOf;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Parameter as OASParameter;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Schema;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\SchemaComposition;
+use GoldSpecDigital\ObjectOrientedOAS\Utilities\Extensions;
 use Illuminate\Support\Arr;
 
 /**
@@ -120,6 +121,9 @@ class Parameter implements OASSchematable
     protected ?string $typeDescription;
     protected ?string $description;
     protected mixed $example;
+
+    /** @var array<mixed> */
+    protected array $extensions = [];
 
     /** @var null|array{class-string, self[]} */
     protected null|array $composition;
@@ -259,6 +263,16 @@ class Parameter implements OASSchematable
         return $this;
     }
 
+    public function x(string $key, mixed $value = null): self
+    {
+        if (mb_strpos($key, 'x-') === 0) {
+            $key = mb_substr($key, 2);
+        }
+
+        $this->extensions[$key] = $value;
+        return $this;
+    }
+
     public function undot(bool $undot = true): static
     {
         $this->undotName = $undot;
@@ -304,6 +318,12 @@ class Parameter implements OASSchematable
 
         if ($this->items ?? null) {
             $schema = $schema->items($this->items instanceof self ? $this->items->oasSchema() : $this->items);
+        }
+
+        if ($this->extensions ?? null) {
+            foreach ($this->extensions as $key => $value) {
+                $schema = $schema->x($key, $value);
+            }
         }
 
         if (
