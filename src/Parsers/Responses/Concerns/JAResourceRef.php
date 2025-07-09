@@ -130,7 +130,7 @@ trait JAResourceRef
 
     private function getRefMeta($instance, $request)
     {
-        return $this->getRefSamples($instance, $request, 'toMeta', 'meta');
+        return $this->getRefSamples($instance, $request, 'toResourceMeta', 'meta');
     }
 
     private function getRefRelations($instance, $request)
