@@ -33,22 +33,21 @@ class JsonApiCollectionParser implements ResponseParserContract
             return $this->createFallbackResponse($entry);
         }
 
-        $instance->collects = $resource;
         $resourceClass = Reflection::reflection($resource);
-        $resourceInstance = $this->createResourceInstance($resourceClass);
 
-        $body = $this->generateBody($resource, $resourceClass);
-        $collection = $this->createCollection($resourceClass, $resource, $entry);
+        $body = $this->generateBody($resourceClass);
+        $collection = $this->createCollection($resourceClass, $entry);
 
+        $instance->collects = $resource;
         $instance->resource = $collection;
         $instance->collection = $collection;
 
-        $response = $this->generateResponse($instance, $body, $resourceInstance, $resourceClass);
+        $response = $this->generateResponse($instance, $body, $resourceClass, $collection->first());
 
         return $this->toResponseEntry($response, $entry, $body);
     }
 
-    private function createResourceInstance($class)
+    private function createResourceInstance(\ReflectionClass $class)
     {
         $instance = $class->newInstanceWithoutConstructor();
         $instance->resource = $this->getModelFromResource($class);
@@ -56,7 +55,7 @@ class JsonApiCollectionParser implements ResponseParserContract
         return $instance;
     }
 
-    private function generateBody($resource, $resourceClass): ?Parameter
+    private function generateBody($resourceClass): ?Parameter
     {
         if (!Config::useRef()) {
             return null;
@@ -66,7 +65,7 @@ class JsonApiCollectionParser implements ResponseParserContract
             $properties = [
                 (new Parameter('data'))
                     ->array()
-                    ->items((new Parameter(''))->ref($this->resourceToRef($resource)))
+                    ->items((new Parameter(''))->ref($this->resourceToRef($resourceClass->getName())))
             ];
 
             $includedRefs = ArrayCache::get(['ja-resource-ref', $resourceClass->getName()]);
@@ -98,9 +97,9 @@ class JsonApiCollectionParser implements ResponseParserContract
             );
     }
 
-    private function createCollection($resourceClass, $resource, Entry $entry)
+    private function createCollection(\ReflectionClass $resourceClass, Entry $entry)
     {
-        $collection = collect($this->getModelFromResource($resourceClass, 2))->mapInto($resource);
+        $collection = collect($this->getModelFromResource($resourceClass, 2))->mapInto($resourceClass->getName());
 
         if ($entry->getDocResponsePaginate()) {
             $collection = new LengthAwarePaginator($collection, $collection->count(), 15);
@@ -109,18 +108,17 @@ class JsonApiCollectionParser implements ResponseParserContract
         return $collection;
     }
 
-    private function generateResponse($instance, $body, $resourceInstance, $resourceClass)
+    private function generateResponse($instance, $body, $resourceClass, $resourceInstance)
     {
         try {
             $response = $instance->response();
 
             if (!$body) {
-                $structure = $this->generateStructure($resourceInstance, Reflection::reflection($instance::class));
+                $structure = $this->generateStructure($resourceInstance);
                 $response = $this->mergeResponseWithStructure($response, $structure);
             }
 
             return $response;
-
         } catch (\Throwable $e) {
             if (!$body) {
                 Logger::warn([
@@ -129,7 +127,7 @@ class JsonApiCollectionParser implements ResponseParserContract
                 ]);
                 Logger::notice('Use resource structure instead.');
 
-                $structure = $this->generateStructure($resourceInstance, Reflection::reflection($instance::class));
+                $structure = $this->generateStructure($resourceInstance);
                 return response()->json(['data' => [$structure['data'], $structure['data']]]);
             }
 

@@ -22,7 +22,7 @@ trait JAResource
     use ValueType;
     use Resource;
 
-    protected function generateStructure($instance, \ReflectionClass $class)
+    protected function generateStructure($instance)
     {
         $request = request();
 
@@ -48,7 +48,7 @@ trait JAResource
         ];
     }
 
-    protected function mapRelationships($instance, $relationship, $name)
+    protected function mapRelationships($instance, $relationship)
     {
         if ($relationship instanceof Relationship) {
             $resource = $relationship->getResource();

@@ -28,17 +28,16 @@ trait JAResourceRef
     {
         $class = Reflection::reflection($resource);
 
-        $instance = $class->newInstanceWithoutConstructor();
-        $instance->resource = $this->getModelFromResource($class);
-
-        $type = $this->getType($instance::class);
-
-        $ref = Ref::resourceRef($instance::class);
+        $ref = Ref::resourceRef($class->getName());
 
         if (Component::has($ref, Component::SCOPE_SCHEMAS)) {
             return Component::get($ref, Component::SCOPE_SCHEMAS)?->ref();
         }
 
+        $instance = $class->newInstanceWithoutConstructor();
+        $instance->resource = $this->getModelFromResource($class);
+
+        $type = $this->getType($instance::class);
         $request = request();
 
         $component = Component::create($ref, Component::SCOPE_SCHEMAS);

@@ -24,15 +24,14 @@ class JsonApiResourceParser implements ResponseParserContract
     public function parse(Type $type, Entry $entry): ResponseEntry
     {
         $class = Reflection::reflection($type->getType());
-        $instance = $this->createResourceInstance($class);
 
-        $body = $this->generateBody($instance, $class);
-        $response = $this->generateResponse($instance, $body, $class);
+        $body = $this->generateBody($class);
+        $response = $this->generateResponse($body, $class);
 
         return $this->toResponseEntry($response, $entry, $body);
     }
 
-    private function createResourceInstance($class)
+    private function createResourceInstance(\ReflectionClass $class)
     {
         $instance = $class->newInstanceWithoutConstructor();
         $instance->resource = $this->getModelFromResource($class);
@@ -40,7 +39,7 @@ class JsonApiResourceParser implements ResponseParserContract
         return $instance;
     }
 
-    private function generateBody($instance, $class): ?Parameter
+    private function generateBody(\ReflectionClass $class): ?Parameter
     {
         if (!Config::useRef()) {
             return null;
@@ -48,10 +47,10 @@ class JsonApiResourceParser implements ResponseParserContract
 
         try {
             $properties = [
-                (new Parameter('data'))->ref($this->resourceToRef($instance))
+                (new Parameter('data'))->ref($this->resourceToRef($class->getName()))
             ];
 
-            $includedRefs = ArrayCache::get(['ja-resource-ref', $instance::class]);
+            $includedRefs = ArrayCache::get(['ja-resource-ref', $class->getName()]);
             if (!empty($includedRefs)) {
                 $properties[] = $this->createIncludedParameter($includedRefs);
             }
@@ -80,13 +79,14 @@ class JsonApiResourceParser implements ResponseParserContract
             );
     }
 
-    private function generateResponse($instance, ?Parameter $body, $class)
+    private function generateResponse(?Parameter $body, $class)
     {
         try {
+            $instance = $this->createResourceInstance($class);
             $response = $instance->response();
 
             if (!$body) {
-                $structure = $this->generateStructure($instance, $class);
+                $structure = $this->generateStructure($instance);
                 $response = $this->mergeResponseWithStructure($response, $structure);
             }
 
@@ -100,7 +100,7 @@ class JsonApiResourceParser implements ResponseParserContract
                 ]);
                 Logger::notice('Use fallback structure instead.');
 
-                $structure = $this->generateStructure($instance, $class);
+                $structure = $this->generateStructure($instance);
                 return response()->json($structure);
             }
 
