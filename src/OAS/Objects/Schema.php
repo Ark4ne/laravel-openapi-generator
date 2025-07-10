@@ -10,7 +10,7 @@ class Schema extends BaseSchema
 {
     private null|SchemaComposition $composition = null;
 
-    public function composition(SchemaComposition $composition): self
+    public function composition(null|SchemaComposition $composition): self
     {
         $instance = clone $this;
 
