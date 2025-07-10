@@ -306,7 +306,8 @@ class Parameter implements OASSchematable
             ->enum(...($this->enum ?? []))
             ->pattern($this->pattern ?? null)
             ->default($this->default ?? null)
-            ->multipleOf($this->multipleOf ?? null);
+            ->multipleOf($this->multipleOf ?? null)
+            ->composition($this->composition ?? null);
 
         if ($this->properties ?? null) {
             $schema = $schema->properties(...array_map(
