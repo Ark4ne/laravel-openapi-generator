@@ -73,7 +73,7 @@ class EnumToRef
             }
         }
 
-        $strKeys = implode('-', array_map(Str::pascal(...), $values));
+        $strKeys = Str::pascal(implode('-', $values));
 
         if (strlen($strKeys) <= 32) {
             $key = $strKeys;
