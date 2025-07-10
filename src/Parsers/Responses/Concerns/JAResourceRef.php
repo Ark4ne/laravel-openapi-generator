@@ -99,7 +99,7 @@ trait JAResourceRef
                 $this->isFloat($value) => $param->float(),
                 $this->isString($value) => $param->string(),
                 $this->isDate($value) => $param->date(),
-                $this->isArray($value) => $param->array()->items((new Parameter('entry'))->string()),
+                $this->isArray($value) => $param->array()->items((new Parameter('entry'))->object()->example('mixed')),
                 $this->isStruct($value) => $param->object()->properties(
                     ...collect(($value->retriever())($instance, $name))
                     ->mapWithKeys(fn($value, $key) => $this->getRefValue($instance, $value, $key))
@@ -113,7 +113,7 @@ trait JAResourceRef
                         : (new EnumToRef($enum))->applyOnParameter($param),
                     fn() => $param->string()
                 ),
-                default => $param->string()->example('mixed'),
+                default => $param->object()->example('mixed'),
             }
         ];
     }

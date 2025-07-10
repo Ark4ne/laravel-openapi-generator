@@ -63,7 +63,7 @@ class EnumToRef
         return $values;
     }
 
-    public static function fromValues(array $values): string
+    public static function fromValues(array $values, null|string $name = null): string
     {
         $discovered = ArrayCache::get([self::class]);
 
@@ -78,7 +78,7 @@ class EnumToRef
         if (strlen($strKeys) <= 32) {
             $key = $strKeys;
         } else {
-            $key = md5($strKeys);
+            $key = Str::pascal(Str::slug($name, '-')) . substr(md5($strKeys), 0, 6);
         }
 
         $ref = Ref::enumRef($key);
