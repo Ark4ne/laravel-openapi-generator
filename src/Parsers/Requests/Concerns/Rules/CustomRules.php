@@ -2,9 +2,11 @@
 
 namespace Ark4ne\OpenApi\Parsers\Requests\Concerns\Rules;
 
+use Ark4ne\OpenApi\OAS\Objects\Schema;
 use Ark4ne\OpenApi\Parsers\Common\EnumToRef;
 use Ark4ne\OpenApi\Support\Config;
 use Ark4ne\OpenApi\Support\Reflection;
+use GoldSpecDigital\ObjectOrientedOAS\Objects\AllOf;
 use Illuminate\Contracts\Validation\Rule;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rules;
@@ -100,7 +102,7 @@ trait CustomRules
         $type = Reflection::property($enum, 'type')->getValue($enum);
 
         if (Config::useRef()) {
-            $this->parameter->ref((new EnumToRef($type))->toRef());
+            $this->parameter->composition((new AllOf())->schemas(Schema::ref((new EnumToRef($type))->toRef())));
         } else {
             $this->parseEnum(collect($type::cases())->map(fn($case) => $case->value)->toArray());
         }
