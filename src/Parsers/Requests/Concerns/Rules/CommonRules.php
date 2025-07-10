@@ -70,7 +70,7 @@ trait CommonRules
         $this->parameter
             ->array()
             // Set default item type to string
-            ->items((new Parameter(''))->string())
+            ->items((new Parameter(''))->object()->example('mixed'))
         ;
     }
 
@@ -333,7 +333,7 @@ trait CommonRules
     public function parseEnum(array $parameters): void
     {
         if (Config::useRef()) {
-            $this->parameter->string()->composition((new AllOf())->schemas(Schema::ref(EnumToRef::fromValues($parameters))));
+            $this->parameter->string()->composition((new AllOf())->schemas(Schema::ref(EnumToRef::fromValues($parameters, $this->parameter->name))));
         } else {
             $this->parameter->string()->enum($parameters);
         }
