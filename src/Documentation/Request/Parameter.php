@@ -5,16 +5,13 @@ namespace Ark4ne\OpenApi\Documentation\Request;
 use Ark4ne\OpenApi\Contracts\OASSchematable;
 use Ark4ne\OpenApi\Documentation\Request\Concerns\Typable;
 use Ark4ne\OpenApi\Documentation\Request\Concerns\HasCondition;
+use Ark4ne\OpenApi\OAS\Objects\Schema;
 use Ark4ne\OpenApi\Support\Date;
 use DateTimeInterface;
 use GoldSpecDigital\ObjectOrientedOAS\Contracts\SchemaContract;
-use GoldSpecDigital\ObjectOrientedOAS\Objects\AllOf;
-use GoldSpecDigital\ObjectOrientedOAS\Objects\AnyOf;
-use GoldSpecDigital\ObjectOrientedOAS\Objects\OneOf;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Parameter as OASParameter;
-use GoldSpecDigital\ObjectOrientedOAS\Objects\Schema;
+use GoldSpecDigital\ObjectOrientedOAS\Objects\Schema as OASchema;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\SchemaComposition;
-use GoldSpecDigital\ObjectOrientedOAS\Utilities\Extensions;
 use Illuminate\Support\Arr;
 
 /**
@@ -117,6 +114,8 @@ class Parameter implements OASSchematable
     protected null|self|SchemaContract $items;
     protected null|self $additionalProperties;
 
+    protected null|SchemaComposition $composition;
+
     protected ?string $title;
     protected ?string $typeDescription;
     protected ?string $description;
@@ -124,9 +123,6 @@ class Parameter implements OASSchematable
 
     /** @var array<mixed> */
     protected array $extensions = [];
-
-    /** @var null|array{class-string, self[]} */
-    protected null|array $composition;
 
     protected ?string $ref;
 
@@ -251,6 +247,12 @@ class Parameter implements OASSchematable
         return $this;
     }
 
+    public function composition(null|SchemaComposition $composition): static
+    {
+        $this->composition = $composition;
+        return $this;
+    }
+
     public function additionalProperties(null|self $additionalProperties): static
     {
         $this->additionalProperties = $additionalProperties;
@@ -285,7 +287,7 @@ class Parameter implements OASSchematable
         return $this;
     }
 
-    public function oasSchema(): Schema
+    public function oasSchema(): OASchema
     {
         $name = $this->getName();
 
