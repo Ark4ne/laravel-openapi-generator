@@ -47,7 +47,7 @@ class Logger
         $this->operations[] = ['name' => $name, 'actions' => []];
     }
 
-    public function end(string $lvl = null, null|string $message = null): void
+    public function end(null|string $lvl = null, null|string $message = null): void
     {
         $newline = empty($this->operations) || (bool) count($this->operations[array_key_last($this->operations)]['actions']);
 

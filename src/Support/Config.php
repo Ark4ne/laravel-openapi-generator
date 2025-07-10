@@ -65,7 +65,7 @@ class Config
         return null;
     }
 
-    public static function flatMode(string $is = null): string|bool
+    public static function flatMode(null|string $is = null): string|bool
     {
         $mode = self::parameters('query', 'flat') ?? 'all';
 
