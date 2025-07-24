@@ -3,6 +3,7 @@
 namespace Test\Feature;
 
 use Ark4ne\OpenApi\Support\Facades\Logger;
+use Illuminate\Support\Facades\Storage;
 use Test\app\Http\Controllers\CommentController;
 use Test\app\Http\Controllers\PostController;
 use Test\app\Http\Controllers\UserController;
@@ -21,7 +22,7 @@ class GenerateJsonApiResourceTest extends FeatureTestCase
     public function testGenerateJsonApiResource(): void
     {
         $config = $this->app['config']['openapi'];
-        $file = "{$config['output-dir']}/{$config['versions']['v1']['output-file']}";
+        $file = Storage::disk($config['output-disk'])->path("{$config['output-dir']}/{$config['versions']['v1']['output-file']}");
 
         // Logger::interceptor(static fn(string $message, bool $newline) => fwrite(STDOUT, strip_tags($message . ($newline ? PHP_EOL : ''))));
 

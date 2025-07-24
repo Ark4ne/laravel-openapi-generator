@@ -3,7 +3,6 @@
 namespace Ark4ne\OpenApi\Console;
 
 use Ark4ne\OpenApi\Documentation\DocumentationGenerator;
-use Ark4ne\OpenApi\Documentation\Request\Component;
 use Ark4ne\OpenApi\Support\ArrayCache;
 use Ark4ne\OpenApi\Support\Config;
 use Ark4ne\OpenApi\Support\Facades\Logger;
@@ -12,7 +11,7 @@ use Ark4ne\OpenApi\Support\Translator;
 use GoldSpecDigital\ObjectOrientedOAS\Exceptions\ValidationException;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
-use RuntimeException;
+use Illuminate\Support\Facades\Storage;
 
 class Generator extends Command
 {
@@ -95,15 +94,12 @@ class Generator extends Command
             Logger::end('error', 'validation failed with ' . count($exception->getErrors()) . " errors");
         }
 
-        if (!is_dir($dir = Config::outputDir()) && !mkdir($dir, 0777, true) && !is_dir($dir)) {
-            throw new RuntimeException(sprintf('Directory "%s" was not created', $dir));
-        }
-
+        $dir = Config::outputDir();
         $path = Config::outputFile();
 
         $file = $lang ? "$lang-$path" : $path;
 
-        file_put_contents("$dir/$file", $openapi->toJson());
+        Storage::disk(Config::outputDisk())->put("$dir/$file", $openapi->toJson());
     }
 
     protected function beginTransaction(): bool
