@@ -13,6 +13,7 @@ use Illuminate\Support\Str;
  * @method static array tagBy()
  * @method static array groupBy()
  * @method static string[] ignoreVerbs()
+ * @method static null|string outputDisk()
  * @method static string outputFile()
  * @method static string outputDir()
  * @method static string parameters(string ...$key)

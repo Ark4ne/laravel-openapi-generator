@@ -21,6 +21,16 @@ trait UseLocalApp
 
     protected function defineEnvironment($app)
     {
+        $app['config']['filesystems'] = [
+            ...$app['config']['filesystems'],
+            'disks' => [
+                ...$app['config']['filesystems']['disks'],
+                'openapi' => [
+                    'driver' => 'local',
+                    'root' => __DIR__ . '/../app',
+                ]
+            ]
+        ];
         $app['config']['openapi'] = include __DIR__ . '/../app/openapi.php';
     }
 }
