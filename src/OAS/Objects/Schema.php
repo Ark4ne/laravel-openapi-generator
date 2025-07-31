@@ -29,6 +29,20 @@ class Schema extends BaseSchema
             $properties[$property->objectId] = $property->toArray();
         }
 
+        $minimum = $this->minimum;
+        $maximum = $this->maximum;
+        $exclusiveMinimum = null;
+        $exclusiveMaximum = null;
+
+        if ($this->exclusiveMinimum !== null) {
+            $minimum = $this->exclusiveMinimum;
+            $exclusiveMinimum = true;
+        }
+        if ($this->exclusiveMaximum !== null) {
+            $maximum = $this->exclusiveMaximum;
+            $exclusiveMaximum = true;
+        }
+
         return Arr::filter([
             ...($this->composition?->toArray() ?? []),
             'title' => $this->title,
@@ -44,10 +58,10 @@ class Schema extends BaseSchema
             'pattern' => $this->pattern,
             'maxLength' => $this->maxLength,
             'minLength' => $this->minLength,
-            'maximum' => $this->maximum,
-            'exclusiveMaximum' => $this->exclusiveMaximum,
-            'minimum' => $this->minimum,
-            'exclusiveMinimum' => $this->exclusiveMinimum,
+            'maximum' => $maximum,
+            'exclusiveMaximum' => $exclusiveMaximum,
+            'minimum' => $minimum,
+            'exclusiveMinimum' => $exclusiveMinimum,
             'multipleOf' => $this->multipleOf,
             'required' => $this->required,
             'properties' => $properties ?: null,
