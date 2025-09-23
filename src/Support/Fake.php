@@ -2,6 +2,7 @@
 
 namespace Ark4ne\OpenApi\Support;
 
+use Ark4ne\OpenApi\Support\Facades\Logger;
 use ArrayAccess;
 use ArrayIterator;
 use Countable;
@@ -9,6 +10,7 @@ use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
 use IteratorAggregate;
 use JsonSerializable;
+use ReflectionException;
 use Traversable;
 
 class Fake implements Arrayable, ArrayAccess, Countable, IteratorAggregate, Jsonable, JsonSerializable
@@ -19,9 +21,14 @@ class Fake implements Arrayable, ArrayAccess, Countable, IteratorAggregate, Json
         protected null|string $for = null,
         protected array $attributes = [],
     ) {
-        $this->class = $this->for
-            ? Reflection::reflection($this->for)
-            : null;
+        try {
+            $this->class = $this->for
+                ? Reflection::reflection($this->for)
+                : null;
+        } catch (ReflectionException $e) {
+            $this->class = null;
+            Logger::error("Failed to reflect {$this->for}: " . $e->getMessage());
+        }
     }
 
     public function __get(string $name): mixed
