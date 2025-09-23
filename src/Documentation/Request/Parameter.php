@@ -93,6 +93,7 @@ class Parameter implements OASSchematable
 
     protected bool $required = false;
     protected bool $nullable = false;
+    protected bool $prohibited = false;
     protected mixed $default;
     /** @var array<string> */
     protected ?array $enum;
@@ -179,6 +180,12 @@ class Parameter implements OASSchematable
     public function nullable(bool $nullable = true): static
     {
         $this->nullable = $nullable;
+        return $this;
+    }
+
+    public function prohibited(bool $prohibited = true): static
+    {
+        $this->prohibited = $prohibited;
         return $this;
     }
 
@@ -301,7 +308,7 @@ class Parameter implements OASSchematable
         $schema = $schema
             ->description($this->schemaDescription())
             ->example($this->example ?? null)
-            ->nullable($this->nullable)
+            ->nullable($this->nullable || $this->prohibited)
             ->format($this->format ?? null)
             ->enum(...($this->enum ?? []))
             ->pattern($this->pattern ?? null)
