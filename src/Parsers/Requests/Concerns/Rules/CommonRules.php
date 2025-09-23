@@ -615,6 +615,7 @@ trait CommonRules
 
     public function parseProhibited(): void
     {
+        $this->parameter->prohibited();
         $this->parameter->description("The field under validation must be empty or not present.");
     }
 
