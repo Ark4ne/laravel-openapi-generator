@@ -8,6 +8,7 @@ use Ark4ne\OpenApi\Documentation\Request\Parameter;
 use Ark4ne\OpenApi\Documentation\ResponseEntry;
 use Ark4ne\OpenApi\Parsers\Responses\Concerns\JAResource;
 use Ark4ne\OpenApi\Parsers\Responses\Concerns\JAResourceRef;
+use Ark4ne\OpenApi\Support\Arr;
 use Ark4ne\OpenApi\Support\ArrayCache;
 use Ark4ne\OpenApi\Support\Config;
 use Ark4ne\OpenApi\Support\Facades\Logger;
@@ -99,7 +100,7 @@ class JsonApiCollectionParser implements ResponseParserContract
 
     private function createCollection(\ReflectionClass $resourceClass, Entry $entry)
     {
-        $collection = collect($this->getModelFromResource($resourceClass, 2))->mapInto($resourceClass->getName());
+        $collection = collect(Arr::mapInto($this->getModelFromResource($resourceClass, 2), $resourceClass->getName()));
 
         if ($entry->getDocResponsePaginate()) {
             $collection = new LengthAwarePaginator($collection, $collection->count(), 15);
