@@ -119,4 +119,22 @@ class Arr extends \Illuminate\Support\Arr
 
         return $array;
     }
+
+    /**
+     * @template T
+     *
+     * @param $array
+     * @param class-string<T> $class
+     * @return array<T>
+     */
+    public static function mapInto($array, string $class)
+    {
+        return collect($array)
+            ->map(
+                is_subclass_of($class, BackedEnum::class)
+                    ? fn($value) => $class::from($value)
+                    : fn($value) => new $class($value)
+            )
+            ->all();
+    }
 }

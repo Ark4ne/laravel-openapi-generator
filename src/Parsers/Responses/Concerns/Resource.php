@@ -6,6 +6,7 @@ use Ark4ne\OpenApi\Contracts\Entry;
 use Ark4ne\OpenApi\Documentation\Request\Parameter;
 use Ark4ne\OpenApi\Documentation\ResponseEntry;
 use Ark4ne\OpenApi\Support\Annotations\ResourceFactoryAttributeReader;
+use Ark4ne\OpenApi\Support\Arr;
 use Ark4ne\OpenApi\Support\ArrayCache;
 use Ark4ne\OpenApi\Support\Facades\Logger;
 use Ark4ne\OpenApi\Support\Fake;
@@ -88,7 +89,7 @@ trait Resource
             }
 
             $instance->collects = $resource;
-            $collection = collect($this->getModelFromResource(Reflection::reflection($resource), 2))->mapInto($resource);
+            $collection = collect(Arr::mapInto($this->getModelFromResource(Reflection::reflection($resource), 2), $resource));
 
             if ($entry->getDocResponsePaginate()) {
                 $collection = new LengthAwarePaginator($collection, $collection->count(), 15);
