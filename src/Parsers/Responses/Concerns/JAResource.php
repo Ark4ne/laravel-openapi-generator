@@ -9,9 +9,12 @@ use Ark4ne\JsonApi\Descriptors\Values\ValueStruct;
 use Ark4ne\JsonApi\Resources\Concerns\PrepareData;
 use Ark4ne\JsonApi\Resources\Relationship;
 use Ark4ne\JsonApi\Support\Values;
+use Ark4ne\OpenApi\Parsers\Common\EnumToRef;
+use Ark4ne\OpenApi\Support\Config;
 use Ark4ne\OpenApi\Support\Facades\Logger;
 use Ark4ne\OpenApi\Support\Fake;
 use Ark4ne\OpenApi\Support\Reflection;
+use Ark4ne\OpenApi\Support\Support;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
@@ -279,7 +282,11 @@ trait JAResource
             return [$key => collect($attributes)->flatMap(fn($value, $key) => $this->mapValue($instance, $value, $key))->all()];
         }
         if ($this->isEnum($value)) {
-            $enum = self::describeEnum($this->getResourceClass(Reflection::reflection($instance)), $key);
+            $enum = when(
+                when(Support::property($value, 'type'), Reflection::property($value, 'type')->getValue($value)),
+                fn($enum) => $enum,
+                fn () => self::describeEnum($this->getResourceClass(Reflection::reflection($instance)), $key)
+            );
 
             if ($enum) {
                 $values = self::describeEnumValues($enum);
