@@ -6,6 +6,7 @@ use Ark4ne\JsonApi\Descriptors\Describer;
 use Ark4ne\JsonApi\Descriptors\Relations\Relation;
 use Ark4ne\JsonApi\Descriptors\Relations\RelationMany;
 use Ark4ne\JsonApi\Descriptors\Values\Value;
+use Ark4ne\JsonApi\Descriptors\Values\ValueArray;
 use Ark4ne\JsonApi\Resources\Relationship;
 use Ark4ne\OpenApi\Documentation\Request\Component;
 use Ark4ne\OpenApi\Documentation\Request\Parameter;
@@ -15,6 +16,7 @@ use Ark4ne\OpenApi\Support\Config;
 use Ark4ne\OpenApi\Support\Facades\Logger;
 use Ark4ne\OpenApi\Support\Ref;
 use Ark4ne\OpenApi\Support\Reflection;
+use Ark4ne\OpenApi\Support\Support;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Support\Str;
 
@@ -99,7 +101,11 @@ trait JAResourceRef
                 $this->isFloat($value) => $param->float(),
                 $this->isString($value) => $param->string(),
                 $this->isDate($value) => $param->date(),
-                $this->isArray($value) => $param->array()->items((new Parameter('entry'))->object()->example('mixed')),
+                $this->isArray($value) => when(
+                    when(Support::property($value, 'type'), Reflection::property($value, 'type')->getValue($value)),
+                    fn($type) => $param->array()->items($this->getRefValue($instance, Reflection::property($value, 'type')->getValue($value), 'entry')['entry']),
+                    fn() => $param->array()->items((new Parameter('entry'))->object()->example('mixed'))
+                ),
                 $this->isStruct($value) => $param->object()->properties(
                     ...collect(($value->retriever())($instance, $name))
                     ->mapWithKeys(fn($value, $key) => $this->getRefValue($instance, $value, $key))
@@ -107,7 +113,11 @@ trait JAResourceRef
                     ->all()
                 ),
                 $this->isEnum($value) => when(
-                    self::describeEnum($this->getResourceClass(Reflection::reflection($instance)), $name),
+                    when(
+                        when(Support::property($value, 'type'), Reflection::property($value, 'type')->getValue($value)),
+                        fn($enum) => $enum,
+                        fn() => self::describeEnum($this->getResourceClass(Reflection::reflection($instance)), $name),
+                    ),
                     fn($enum) => Config::useRef()
                         ? $param->ref((new EnumToRef($enum))->toRef())
                         : (new EnumToRef($enum))->applyOnParameter($param),
