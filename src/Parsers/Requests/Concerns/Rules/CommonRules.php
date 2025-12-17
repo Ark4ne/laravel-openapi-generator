@@ -117,20 +117,28 @@ trait CommonRules
      */
     public function parseAfter(array $parameters): void
     {
-        $this->parseAfterOrEqual($parameters);
-        $this->parameter->exclusiveMin();
+        $this->parseAfterOrEqual($parameters, true);
     }
 
     /**
      * @param array<string> $parameters
      */
-    public function parseAfterOrEqual(array $parameters): void
+    public function parseAfterOrEqual(array $parameters, bool $exclusive = false): void
     {
         $this->parseDate();
         if (!isset($this->parameter->pattern) && $pattern = $this->dateFindPattern($parameters[0])) {
             $this->parameter->pattern($pattern);
         }
-        $this->parameter->min($this->strToTime($parameters[0]));
+
+        if (!in_array($parameters[0], ['now', 'today', 'tomorrow', 'yesterday'])) {
+            $condition = $exclusive ? ">" : ">=";
+            $this->parameter->addLineDescription("$condition `$parameters[0]`");
+        } else {
+            $this->parameter->min($this->strToTime($parameters[0]));
+            if ($exclusive) {
+                $this->parameter->exclusiveMin();
+            }
+        }
     }
 
     /**
@@ -138,20 +146,28 @@ trait CommonRules
      */
     public function parseBefore(array $parameters): void
     {
-        $this->parseBeforeOrEqual($parameters);
-        $this->parameter->exclusiveMax();
+        $this->parseBeforeOrEqual($parameters, true);
     }
 
     /**
      * @param array<string> $parameters
      */
-    public function parseBeforeOrEqual(array $parameters): void
+    public function parseBeforeOrEqual(array $parameters, bool $exclusive = false): void
     {
         $this->parseDate();
         if (!isset($this->parameter->pattern) && $pattern = $this->dateFindPattern($parameters[0])) {
             $this->parameter->pattern($pattern);
         }
-        $this->parameter->max($this->strToTime($parameters[0]));
+
+        if (!in_array($parameters[0], ['now', 'today', 'tomorrow', 'yesterday'])) {
+            $condition = $exclusive ? "<" : "<=";
+            $this->parameter->addLineDescription("$condition `$parameters[0]`");
+        } else {
+            $this->parameter->max($this->strToTime($parameters[0]));
+            if ($exclusive) {
+                $this->parameter->exclusiveMax();
+            }
+        }
     }
 
     protected function dateFindPattern(string $date): ?string
@@ -280,7 +296,7 @@ trait CommonRules
             $this->parameter->min((int)$parameters[0]);
             $this->parameter->max((int)$parameters[1]);
         } else if (isset($parameters[0])) {
-            $this->parameter->pattern('digits:/[0-9]+/\{' . $parameters[0] .'}');
+            $this->parameter->pattern('digits:/[0-9]+/\{' . $parameters[0] . '}');
             $this->parameter->min((int)$parameters[0]);
             $this->parameter->max((int)$parameters[0]);
         }

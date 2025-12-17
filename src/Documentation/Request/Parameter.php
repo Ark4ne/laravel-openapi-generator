@@ -120,6 +120,8 @@ class Parameter implements OASSchematable
     protected ?string $title;
     protected ?string $typeDescription;
     protected ?string $description;
+    /** @var string[]|null */
+    protected ?array $schemaDescriptions;
     protected mixed $example;
 
     /** @var array<mixed> */
@@ -162,6 +164,12 @@ class Parameter implements OASSchematable
     public function typeDescription(string $description): static
     {
         $this->typeDescription = $description;
+        return $this;
+    }
+
+    public function addLineDescription(string $description): static
+    {
+        $this->schemaDescriptions = [...($this->schemaDescriptions ?? []), $description];
         return $this;
     }
 
@@ -402,7 +410,7 @@ class Parameter implements OASSchematable
 
     protected function schemaDescription(): ?string
     {
-        $more = [$this->typeDescription ?? null, ...$this->conditions];
+        $more = [$this->typeDescription ?? null, ...$this->conditions, ...($this->schemaDescriptions ?? [])];
 
         if (in_array($this->format ?? null, [self::FORMAT_DATE, self::FORMAT_DATETIME], true)) {
             $more[] = $this->dateSchemaDescription();
