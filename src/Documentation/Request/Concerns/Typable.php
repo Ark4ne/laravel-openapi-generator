@@ -19,11 +19,10 @@ trait Typable
             try {
                 $this->format($this->format, $force);
             } catch (Throwable $_) {
-                unset($this->format);
+                $this->format = null;
             }
-        }
-        if (!isset($this->format) && isset(self::FORMATS[$this->type][0])) {
-            $this->format = self::FORMATS[$this->type][0];
+        } else {
+            $this->format = null;
         }
 
         return $this;
