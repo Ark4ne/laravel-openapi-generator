@@ -28,7 +28,6 @@
             "allowEmptyValue": false,
             "schema": {
               "description": "",
-              "format": "string",
               "type": "string",
               "nullable": false
             }
@@ -40,7 +39,6 @@
             "allowEmptyValue": false,
             "schema": {
               "description": "",
-              "format": "string",
               "type": "string",
               "nullable": false
             }
@@ -63,7 +61,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Wed, 07 Aug 2024 09:05:30 GMT"
+                  "Wed, 17 Dec 2025 09:08:12 GMT"
                 ]
               },
               "Content-Type": {
@@ -90,14 +88,12 @@
                         "properties": {
                           "id": {
                             "description": "",
-                            "format": "integer",
                             "type": "integer",
                             "nullable": false,
                             "example": 1
                           },
                           "type": {
                             "description": "",
-                            "format": "string",
                             "type": "string",
                             "nullable": false,
                             "example": "user"
@@ -108,17 +104,15 @@
                             "properties": {
                               "name": {
                                 "description": "",
-                                "format": "string",
                                 "type": "string",
                                 "nullable": false,
-                                "example": "Kimberly Mills"
+                                "example": "Reilly Prohaska DVM"
                               },
                               "email": {
                                 "description": "",
-                                "format": "string",
                                 "type": "string",
                                 "nullable": false,
-                                "example": "vonrueden.bradly@hotmail.com"
+                                "example": "fidel.kovacek@abbott.com"
                               }
                             },
                             "nullable": false
@@ -129,17 +123,15 @@
                             "properties": {
                               "created_at": {
                                 "description": "",
-                                "format": "string",
                                 "type": "string",
                                 "nullable": false,
-                                "example": "2024-08-07T09:05:30.000000Z"
+                                "example": "2025-12-17T09:08:12.000000Z"
                               },
                               "updated_at": {
                                 "description": "",
-                                "format": "string",
                                 "type": "string",
                                 "nullable": false,
-                                "example": "2024-08-07T09:05:30.000000Z"
+                                "example": "2025-12-17T09:08:12.000000Z"
                               }
                             },
                             "nullable": false
@@ -174,13 +166,11 @@
                 "properties": {
                   "name": {
                     "description": "",
-                    "format": "string",
                     "type": "string",
                     "nullable": false
                   },
                   "email": {
                     "description": "",
-                    "format": "string",
                     "type": "string",
                     "nullable": false
                   }
@@ -206,7 +196,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Wed, 07 Aug 2024 09:05:30 GMT"
+                  "Wed, 17 Dec 2025 09:08:12 GMT"
                 ]
               },
               "Content-Type": {
@@ -230,14 +220,12 @@
                       "properties": {
                         "id": {
                           "description": "",
-                          "format": "integer",
                           "type": "integer",
                           "nullable": false,
                           "example": 7
                         },
                         "type": {
                           "description": "",
-                          "format": "string",
                           "type": "string",
                           "nullable": false,
                           "example": "user"
@@ -248,17 +236,15 @@
                           "properties": {
                             "name": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "Hassie Larkin"
+                              "example": "Rose Rohan"
                             },
                             "email": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "ivory49@fisher.com"
+                              "example": "blair39@gmail.com"
                             }
                           },
                           "nullable": false
@@ -269,17 +255,15 @@
                           "properties": {
                             "created_at": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2024-08-07T09:05:30.000000Z"
+                              "example": "2025-12-17T09:08:12.000000Z"
                             },
                             "updated_at": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2024-08-07T09:05:30.000000Z"
+                              "example": "2025-12-17T09:08:12.000000Z"
                             }
                           },
                           "nullable": false
@@ -315,7 +299,6 @@
             "allowEmptyValue": false,
             "schema": {
               "description": "",
-              "format": "string",
               "type": "string",
               "nullable": false
             }
@@ -327,7 +310,6 @@
             "allowEmptyValue": false,
             "schema": {
               "description": "",
-              "format": "string",
               "type": "string",
               "nullable": false
             }
@@ -339,7 +321,6 @@
             "allowEmptyValue": false,
             "schema": {
               "description": "",
-              "format": "string",
               "type": "string",
               "nullable": false
             }
@@ -362,7 +343,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Wed, 07 Aug 2024 09:05:30 GMT"
+                  "Wed, 17 Dec 2025 09:08:12 GMT"
                 ]
               },
               "Content-Type": {
@@ -386,14 +367,12 @@
                       "properties": {
                         "id": {
                           "description": "",
-                          "format": "integer",
                           "type": "integer",
                           "nullable": false,
                           "example": 3
                         },
                         "type": {
                           "description": "",
-                          "format": "string",
                           "type": "string",
                           "nullable": false,
                           "example": "user"
@@ -404,17 +383,15 @@
                           "properties": {
                             "name": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "Abe Hudson"
+                              "example": "Lucius Crist Jr."
                             },
                             "email": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "kohler.alyce@hayes.info"
+                              "example": "houston.weimann@yahoo.com"
                             }
                           },
                           "nullable": false
@@ -425,17 +402,15 @@
                           "properties": {
                             "created_at": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2024-08-07T09:05:30.000000Z"
+                              "example": "2025-12-17T09:08:12.000000Z"
                             },
                             "updated_at": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2024-08-07T09:05:30.000000Z"
+                              "example": "2025-12-17T09:08:12.000000Z"
                             }
                           },
                           "nullable": false
@@ -469,7 +444,6 @@
             "allowEmptyValue": false,
             "schema": {
               "description": "",
-              "format": "string",
               "type": "string",
               "nullable": false
             }
@@ -510,7 +484,6 @@
             "allowEmptyValue": false,
             "schema": {
               "description": "",
-              "format": "string",
               "type": "string",
               "nullable": false
             }
@@ -523,7 +496,6 @@
                 "properties": {
                   "name": {
                     "description": "",
-                    "format": "string",
                     "type": "string",
                     "nullable": false
                   }
@@ -549,7 +521,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Wed, 07 Aug 2024 09:05:30 GMT"
+                  "Wed, 17 Dec 2025 09:08:12 GMT"
                 ]
               },
               "Content-Type": {
@@ -573,14 +545,12 @@
                       "properties": {
                         "id": {
                           "description": "",
-                          "format": "integer",
                           "type": "integer",
                           "nullable": false,
                           "example": 4
                         },
                         "type": {
                           "description": "",
-                          "format": "string",
                           "type": "string",
                           "nullable": false,
                           "example": "user"
@@ -591,17 +561,15 @@
                           "properties": {
                             "name": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "Mr. Milton Rohan"
+                              "example": "Coy Connelly"
                             },
                             "email": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "gerhard60@yahoo.com"
+                              "example": "qbraun@wyman.com"
                             }
                           },
                           "nullable": false
@@ -612,17 +580,15 @@
                           "properties": {
                             "created_at": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2024-08-07T09:05:30.000000Z"
+                              "example": "2025-12-17T09:08:12.000000Z"
                             },
                             "updated_at": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2024-08-07T09:05:30.000000Z"
+                              "example": "2025-12-17T09:08:12.000000Z"
                             }
                           },
                           "nullable": false
@@ -656,7 +622,6 @@
             "allowEmptyValue": false,
             "schema": {
               "description": "",
-              "format": "string",
               "type": "string",
               "nullable": false
             }
@@ -669,7 +634,6 @@
                 "properties": {
                   "name": {
                     "description": "",
-                    "format": "string",
                     "type": "string",
                     "nullable": false
                   }
@@ -695,7 +659,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Wed, 07 Aug 2024 09:05:30 GMT"
+                  "Wed, 17 Dec 2025 09:08:12 GMT"
                 ]
               },
               "Content-Type": {
@@ -719,14 +683,12 @@
                       "properties": {
                         "id": {
                           "description": "",
-                          "format": "integer",
                           "type": "integer",
                           "nullable": false,
                           "example": 10
                         },
                         "type": {
                           "description": "",
-                          "format": "string",
                           "type": "string",
                           "nullable": false,
                           "example": "user"
@@ -737,17 +699,15 @@
                           "properties": {
                             "name": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "Jennyfer Bartoletti"
+                              "example": "Dr. Jayme Christiansen"
                             },
                             "email": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "amcclure@nolan.info"
+                              "example": "rgleason@yahoo.com"
                             }
                           },
                           "nullable": false
@@ -758,17 +718,15 @@
                           "properties": {
                             "created_at": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2024-08-07T09:05:30.000000Z"
+                              "example": "2025-12-17T09:08:12.000000Z"
                             },
                             "updated_at": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2024-08-07T09:05:30.000000Z"
+                              "example": "2025-12-17T09:08:12.000000Z"
                             }
                           },
                           "nullable": false
@@ -804,7 +762,6 @@
             "allowEmptyValue": false,
             "schema": {
               "description": "",
-              "format": "string",
               "type": "string",
               "nullable": false
             }
@@ -827,7 +784,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Wed, 07 Aug 2024 09:05:30 GMT"
+                  "Wed, 17 Dec 2025 09:08:12 GMT"
                 ]
               },
               "Content-Type": {
@@ -851,14 +808,12 @@
                       "properties": {
                         "id": {
                           "description": "",
-                          "format": "integer",
                           "type": "integer",
                           "nullable": false,
                           "example": 5
                         },
                         "type": {
                           "description": "",
-                          "format": "string",
                           "type": "string",
                           "nullable": false,
                           "example": "user"
@@ -869,17 +824,15 @@
                           "properties": {
                             "name": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "Taryn Balistreri DVM"
+                              "example": "Emilio Smith V"
                             },
                             "email": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "yost.aliya@roberts.com"
+                              "example": "andreane.bartoletti@auer.com"
                             }
                           },
                           "nullable": false
@@ -890,17 +843,15 @@
                           "properties": {
                             "created_at": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2024-08-07T09:05:30.000000Z"
+                              "example": "2025-12-17T09:08:12.000000Z"
                             },
                             "updated_at": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2024-08-07T09:05:30.000000Z"
+                              "example": "2025-12-17T09:08:12.000000Z"
                             }
                           },
                           "nullable": false
@@ -931,7 +882,6 @@
             "allowEmptyValue": false,
             "schema": {
               "description": "",
-              "format": "string",
               "type": "string",
               "nullable": false
             }
@@ -954,7 +904,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Wed, 07 Aug 2024 09:05:30 GMT"
+                  "Wed, 17 Dec 2025 09:08:12 GMT"
                 ]
               },
               "Content-Type": {
@@ -978,14 +928,12 @@
                       "properties": {
                         "id": {
                           "description": "",
-                          "format": "integer",
                           "type": "integer",
                           "nullable": false,
                           "example": 11
                         },
                         "type": {
                           "description": "",
-                          "format": "string",
                           "type": "string",
                           "nullable": false,
                           "example": "user"
@@ -996,17 +944,15 @@
                           "properties": {
                             "name": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "Dr. Lonny Rath"
+                              "example": "Alessandra McDermott V"
                             },
                             "email": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "cormier.joyce@luettgen.com"
+                              "example": "felicita.cummerata@gmail.com"
                             }
                           },
                           "nullable": false
@@ -1017,17 +963,15 @@
                           "properties": {
                             "created_at": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2024-08-07T09:05:30.000000Z"
+                              "example": "2025-12-17T09:08:12.000000Z"
                             },
                             "updated_at": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2024-08-07T09:05:30.000000Z"
+                              "example": "2025-12-17T09:08:12.000000Z"
                             }
                           },
                           "nullable": false
@@ -1060,7 +1004,6 @@
             "allowEmptyValue": false,
             "schema": {
               "description": "",
-              "format": "string",
               "type": "string",
               "nullable": false
             }
@@ -1083,7 +1026,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Wed, 07 Aug 2024 09:05:30 GMT"
+                  "Wed, 17 Dec 2025 09:08:12 GMT"
                 ]
               },
               "Content-Type": {
@@ -1107,14 +1050,12 @@
                       "properties": {
                         "id": {
                           "description": "",
-                          "format": "integer",
                           "type": "integer",
                           "nullable": false,
                           "example": 6
                         },
                         "type": {
                           "description": "",
-                          "format": "string",
                           "type": "string",
                           "nullable": false,
                           "example": "user"
@@ -1125,17 +1066,15 @@
                           "properties": {
                             "name": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "Era Cassin"
+                              "example": "Mr. Gaston Haley III"
                             },
                             "email": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "sabina25@hotmail.com"
+                              "example": "xmcclure@osinski.biz"
                             }
                           },
                           "nullable": false
@@ -1146,17 +1085,15 @@
                           "properties": {
                             "created_at": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2024-08-07T09:05:30.000000Z"
+                              "example": "2025-12-17T09:08:12.000000Z"
                             },
                             "updated_at": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2024-08-07T09:05:30.000000Z"
+                              "example": "2025-12-17T09:08:12.000000Z"
                             }
                           },
                           "nullable": false
@@ -1187,7 +1124,6 @@
             "allowEmptyValue": false,
             "schema": {
               "description": "",
-              "format": "string",
               "type": "string",
               "nullable": false
             }
@@ -1210,7 +1146,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Wed, 07 Aug 2024 09:05:30 GMT"
+                  "Wed, 17 Dec 2025 09:08:12 GMT"
                 ]
               },
               "Content-Type": {
@@ -1234,14 +1170,12 @@
                       "properties": {
                         "id": {
                           "description": "",
-                          "format": "integer",
                           "type": "integer",
                           "nullable": false,
                           "example": 12
                         },
                         "type": {
                           "description": "",
-                          "format": "string",
                           "type": "string",
                           "nullable": false,
                           "example": "user"
@@ -1252,17 +1186,15 @@
                           "properties": {
                             "name": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "Mollie King"
+                              "example": "Tyrell Cormier"
                             },
                             "email": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "ferry.joseph@littel.com"
+                              "example": "mraz.sterling@lesch.com"
                             }
                           },
                           "nullable": false
@@ -1273,17 +1205,15 @@
                           "properties": {
                             "created_at": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2024-08-07T09:05:30.000000Z"
+                              "example": "2025-12-17T09:08:12.000000Z"
                             },
                             "updated_at": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2024-08-07T09:05:30.000000Z"
+                              "example": "2025-12-17T09:08:12.000000Z"
                             }
                           },
                           "nullable": false
@@ -1325,7 +1255,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Wed, 07 Aug 2024 09:05:30 GMT"
+                  "Wed, 17 Dec 2025 09:08:12 GMT"
                 ]
               },
               "Content-Type": {
@@ -1349,14 +1279,12 @@
                       "properties": {
                         "id": {
                           "description": "",
-                          "format": "integer",
                           "type": "integer",
                           "nullable": false,
                           "example": 8
                         },
                         "type": {
                           "description": "",
-                          "format": "string",
                           "type": "string",
                           "nullable": false,
                           "example": "user"
@@ -1367,17 +1295,15 @@
                           "properties": {
                             "name": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "Hellen Brakus MD"
+                              "example": "Sydnee Pacocha"
                             },
                             "email": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "kenny.heathcote@gorczany.biz"
+                              "example": "bradley74@schmidt.com"
                             }
                           },
                           "nullable": false
@@ -1388,17 +1314,15 @@
                           "properties": {
                             "created_at": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2024-08-07T09:05:30.000000Z"
+                              "example": "2025-12-17T09:08:12.000000Z"
                             },
                             "updated_at": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2024-08-07T09:05:30.000000Z"
+                              "example": "2025-12-17T09:08:12.000000Z"
                             }
                           },
                           "nullable": false
@@ -1440,7 +1364,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Wed, 07 Aug 2024 09:05:30 GMT"
+                  "Wed, 17 Dec 2025 09:08:12 GMT"
                 ]
               },
               "Content-Type": {
@@ -1464,14 +1388,12 @@
                       "properties": {
                         "id": {
                           "description": "",
-                          "format": "integer",
                           "type": "integer",
                           "nullable": false,
                           "example": 9
                         },
                         "type": {
                           "description": "",
-                          "format": "string",
                           "type": "string",
                           "nullable": false,
                           "example": "user"
@@ -1482,17 +1404,15 @@
                           "properties": {
                             "name": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "Johathan Kling"
+                              "example": "Abner Gulgowski"
                             },
                             "email": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "karl.trantow@gmail.com"
+                              "example": "lstracke@howe.biz"
                             }
                           },
                           "nullable": false
@@ -1503,17 +1423,15 @@
                           "properties": {
                             "created_at": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2024-08-07T09:05:30.000000Z"
+                              "example": "2025-12-17T09:08:12.000000Z"
                             },
                             "updated_at": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "2024-08-07T09:05:30.000000Z"
+                              "example": "2025-12-17T09:08:12.000000Z"
                             }
                           },
                           "nullable": false
@@ -1546,7 +1464,6 @@
             "allowEmptyValue": false,
             "schema": {
               "description": "",
-              "format": "integer",
               "type": "integer",
               "nullable": false
             }
@@ -1558,7 +1475,6 @@
             "allowEmptyValue": false,
             "schema": {
               "description": "",
-              "format": "integer",
               "type": "integer",
               "nullable": false
             }
@@ -1581,7 +1497,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Wed, 07 Aug 2024 09:05:30 GMT"
+                  "Wed, 17 Dec 2025 09:08:12 GMT"
                 ]
               },
               "Content-Type": {
@@ -1608,14 +1524,12 @@
                         "properties": {
                           "id": {
                             "description": "",
-                            "format": "integer",
                             "type": "integer",
                             "nullable": false,
                             "example": 0
                           },
                           "type": {
                             "description": "",
-                            "format": "string",
                             "type": "string",
                             "nullable": false,
                             "example": "comment"
@@ -1626,10 +1540,9 @@
                             "properties": {
                               "content": {
                                 "description": "",
-                                "format": "string",
                                 "type": "string",
                                 "nullable": false,
-                                "example": "Veritatis eum nesciunt sint. Sequi quas veniam incidunt adipisci et. Autem voluptatem ut mollitia pariatur ullam quisquam."
+                                "example": "Facere est inventore illo ipsam ipsa. Et libero perferendis minima nam in occaecati. In ea earum dolorem omnis eligendi. Dolores accusamus doloribus ut qui odit nisi vel neque."
                               }
                             },
                             "nullable": false
@@ -1640,13 +1553,11 @@
                             "properties": {
                               "created_at": {
                                 "description": "",
-                                "format": "string",
                                 "type": "string",
                                 "nullable": false
                               },
                               "updated_at": {
                                 "description": "",
-                                "format": "string",
                                 "type": "string",
                                 "nullable": false
                               }
@@ -1686,7 +1597,6 @@
             "allowEmptyValue": false,
             "schema": {
               "description": "",
-              "format": "string",
               "type": "string",
               "nullable": false
             }
@@ -1698,7 +1608,6 @@
             "allowEmptyValue": false,
             "schema": {
               "description": "",
-              "format": "integer",
               "type": "integer",
               "nullable": false
             }
@@ -1710,7 +1619,6 @@
             "allowEmptyValue": false,
             "schema": {
               "description": "",
-              "format": "integer",
               "type": "integer",
               "nullable": false
             }
@@ -1733,7 +1641,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Wed, 07 Aug 2024 09:05:30 GMT"
+                  "Wed, 17 Dec 2025 09:08:12 GMT"
                 ]
               },
               "Content-Type": {
@@ -1757,14 +1665,12 @@
                       "properties": {
                         "id": {
                           "description": "",
-                          "format": "integer",
                           "type": "integer",
                           "nullable": false,
                           "example": 0
                         },
                         "type": {
                           "description": "",
-                          "format": "string",
                           "type": "string",
                           "nullable": false,
                           "example": "comment"
@@ -1775,10 +1681,9 @@
                           "properties": {
                             "content": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "Fugiat reprehenderit eaque laborum dolore incidunt est quibusdam aliquam. Vero dolorum magni eveniet occaecati saepe veniam. Sunt nam eos beatae est. Aut aliquid est at debitis."
+                              "example": "Error maiores quos quia qui cum ut tempore. Voluptatem eos fugiat dolorem veniam qui facere voluptatem. Temporibus dolor id non aut. Quas est ab tempore accusamus id nostrum."
                             }
                           },
                           "nullable": false
@@ -1789,13 +1694,11 @@
                           "properties": {
                             "created_at": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false
                             },
                             "updated_at": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false
                             }
@@ -1831,7 +1734,6 @@
             "allowEmptyValue": false,
             "schema": {
               "description": "",
-              "format": "string",
               "type": "string",
               "nullable": false
             }
@@ -1872,7 +1774,6 @@
             "allowEmptyValue": false,
             "schema": {
               "description": "",
-              "format": "integer",
               "type": "integer",
               "nullable": false
             }
@@ -1885,7 +1786,6 @@
             "allowEmptyValue": false,
             "schema": {
               "description": "",
-              "format": "boolean",
               "type": "boolean",
               "nullable": false
             }
@@ -1896,7 +1796,7 @@
             "required": false,
             "allowEmptyValue": false,
             "schema": {
-              "description": "",
+              "description": "`=2025-12-17T09:08:12+00:00`",
               "format": "datetime",
               "type": "string",
               "nullable": false
@@ -1920,7 +1820,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Wed, 07 Aug 2024 09:05:30 GMT"
+                  "Wed, 17 Dec 2025 09:08:12 GMT"
                 ]
               },
               "Content-Type": {
@@ -1947,14 +1847,12 @@
                         "properties": {
                           "id": {
                             "description": "",
-                            "format": "integer",
                             "type": "integer",
                             "nullable": false,
                             "example": 0
                           },
                           "type": {
                             "description": "",
-                            "format": "string",
                             "type": "string",
                             "nullable": false,
                             "example": "post"
@@ -1965,17 +1863,15 @@
                             "properties": {
                               "title": {
                                 "description": "",
-                                "format": "string",
                                 "type": "string",
                                 "nullable": false,
                                 "example": "Mr."
                               },
                               "content": {
                                 "description": "",
-                                "format": "string",
                                 "type": "string",
                                 "nullable": false,
-                                "example": "Aut molestiae omnis ex aspernatur. Officia nulla autem pariatur nulla expedita suscipit deserunt. Qui et voluptatibus ducimus aut quam qui quis vitae."
+                                "example": "Modi quos praesentium eius quos optio vitae reiciendis. Quia voluptatem saepe quas sint itaque impedit totam. Ut ex rerum cum. Molestias doloribus dolor pariatur odio."
                               }
                             },
                             "nullable": false
@@ -1986,13 +1882,11 @@
                             "properties": {
                               "created_at": {
                                 "description": "",
-                                "format": "string",
                                 "type": "string",
                                 "nullable": false
                               },
                               "updated_at": {
                                 "description": "",
-                                "format": "string",
                                 "type": "string",
                                 "nullable": false
                               }
@@ -2032,7 +1926,6 @@
             "allowEmptyValue": false,
             "schema": {
               "description": "",
-              "format": "string",
               "type": "string",
               "nullable": false
             }
@@ -2044,7 +1937,6 @@
             "allowEmptyValue": false,
             "schema": {
               "description": "",
-              "format": "integer",
               "type": "integer",
               "nullable": false
             }
@@ -2057,7 +1949,6 @@
             "allowEmptyValue": false,
             "schema": {
               "description": "",
-              "format": "boolean",
               "type": "boolean",
               "nullable": false
             }
@@ -2068,7 +1959,7 @@
             "required": false,
             "allowEmptyValue": false,
             "schema": {
-              "description": "",
+              "description": "`=2025-12-17T09:08:12+00:00`",
               "format": "datetime",
               "type": "string",
               "nullable": false
@@ -2092,7 +1983,7 @@
                   "type": "string"
                 },
                 "example": [
-                  "Wed, 07 Aug 2024 09:05:30 GMT"
+                  "Wed, 17 Dec 2025 09:08:12 GMT"
                 ]
               },
               "Content-Type": {
@@ -2116,14 +2007,12 @@
                       "properties": {
                         "id": {
                           "description": "",
-                          "format": "integer",
                           "type": "integer",
                           "nullable": false,
                           "example": 0
                         },
                         "type": {
                           "description": "",
-                          "format": "string",
                           "type": "string",
                           "nullable": false,
                           "example": "post"
@@ -2134,17 +2023,15 @@
                           "properties": {
                             "title": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "Miss"
+                              "example": "Ms."
                             },
                             "content": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false,
-                              "example": "Sit ea aspernatur odio natus dolore velit quos. Perferendis hic in neque iusto recusandae. Et illum debitis cupiditate quis odit non."
+                              "example": "Aut tempore aliquid fuga ut iusto debitis explicabo. Et ipsa reprehenderit ut quia. Quibusdam minus delectus praesentium dolor sint."
                             }
                           },
                           "nullable": false
@@ -2155,13 +2042,11 @@
                           "properties": {
                             "created_at": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false
                             },
                             "updated_at": {
                               "description": "",
-                              "format": "string",
                               "type": "string",
                               "nullable": false
                             }
@@ -2197,7 +2082,6 @@
             "allowEmptyValue": false,
             "schema": {
               "description": "",
-              "format": "string",
               "type": "string",
               "nullable": false
             }
