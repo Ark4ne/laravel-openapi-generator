@@ -3,6 +3,7 @@
 namespace Test\app\Http\JsonApiResources;
 
 use Ark4ne\JsonApi\Resources\JsonApiResource;
+use Ark4ne\OpenApi\Attributes\Id;
 use DateTimeInterface;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -10,6 +11,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 /**
  * @extends JsonApiResource<\Test\app\Models\User>
  */
+#[Id('user')]
 class UserResource extends JsonApiResource
 {
     protected function toType(Request $request): string
