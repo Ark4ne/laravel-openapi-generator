@@ -22,12 +22,9 @@ class RefTest extends TestCase
 
     public function testEnumRefFallsBackToHashWhenNoAttribute(): void
     {
-        $ref = Ref::enumRef(\Test\app\Enums\AnotherStatusWithSameId::class);
-        // AnotherStatusWithSameId has #[Id] too, so clear and test separately
-        ArrayCache::clear();
-        $ref = Ref::enumRef(\Test\app\Enums\StatusWithCustomId::class);
+        $ref = Ref::enumRef(\Test\app\Enums\StatusWithoutCustomId::class);
         $this->assertStringStartsWith('enum-', $ref);
-        $this->assertSame('enum-custom-status', $ref);
+        $this->assertMatchesRegularExpression('/^enum-[a-f0-9]{6}-/', $ref);
     }
 
     public function testEnumRefThrowsOnConflict(): void
@@ -46,9 +43,10 @@ class RefTest extends TestCase
         $this->assertSame($ref1, $ref2);
     }
 
-    public function testResourceRefUsesCustomId(): void
+    public function testResourceRefFallsBackToHashWhenNoAttribute(): void
     {
         $ref = Ref::resourceRef(\Test\app\Http\Resources\UserResource::class);
         $this->assertStringStartsWith('resource-', $ref);
+        $this->assertMatchesRegularExpression('/^resource-[a-f0-9]{6}-/', $ref);
     }
 }
