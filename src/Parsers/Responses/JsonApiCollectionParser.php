@@ -36,7 +36,7 @@ class JsonApiCollectionParser implements ResponseParserContract
 
         $resourceClass = Reflection::reflection($resource);
 
-        $body = $this->generateBody($resourceClass);
+        $body = $this->generateBody($resourceClass, $entry);
         $collection = $this->createCollection($resourceClass, $entry);
 
         $instance->collects = $resource;
@@ -56,7 +56,7 @@ class JsonApiCollectionParser implements ResponseParserContract
         return $instance;
     }
 
-    private function generateBody($resourceClass): ?Parameter
+    private function generateBody($resourceClass, Entry $entry): ?Parameter
     {
         if (!Config::useRef()) {
             return null;
@@ -72,6 +72,24 @@ class JsonApiCollectionParser implements ResponseParserContract
             $includedRefs = ArrayCache::get(['ja-resource-ref', $resourceClass->getName()]);
             if (!empty($includedRefs)) {
                 $properties[] = $this->createIncludedParameter($includedRefs);
+            }
+
+            if ($entry->getDocResponsePaginate()) {
+                $paginator = new LengthAwarePaginator(collect(), 0, 15);
+                $paginated = $paginator->toArray();
+                $properties[] = Parameter::fromJson([
+                    'first' => $paginated['first_page_url'] ?? null,
+                    'last' => $paginated['last_page_url'] ?? null,
+                    'prev' => $paginated['prev_page_url'] ?? null,
+                    'next' => $paginated['next_page_url'] ?? null,
+                ], 'links');
+                $properties[] = Parameter::fromJson(\Illuminate\Support\Arr::except($paginated, [
+                    'data',
+                    'first_page_url',
+                    'last_page_url',
+                    'prev_page_url',
+                    'next_page_url',
+                ]), 'meta');
             }
 
             return (new Parameter('body'))
