@@ -104,10 +104,7 @@ class Generator extends Command
 
     protected function beginTransaction(): bool
     {
-        if (!Config::connections('use-transaction')) {
-            return false;
-        }
-        $connections = array_keys(config('database.connections'));
+        $connections = $this->transactionConnections();
 
         $success = true;
 
@@ -133,11 +130,7 @@ class Generator extends Command
 
     protected function rollback(): bool
     {
-        if (!Config::connections('use-transaction')) {
-            return true;
-        }
-
-        $connections = array_keys(config('database.connections'));
+        $connections = $this->transactionConnections();
 
         $success = true;
 
@@ -179,5 +172,20 @@ class Generator extends Command
 
             return $trans;
         });
+    }
+
+    /**
+     * @return string[]
+     */
+    protected function transactionConnections(): array
+    {
+        if (!Config::connections('use-transaction')) {
+            return [];
+        }
+
+        return array_intersect(
+            array_keys(config('database.connections')),
+            Config::connections('on-connections') ?? []
+        );
     }
 }
