@@ -353,9 +353,23 @@ return [
     | Without transactions, models will be created but not saved, which can
     | lead to errors during generation.
     |
+    | use-transaction : Enable or disable transactions globally.
+    |
+    | on-connections : List of connection driver names on which transactions
+    |                  should be applied. Only connections whose driver matches
+    |                  one of these values will be wrapped in a transaction.
+    |                  Connections not in this list are left untouched.
+    |
     */
     'connections' => [
-        'use-transaction' => true
+        'use-transaction' => true,
+        'on-connections' => [
+            'mariadb',
+            'mysql',
+            'pgsql',
+            'sqlsrv',
+            'sqlite',
+        ]
     ],
 
     /*
