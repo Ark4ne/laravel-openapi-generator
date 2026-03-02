@@ -15,6 +15,7 @@ use Ark4ne\OpenApi\Support\Facades\Logger;
 use Ark4ne\OpenApi\Support\Fake;
 use Ark4ne\OpenApi\Support\Reflection;
 use Ark4ne\OpenApi\Support\Support;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
@@ -305,10 +306,13 @@ trait JAResource
         if (!$resourceModel) {
             return null;
         }
+
         if (enum_exists($resourceModel)) {
             return $resourceModel;
-        } else {
-            $reflectionModel = Reflection::reflection($resourceModel);
+        }
+
+        $reflectionModel = Reflection::reflection($resourceModel);
+        if ($reflectionModel->isSubclassOf(Model::class)) {
             $cast = Reflection::call($reflectionModel->newInstanceWithoutConstructor(), 'casts');
 
             if (!isset($cast[$key])) {
