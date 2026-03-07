@@ -10,13 +10,13 @@ use Ark4ne\OpenApi\Support\Arr;
 use Ark4ne\OpenApi\Support\ArrayCache;
 use Ark4ne\OpenApi\Support\Facades\Logger;
 use Ark4ne\OpenApi\Support\Fake;
+use Ark4ne\OpenApi\Support\Pagination\PaginatorFactory;
 use Ark4ne\OpenApi\Support\Reflection;
 use Ark4ne\OpenApi\Support\Support;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\MediaType;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Resources\Json\ResourceCollection;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use ReflectionClass;
@@ -91,8 +91,8 @@ trait Resource
             $instance->collects = $resource;
             $collection = collect(Arr::mapInto($this->getModelFromResource(Reflection::reflection($resource), 2), $resource));
 
-            if ($entry->getDocResponsePaginate()) {
-                $collection = new LengthAwarePaginator($collection, $collection->count(), 15);
+            if ($paginatorClass = $entry->getDocResponsePaginatorClass()) {
+                $collection = PaginatorFactory::make($paginatorClass, $collection);
             }
 
             $instance->resource = $collection;
