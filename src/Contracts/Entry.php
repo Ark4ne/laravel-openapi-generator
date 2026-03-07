@@ -56,6 +56,14 @@ interface Entry
     public function getDocResponsePaginate(): bool;
 
     /**
+     * Returns the FQCN of the paginator to use, or null if no pagination.
+     * When paginated: true is specified, returns LengthAwarePaginator::class.
+     *
+     * @return class-string|null
+     */
+    public function getDocResponsePaginatorClass(): ?string;
+
+    /**
      * @return ArrayInsensitive<string, string>
      */
     public function getDocResponseHeaders(): ArrayInsensitive;

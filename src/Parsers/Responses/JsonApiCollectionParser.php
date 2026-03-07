@@ -12,11 +12,11 @@ use Ark4ne\OpenApi\Support\Arr;
 use Ark4ne\OpenApi\Support\ArrayCache;
 use Ark4ne\OpenApi\Support\Config;
 use Ark4ne\OpenApi\Support\Facades\Logger;
+use Ark4ne\OpenApi\Support\Pagination\PaginatorFactory;
 use Ark4ne\OpenApi\Support\Reflection;
 use Ark4ne\OpenApi\Support\Reflection\Type;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\AnyOf;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Schema;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 class JsonApiCollectionParser implements ResponseParserContract
 {
@@ -74,22 +74,16 @@ class JsonApiCollectionParser implements ResponseParserContract
                 $properties[] = $this->createIncludedParameter($includedRefs);
             }
 
-            if ($entry->getDocResponsePaginate()) {
-                $paginator = new LengthAwarePaginator(collect(), 0, 15);
-                $paginated = $paginator->toArray();
-                $properties[] = Parameter::fromJson([
-                    'first' => $paginated['first_page_url'] ?? null,
-                    'last' => $paginated['last_page_url'] ?? null,
-                    'prev' => $paginated['prev_page_url'] ?? null,
-                    'next' => $paginated['next_page_url'] ?? null,
-                ], 'links');
-                $properties[] = Parameter::fromJson(\Illuminate\Support\Arr::except($paginated, [
-                    'data',
-                    'first_page_url',
-                    'last_page_url',
-                    'prev_page_url',
-                    'next_page_url',
-                ]), 'meta');
+            if ($paginatorClass = $entry->getDocResponsePaginatorClass()) {
+                $paginator = PaginatorFactory::make($paginatorClass, collect());
+                $properties[] = Parameter::fromJson(
+                    PaginatorFactory::buildLinks($paginator),
+                    'links'
+                );
+                $properties[] = Parameter::fromJson(
+                    PaginatorFactory::buildMeta($paginator),
+                    'meta'
+                );
             }
 
             return (new Parameter('body'))
@@ -120,8 +114,8 @@ class JsonApiCollectionParser implements ResponseParserContract
     {
         $collection = collect(Arr::mapInto($this->getModelFromResource($resourceClass, 2), $resourceClass->getName()));
 
-        if ($entry->getDocResponsePaginate()) {
-            $collection = new LengthAwarePaginator($collection, $collection->count(), 15);
+        if ($paginatorClass = $entry->getDocResponsePaginatorClass()) {
+            $collection = PaginatorFactory::make($paginatorClass, $collection);
         }
 
         return $collection;

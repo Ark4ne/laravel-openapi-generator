@@ -187,13 +187,38 @@ class DocumentationEntry implements Entry
 
     public function getDocResponsePaginate(): bool
     {
+        return $this->getDocResponsePaginatorClass() !== null;
+    }
+
+    public function getDocResponsePaginatorClass(): ?string
+    {
         $responseAttributeReader = new ResponseAttributeReader($this->getControllerClass(), $this->getAction());
 
         if ($responseAttributeReader->hasResponseAttribute()) {
-            return $responseAttributeReader->getResponseAttribute()->paginated;
+            $paginated = $responseAttributeReader->getResponseAttribute()->paginated;
+
+            if ($paginated === false) {
+                return null;
+            }
+            if ($paginated === true) {
+                return \Illuminate\Pagination\LengthAwarePaginator::class;
+            }
+            // FQCN string
+            return ltrim($paginated, '\\');
         }
 
-        return (bool)($this->getDocTag('response-paginate')[0] ?? false);
+        $tags = $this->getDocTag('response-paginate');
+        if (empty($tags)) {
+            return null;
+        }
+
+        $className = trim($tags[0]->getDescription()?->getBodyTemplate() ?? '');
+
+        if ($className === '') {
+            return \Illuminate\Pagination\LengthAwarePaginator::class;
+        }
+
+        return ltrim($className, '\\');
     }
 
     /**
