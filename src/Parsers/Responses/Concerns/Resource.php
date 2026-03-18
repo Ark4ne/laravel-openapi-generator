@@ -218,7 +218,7 @@ trait Resource
 
             if ($type = Reflection::tryParseGeneric($class, 'extends')) {
                 if ($type->isGeneric()) {
-                    return $type->getSub();
+                    return $this->firstInstantiableFromUnion($type->getSub());
                 }
 
                 return $type->getType();
@@ -226,6 +226,22 @@ trait Resource
 
             return null;
         });
+    }
+
+    private function firstInstantiableFromUnion(?string $type): ?string
+    {
+        if (!$type) {
+            return null;
+        }
+
+        foreach (explode('|', $type) as $candidate) {
+            $candidate = trim($candidate, '\\');
+            if (Reflection::isInstantiable($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return null;
     }
 
     protected function getResourceTypeFromConstructor(ReflectionClass $class): ?string
