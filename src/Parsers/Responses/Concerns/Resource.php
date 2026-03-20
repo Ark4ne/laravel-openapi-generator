@@ -38,7 +38,7 @@ trait Resource
         return $this->toResponseEntry($this->getResponse($element, $entry), $entry);
     }
 
-    protected function toResponseEntry(?SymfonyResponse $response, Entry $entry, $body = null): ResponseEntry
+    protected function toResponseEntry(?SymfonyResponse $response, Entry $entry, $body = null, $media = MediaType::MEDIA_TYPE_APPLICATION_JSON): ResponseEntry
     {
         $status = $entry->getDocResponseStatusCode() ?? 200;
         $statusText = $entry->getDocResponseStatusName() ?? SymfonyResponse::$statusTexts[200];
@@ -52,7 +52,7 @@ trait Resource
         }
 
         return new ResponseEntry(
-            format: MediaType::MEDIA_TYPE_APPLICATION_JSON,
+            format: $media,
             statusCode: $status,
             statusName: $statusText,
             headers: $this->convertHeadersToOasHeaders($headers),
@@ -255,8 +255,8 @@ trait Resource
                 break;
             }
 
-            if (($doclbock = Reflection::docblock($constructor))
-                && !empty($tags = $doclbock->getTagsWithTypeByName('params'))) {
+            if (($docblock = Reflection::docblock($constructor))
+                && !empty($tags = $docblock->getTagsWithTypeByName('params'))) {
                 $tag = $tags[0];
 
                 if ($type = Reflection::parseDoctag($tag)) {

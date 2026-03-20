@@ -3,7 +3,7 @@
 namespace Ark4ne\OpenApi\Documentation;
 
 use Ark4ne\OpenApi\Documentation\Request\Component;
-use Ark4ne\OpenApi\Documentation\Request\Content;
+use Ark4ne\OpenApi\Support\MimeType;
 use Ark4ne\OpenApi\Documentation\Request\Parameter;
 use Ark4ne\OpenApi\Documentation\Request\Parameters;
 use Ark4ne\OpenApi\Documentation\Request\Security;
@@ -191,7 +191,7 @@ class DocumentationGenerator
 
         if ($body = $entry->body()) {
             if ($body instanceof Parameter) {
-                $response = $response->content(Content::convert($body->oasSchema(), $entry->format()));
+                $response = $response->content(MimeType::convert($body->oasSchema(), $entry->format()));
             } else {
                 $response = $response->content($body);
             }

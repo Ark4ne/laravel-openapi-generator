@@ -45,7 +45,7 @@ class JsonApiCollectionParser implements ResponseParserContract
 
         $response = $this->generateResponse($instance, $body, $resourceClass, $collection->first());
 
-        return $this->toResponseEntry($response, $entry, $body);
+        return $this->toResponseEntry($response, $entry, $body, 'application/vnd.api+json');
     }
 
     private function createResourceInstance(\ReflectionClass $class)

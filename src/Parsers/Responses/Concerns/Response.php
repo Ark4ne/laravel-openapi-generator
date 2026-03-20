@@ -3,6 +3,7 @@
 namespace Ark4ne\OpenApi\Parsers\Responses\Concerns;
 
 use Ark4ne\OpenApi\Contracts\Entry;
+use Ark4ne\OpenApi\Support\MimeType;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Header;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\MediaType;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Schema;
@@ -45,16 +46,12 @@ trait Response
 
     public function getMediaType(Entry $entry): string
     {
-        return match ($type = $this->getContentType($entry)) {
-            MediaType::MEDIA_TYPE_APPLICATION_JSON,
-            MediaType::MEDIA_TYPE_APPLICATION_PDF,
-            MediaType::MEDIA_TYPE_IMAGE_JPEG,
-            MediaType::MEDIA_TYPE_IMAGE_PNG,
-            MediaType::MEDIA_TYPE_TEXT_CALENDAR,
-            MediaType::MEDIA_TYPE_TEXT_PLAIN,
-            MediaType::MEDIA_TYPE_TEXT_XML,
-            MediaType::MEDIA_TYPE_APPLICATION_X_WWW_FORM_URLENCODED => $type,
-            default => $this->defaultMediaType()
-        };
+        $type = $this->getContentType($entry);
+
+        if (MimeType::isValidRfc6838MimeType($type)) {
+            return $type;
+        }
+
+        return $this->defaultContentType();
     }
 }
