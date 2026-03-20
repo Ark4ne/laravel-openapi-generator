@@ -2,6 +2,7 @@
 
 namespace Ark4ne\OpenApi\Documentation\Request;
 
+use Ark4ne\OpenApi\Support\MimeType;
 use Ark4ne\OpenApi\Support\Arr;
 use Ark4ne\OpenApi\Support\Config;
 use InvalidArgumentException;
@@ -54,7 +55,7 @@ class Parameters
 
                 $schema = Schema::create()->properties(...$this->arrayToProperties($params));
 
-                return RequestBody::create()->content(Content::convert($schema, $format));
+                return RequestBody::create()->content(MimeType::convert($schema, $format));
         }
 
         throw new InvalidArgumentException("unknown $type.");
