@@ -1,1 +1,1974 @@
-{"openapi":"3.0.2","info":{"title":"","description":"","version":"v1"},"servers":[{"url":"http:\/\/localhost","description":"Laravel"}],"paths":{"\/user":{"get":{"tags":["UserController"],"summary":"user.index","description":"","operationId":"GET:user.index","parameters":[{"name":"filter[][name]","in":"query","required":false,"allowEmptyValue":false,"schema":{"description":"","type":"string","nullable":false}},{"name":"filter[][value][]","in":"query","required":false,"allowEmptyValue":false,"schema":{"description":"","type":"string","nullable":false}}],"responses":{"200":{"description":"OK","headers":{"Cache-Control":{"schema":{"type":"string"},"example":["no-cache, private"]},"Date":{"schema":{"type":"string"},"example":["Fri, 27 Feb 2026 19:55:58 GMT"]},"Content-Type":{"schema":{"type":"string"},"example":["application\/vnd.api+json"]}},"content":{"application\/json":{"schema":{"description":"","type":"object","properties":{"data":{"description":"","type":"array","items":{"$ref":"#\/components\/schemas\/resource-user"},"nullable":false},"included":{"description":"","type":"array","items":{"anyOf":[{"$ref":"#\/components\/schemas\/resource-6c97a4-post-resource"},{"$ref":"#\/components\/schemas\/resource-6c97a4-comment-resource"}]},"nullable":false}},"nullable":false}}}},"422":{"description":"Unprocessable Entity"}}},"post":{"tags":["UserController"],"summary":"testapphttpcontrollersjsonapiusercontroller.store","description":"","operationId":"POST:testapphttpcontrollersjsonapiusercontroller.store","requestBody":{"content":{"application\/json":{"schema":{"properties":{"name":{"description":"","type":"string","nullable":false},"email":{"description":"","type":"string","nullable":false}}}}}},"responses":{"200":{"description":"OK","headers":{"Cache-Control":{"schema":{"type":"string"},"example":["no-cache, private"]},"Date":{"schema":{"type":"string"},"example":["Fri, 27 Feb 2026 19:55:58 GMT"]},"Content-Type":{"schema":{"type":"string"},"example":["application\/vnd.api+json"]}},"content":{"application\/json":{"schema":{"description":"","type":"object","properties":{"data":{"$ref":"#\/components\/schemas\/resource-user"},"included":{"description":"","type":"array","items":{"anyOf":[{"$ref":"#\/components\/schemas\/resource-6c97a4-post-resource"},{"$ref":"#\/components\/schemas\/resource-6c97a4-comment-resource"}]},"nullable":false}},"nullable":false}}}},"422":{"description":"Unprocessable Entity"}}}},"\/user\/{user}":{"get":{"tags":["UserController"],"summary":"user.show","description":"","operationId":"GET:user.show","parameters":[{"name":"user","in":"path","required":true,"allowEmptyValue":false,"schema":{"description":"","type":"string","nullable":false}},{"name":"filter[][name]","in":"query","required":false,"allowEmptyValue":false,"schema":{"description":"","type":"string","nullable":false}},{"name":"filter[][value][]","in":"query","required":false,"allowEmptyValue":false,"schema":{"description":"","type":"string","nullable":false}}],"responses":{"200":{"description":"OK","headers":{"Cache-Control":{"schema":{"type":"string"},"example":["no-cache, private"]},"Date":{"schema":{"type":"string"},"example":["Fri, 27 Feb 2026 19:55:58 GMT"]},"Content-Type":{"schema":{"type":"string"},"example":["application\/vnd.api+json"]}},"content":{"application\/json":{"schema":{"description":"","type":"object","properties":{"data":{"$ref":"#\/components\/schemas\/resource-user"},"included":{"description":"","type":"array","items":{"anyOf":[{"$ref":"#\/components\/schemas\/resource-6c97a4-post-resource"},{"$ref":"#\/components\/schemas\/resource-6c97a4-comment-resource"}]},"nullable":false}},"nullable":false}}}},"422":{"description":"Unprocessable Entity"}}},"delete":{"tags":["UserController"],"summary":"user.destroy","description":"","operationId":"DELETE:user.destroy","parameters":[{"name":"user","in":"path","required":true,"allowEmptyValue":false,"schema":{"description":"","type":"string","nullable":false}}],"responses":{"204":{"description":"","content":{"text\/plain":{"schema":{"type":"string"}}}}},"security":[{"Authorization-Bearer":[]}]}},"\/user\/{id}":{"put":{"tags":["UserController"],"summary":"testapphttpcontrollersjsonapiusercontroller.update","description":"","operationId":"PUT:testapphttpcontrollersjsonapiusercontroller.update","parameters":[{"name":"id","in":"path","required":true,"allowEmptyValue":false,"schema":{"description":"","type":"string","nullable":false}}],"requestBody":{"content":{"application\/json":{"schema":{"properties":{"name":{"description":"","type":"string","nullable":false}}}}}},"responses":{"200":{"description":"OK","headers":{"Cache-Control":{"schema":{"type":"string"},"example":["no-cache, private"]},"Date":{"schema":{"type":"string"},"example":["Fri, 27 Feb 2026 19:55:58 GMT"]},"Content-Type":{"schema":{"type":"string"},"example":["application\/vnd.api+json"]}},"content":{"application\/json":{"schema":{"description":"","type":"object","properties":{"data":{"$ref":"#\/components\/schemas\/resource-user"},"included":{"description":"","type":"array","items":{"anyOf":[{"$ref":"#\/components\/schemas\/resource-6c97a4-post-resource"},{"$ref":"#\/components\/schemas\/resource-6c97a4-comment-resource"}]},"nullable":false}},"nullable":false}}}},"422":{"description":"Unprocessable Entity"}}},"patch":{"tags":["UserController"],"summary":"testapphttpcontrollersjsonapiusercontroller.update","description":"","operationId":"PATCH:testapphttpcontrollersjsonapiusercontroller.update","parameters":[{"name":"id","in":"path","required":true,"allowEmptyValue":false,"schema":{"description":"","type":"string","nullable":false}}],"requestBody":{"content":{"application\/json":{"schema":{"properties":{"name":{"description":"","type":"string","nullable":false}}}}}},"responses":{"200":{"description":"OK","headers":{"Cache-Control":{"schema":{"type":"string"},"example":["no-cache, private"]},"Date":{"schema":{"type":"string"},"example":["Fri, 27 Feb 2026 19:55:58 GMT"]},"Content-Type":{"schema":{"type":"string"},"example":["application\/vnd.api+json"]}},"content":{"application\/json":{"schema":{"description":"","type":"object","properties":{"data":{"$ref":"#\/components\/schemas\/resource-user"},"included":{"description":"","type":"array","items":{"anyOf":[{"$ref":"#\/components\/schemas\/resource-6c97a4-post-resource"},{"$ref":"#\/components\/schemas\/resource-6c97a4-comment-resource"}]},"nullable":false}},"nullable":false}}}},"422":{"description":"Unprocessable Entity"}}}},"\/user\/{id}\/basic-request":{"put":{"tags":["UserController"],"summary":"testapphttpcontrollersjsonapiusercontroller.updaterequest","description":"","operationId":"PUT:testapphttpcontrollersjsonapiusercontroller.updaterequest","parameters":[{"name":"id","in":"path","required":true,"allowEmptyValue":false,"schema":{"description":"","type":"string","nullable":false}}],"responses":{"200":{"description":"OK","headers":{"Cache-Control":{"schema":{"type":"string"},"example":["no-cache, private"]},"Date":{"schema":{"type":"string"},"example":["Fri, 27 Feb 2026 19:55:58 GMT"]},"Content-Type":{"schema":{"type":"string"},"example":["application\/vnd.api+json"]}},"content":{"application\/json":{"schema":{"description":"","type":"object","properties":{"data":{"$ref":"#\/components\/schemas\/resource-user"},"included":{"description":"","type":"array","items":{"anyOf":[{"$ref":"#\/components\/schemas\/resource-6c97a4-post-resource"},{"$ref":"#\/components\/schemas\/resource-6c97a4-comment-resource"}]},"nullable":false}},"nullable":false}}}}}},"patch":{"tags":["UserController"],"summary":"testapphttpcontrollersjsonapiusercontroller.updaterequest","description":"","operationId":"PATCH:testapphttpcontrollersjsonapiusercontroller.updaterequest","parameters":[{"name":"id","in":"path","required":true,"allowEmptyValue":false,"schema":{"description":"","type":"string","nullable":false}}],"responses":{"200":{"description":"OK","headers":{"Cache-Control":{"schema":{"type":"string"},"example":["no-cache, private"]},"Date":{"schema":{"type":"string"},"example":["Fri, 27 Feb 2026 19:55:58 GMT"]},"Content-Type":{"schema":{"type":"string"},"example":["application\/vnd.api+json"]}},"content":{"application\/json":{"schema":{"description":"","type":"object","properties":{"data":{"$ref":"#\/components\/schemas\/resource-user"},"included":{"description":"","type":"array","items":{"anyOf":[{"$ref":"#\/components\/schemas\/resource-6c97a4-post-resource"},{"$ref":"#\/components\/schemas\/resource-6c97a4-comment-resource"}]},"nullable":false}},"nullable":false}}}}}}},"\/user\/{id}\/no-request":{"put":{"tags":["UserController"],"summary":"testapphttpcontrollersjsonapiusercontroller.updatenorequest","description":"","operationId":"PUT:testapphttpcontrollersjsonapiusercontroller.updatenorequest","parameters":[{"name":"id","in":"path","required":true,"allowEmptyValue":false,"schema":{"description":"","type":"string","nullable":false}}],"responses":{"200":{"description":"OK","headers":{"Cache-Control":{"schema":{"type":"string"},"example":["no-cache, private"]},"Date":{"schema":{"type":"string"},"example":["Fri, 27 Feb 2026 19:55:58 GMT"]},"Content-Type":{"schema":{"type":"string"},"example":["application\/vnd.api+json"]}},"content":{"application\/json":{"schema":{"description":"","type":"object","properties":{"data":{"$ref":"#\/components\/schemas\/resource-user"},"included":{"description":"","type":"array","items":{"anyOf":[{"$ref":"#\/components\/schemas\/resource-6c97a4-post-resource"},{"$ref":"#\/components\/schemas\/resource-6c97a4-comment-resource"}]},"nullable":false}},"nullable":false}}}}}},"patch":{"tags":["UserController"],"summary":"testapphttpcontrollersjsonapiusercontroller.updatenorequest","description":"","operationId":"PATCH:testapphttpcontrollersjsonapiusercontroller.updatenorequest","parameters":[{"name":"id","in":"path","required":true,"allowEmptyValue":false,"schema":{"description":"","type":"string","nullable":false}}],"responses":{"200":{"description":"OK","headers":{"Cache-Control":{"schema":{"type":"string"},"example":["no-cache, private"]},"Date":{"schema":{"type":"string"},"example":["Fri, 27 Feb 2026 19:55:58 GMT"]},"Content-Type":{"schema":{"type":"string"},"example":["application\/vnd.api+json"]}},"content":{"application\/json":{"schema":{"description":"","type":"object","properties":{"data":{"$ref":"#\/components\/schemas\/resource-user"},"included":{"description":"","type":"array","items":{"anyOf":[{"$ref":"#\/components\/schemas\/resource-6c97a4-post-resource"},{"$ref":"#\/components\/schemas\/resource-6c97a4-comment-resource"}]},"nullable":false}},"nullable":false}}}}}}},"\/user\/basic-request":{"post":{"tags":["UserController"],"summary":"testapphttpcontrollersjsonapiusercontroller.storerequest","description":"","operationId":"POST:testapphttpcontrollersjsonapiusercontroller.storerequest","responses":{"200":{"description":"OK","headers":{"Cache-Control":{"schema":{"type":"string"},"example":["no-cache, private"]},"Date":{"schema":{"type":"string"},"example":["Fri, 27 Feb 2026 19:55:58 GMT"]},"Content-Type":{"schema":{"type":"string"},"example":["application\/vnd.api+json"]}},"content":{"application\/json":{"schema":{"description":"","type":"object","properties":{"data":{"$ref":"#\/components\/schemas\/resource-user"},"included":{"description":"","type":"array","items":{"anyOf":[{"$ref":"#\/components\/schemas\/resource-6c97a4-post-resource"},{"$ref":"#\/components\/schemas\/resource-6c97a4-comment-resource"}]},"nullable":false}},"nullable":false}}}}}}},"\/user\/no-request":{"post":{"tags":["UserController"],"summary":"testapphttpcontrollersjsonapiusercontroller.storenorequest","description":"","operationId":"POST:testapphttpcontrollersjsonapiusercontroller.storenorequest","responses":{"200":{"description":"OK","headers":{"Cache-Control":{"schema":{"type":"string"},"example":["no-cache, private"]},"Date":{"schema":{"type":"string"},"example":["Fri, 27 Feb 2026 19:55:58 GMT"]},"Content-Type":{"schema":{"type":"string"},"example":["application\/vnd.api+json"]}},"content":{"application\/json":{"schema":{"description":"","type":"object","properties":{"data":{"$ref":"#\/components\/schemas\/resource-user"},"included":{"description":"","type":"array","items":{"anyOf":[{"$ref":"#\/components\/schemas\/resource-6c97a4-post-resource"},{"$ref":"#\/components\/schemas\/resource-6c97a4-comment-resource"}]},"nullable":false}},"nullable":false}}}}}}},"\/comment":{"get":{"tags":["CommentController"],"summary":"comment.index","description":"","operationId":"GET:comment.index","parameters":[{"name":"filter[user][]","in":"query","required":false,"allowEmptyValue":false,"schema":{"description":"","type":"integer","nullable":false}},{"name":"filter[post][]","in":"query","required":false,"allowEmptyValue":false,"schema":{"description":"","type":"integer","nullable":false}}],"responses":{"200":{"description":"OK","headers":{"Cache-Control":{"schema":{"type":"string"},"example":["no-cache, private"]},"Date":{"schema":{"type":"string"},"example":["Fri, 27 Feb 2026 19:55:58 GMT"]},"Content-Type":{"schema":{"type":"string"},"example":["application\/vnd.api+json"]}},"content":{"application\/json":{"schema":{"description":"","type":"object","properties":{"data":{"description":"","type":"array","items":{"$ref":"#\/components\/schemas\/resource-6c97a4-comment-resource"},"nullable":false},"included":{"description":"","type":"array","items":{"anyOf":[{"$ref":"#\/components\/schemas\/resource-user"},{"$ref":"#\/components\/schemas\/resource-6c97a4-post-resource"}]},"nullable":false}},"nullable":false}}}},"422":{"description":"Unprocessable Entity"}}}},"\/comment\/{comment}":{"get":{"tags":["CommentController"],"summary":"comment.show","description":"","operationId":"GET:comment.show","parameters":[{"name":"comment","in":"path","required":true,"allowEmptyValue":false,"schema":{"description":"","type":"string","nullable":false}},{"name":"filter[user][]","in":"query","required":false,"allowEmptyValue":false,"schema":{"description":"","type":"integer","nullable":false}},{"name":"filter[post][]","in":"query","required":false,"allowEmptyValue":false,"schema":{"description":"","type":"integer","nullable":false}}],"responses":{"200":{"description":"OK","headers":{"Cache-Control":{"schema":{"type":"string"},"example":["no-cache, private"]},"Date":{"schema":{"type":"string"},"example":["Fri, 27 Feb 2026 19:55:58 GMT"]},"Content-Type":{"schema":{"type":"string"},"example":["application\/vnd.api+json"]}},"content":{"application\/json":{"schema":{"description":"","type":"object","properties":{"data":{"$ref":"#\/components\/schemas\/resource-6c97a4-comment-resource"},"included":{"description":"","type":"array","items":{"anyOf":[{"$ref":"#\/components\/schemas\/resource-user"},{"$ref":"#\/components\/schemas\/resource-6c97a4-post-resource"}]},"nullable":false}},"nullable":false}}}},"422":{"description":"Unprocessable Entity"}}},"delete":{"tags":["CommentController"],"summary":"comment.destroy","description":"","operationId":"DELETE:comment.destroy","parameters":[{"name":"comment","in":"path","required":true,"allowEmptyValue":false,"schema":{"description":"","type":"string","nullable":false}}],"responses":{"204":{"description":"","content":{"text\/plain":{"schema":{"type":"string"}}}}},"security":[{"Authorization-Bearer":[]}]}},"\/post":{"get":{"tags":["PostController"],"summary":"post.index","description":"","operationId":"GET:post.index","parameters":[{"name":"filter[user][]","in":"query","required":false,"allowEmptyValue":false,"schema":{"description":"","type":"integer","nullable":false}},{"name":"filter[has_comment]","in":"query","description":"acceptable: `true`, `false`, `1`, `0`, `\"1\"`, `\"0\"`","required":false,"allowEmptyValue":false,"schema":{"description":"","type":"boolean","nullable":false}},{"name":"filter[date]","in":"query","required":false,"allowEmptyValue":false,"schema":{"description":"`=2026-02-27T19:55:58+00:00`","format":"datetime","type":"string","nullable":false}}],"responses":{"200":{"description":"OK","headers":{"Cache-Control":{"schema":{"type":"string"},"example":["no-cache, private"]},"Date":{"schema":{"type":"string"},"example":["Fri, 27 Feb 2026 19:55:58 GMT"]},"Content-Type":{"schema":{"type":"string"},"example":["application\/vnd.api+json"]}},"content":{"application\/json":{"schema":{"description":"","type":"object","properties":{"data":{"description":"","type":"array","items":{"$ref":"#\/components\/schemas\/resource-6c97a4-post-resource"},"nullable":false},"included":{"description":"","type":"array","items":{"anyOf":[{"$ref":"#\/components\/schemas\/resource-user"},{"$ref":"#\/components\/schemas\/resource-6c97a4-comment-resource"}]},"nullable":false}},"nullable":false}}}},"422":{"description":"Unprocessable Entity"}}}},"\/post\/{post}":{"get":{"tags":["PostController"],"summary":"post.show","description":"","operationId":"GET:post.show","parameters":[{"name":"post","in":"path","required":true,"allowEmptyValue":false,"schema":{"description":"","type":"string","nullable":false}},{"name":"filter[user][]","in":"query","required":false,"allowEmptyValue":false,"schema":{"description":"","type":"integer","nullable":false}},{"name":"filter[has_comment]","in":"query","description":"acceptable: `true`, `false`, `1`, `0`, `\"1\"`, `\"0\"`","required":false,"allowEmptyValue":false,"schema":{"description":"","type":"boolean","nullable":false}},{"name":"filter[date]","in":"query","required":false,"allowEmptyValue":false,"schema":{"description":"`=2026-02-27T19:55:58+00:00`","format":"datetime","type":"string","nullable":false}}],"responses":{"200":{"description":"OK","headers":{"Cache-Control":{"schema":{"type":"string"},"example":["no-cache, private"]},"Date":{"schema":{"type":"string"},"example":["Fri, 27 Feb 2026 19:55:58 GMT"]},"Content-Type":{"schema":{"type":"string"},"example":["application\/vnd.api+json"]}},"content":{"application\/json":{"schema":{"description":"","type":"object","properties":{"data":{"$ref":"#\/components\/schemas\/resource-6c97a4-post-resource"},"included":{"description":"","type":"array","items":{"anyOf":[{"$ref":"#\/components\/schemas\/resource-user"},{"$ref":"#\/components\/schemas\/resource-6c97a4-comment-resource"}]},"nullable":false}},"nullable":false}}}},"422":{"description":"Unprocessable Entity"}}},"delete":{"tags":["PostController"],"summary":"post.destroy","description":"","operationId":"DELETE:post.destroy","parameters":[{"name":"post","in":"path","required":true,"allowEmptyValue":false,"schema":{"description":"","type":"string","nullable":false}}],"responses":{"204":{"description":"","content":{"text\/plain":{"schema":{"type":"string"}}}}},"security":[{"Authorization-Bearer":[]}]}}},"components":{"schemas":{"resource-user":{"description":"","type":"object","properties":{"id":{"description":"","type":"string","nullable":false},"type":{"description":"","default":"user","type":"string","nullable":false},"attributes":{"description":"","type":"object","properties":{"name":{"description":"","type":"string","nullable":true},"email":{"description":"","type":"string","nullable":true},"struct-set":{"description":"","type":"object","properties":{"name":{"description":"","type":"string","nullable":true},"email":{"description":"","type":"string","nullable":false},"casted":{"description":"","type":"string","nullable":true},"1":{"description":"","type":"object","nullable":false,"example":"mixed"},"closure":{"description":"","type":"object","nullable":false,"example":"mixed"},"missing":{"description":"","type":"object","nullable":true,"example":"mixed"},"sub-struct":{"description":"","type":"object","properties":{"int":{"description":"","format":"float","type":"number","nullable":true},"float":{"description":"","format":"float","type":"number","nullable":true}},"nullable":true},"third-struct":{"description":"","type":"object","properties":{"int":{"description":"","format":"float","type":"number","nullable":true},"float":{"description":"","format":"float","type":"number","nullable":true}},"nullable":true}},"nullable":true}},"nullable":false},"relationships":{"description":"","type":"object","properties":{"posts":{"description":"","type":"array","items":{"description":"","type":"object","properties":{"id":{"description":"","type":"string","nullable":false},"type":{"description":"","default":"post","type":"string","nullable":false,"example":"post"}},"nullable":false,"x-ref":"#\/components\/schemas\/resource-6c97a4-post-resource"},"nullable":false},"comments":{"description":"","type":"array","items":{"description":"","type":"object","properties":{"id":{"description":"","type":"string","nullable":false},"type":{"description":"","default":"comment","type":"string","nullable":false,"example":"comment"}},"nullable":false,"x-ref":"#\/components\/schemas\/resource-6c97a4-comment-resource"},"nullable":false}},"nullable":false},"meta":{"description":"","type":"object","properties":{"created_at":{"description":"`=2026-02-27`","format":"date","type":"string","nullable":true},"updated_at":{"description":"`=2026-02-27`","format":"date","type":"string","nullable":true}},"nullable":false}},"nullable":false,"x-type":"resource","x-name":"User"},"resource-6c97a4-post-resource":{"description":"","type":"object","properties":{"id":{"description":"","type":"string","nullable":false},"type":{"description":"","default":"post","type":"string","nullable":false},"attributes":{"description":"","type":"object","properties":{"title":{"description":"","type":"string","nullable":false},"content":{"description":"","type":"string","nullable":false}},"nullable":false},"relationships":{"description":"","type":"object","properties":{"user":{"description":"","type":"object","properties":{"id":{"description":"","type":"string","nullable":false},"type":{"description":"","default":"user","type":"string","nullable":false,"example":"user"}},"nullable":false,"x-ref":"#\/components\/schemas\/resource-user"},"comments":{"description":"","type":"array","items":{"description":"","type":"object","properties":{"id":{"description":"","type":"string","nullable":false},"type":{"description":"","default":"comment","type":"string","nullable":false,"example":"comment"}},"nullable":false,"x-ref":"#\/components\/schemas\/resource-6c97a4-comment-resource"},"nullable":false}},"nullable":false},"meta":{"description":"","type":"object","properties":{"created_at":{"description":"","type":"object","nullable":false,"example":"mixed"},"updated_at":{"description":"","type":"object","nullable":false,"example":"mixed"}},"nullable":false}},"nullable":false,"x-type":"resource","x-name":"Post"},"resource-6c97a4-comment-resource":{"description":"","type":"object","properties":{"id":{"description":"","type":"string","nullable":false},"type":{"description":"","default":"comment","type":"string","nullable":false},"attributes":{"description":"","type":"object","properties":{"content":{"description":"","type":"string","nullable":true}},"nullable":false},"relationships":{"description":"","type":"object","properties":{"user":{"description":"","type":"object","properties":{"id":{"description":"","type":"string","nullable":false},"type":{"description":"","default":"user","type":"string","nullable":false,"example":"user"}},"nullable":false,"x-ref":"#\/components\/schemas\/resource-user"},"post":{"description":"","type":"object","properties":{"id":{"description":"","type":"string","nullable":false},"type":{"description":"","default":"post","type":"string","nullable":false,"example":"post"}},"nullable":false,"x-ref":"#\/components\/schemas\/resource-6c97a4-post-resource"}},"nullable":false},"meta":{"description":"","type":"object","properties":{"created_at":{"description":"`=2026-02-27`","format":"date","type":"string","nullable":true},"updated_at":{"description":"`=2026-02-27`","format":"date","type":"string","nullable":true}},"nullable":false}},"nullable":false,"x-type":"resource","x-name":"Comment"}},"securitySchemes":{"Authorization-Bearer":{"type":"http","scheme":"bearer","bearerFormat":"token"}}},"tags":[{"name":"UserController"},{"name":"CommentController"},{"name":"PostController"}],"x-tagGroups":[{"name":"Controllers","tags":["UserController","CommentController","PostController"]}]}
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "",
+    "description": "",
+    "version": "v1"
+  },
+  "servers": [
+    {
+      "url": "http:\/\/localhost",
+      "description": "Laravel"
+    }
+  ],
+  "paths": {
+    "\/user": {
+      "get": {
+        "tags": [
+          "UserController"
+        ],
+        "summary": "user.index",
+        "description": "",
+        "operationId": "GET:user.index",
+        "parameters": [
+          {
+            "name": "filter[][name]",
+            "in": "query",
+            "required": false,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "type": "string",
+              "nullable": false
+            }
+          },
+          {
+            "name": "filter[][value][]",
+            "in": "query",
+            "required": false,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "type": "string",
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "no-cache, private"
+                ]
+              },
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "Fri, 27 Feb 2026 19:55:58 GMT"
+                ]
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "application\/vnd.api+json"
+                ]
+              }
+            },
+            "content": {
+              "application\/vnd.api+json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "description": "",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#\/components\/schemas\/resource-user"
+                      },
+                      "nullable": false
+                    },
+                    "included": {
+                      "description": "",
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "$ref": "#\/components\/schemas\/resource-6c97a4-post-resource"
+                          },
+                          {
+                            "$ref": "#\/components\/schemas\/resource-6c97a4-comment-resource"
+                          }
+                        ]
+                      },
+                      "nullable": false
+                    }
+                  },
+                  "nullable": false
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "UserController"
+        ],
+        "summary": "testapphttpcontrollersjsonapiusercontroller.store",
+        "description": "",
+        "operationId": "POST:testapphttpcontrollersjsonapiusercontroller.store",
+        "requestBody": {
+          "content": {
+            "application\/json": {
+              "schema": {
+                "properties": {
+                  "name": {
+                    "description": "",
+                    "type": "string",
+                    "nullable": false
+                  },
+                  "email": {
+                    "description": "",
+                    "type": "string",
+                    "nullable": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "no-cache, private"
+                ]
+              },
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "Fri, 27 Feb 2026 19:55:58 GMT"
+                ]
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "application\/vnd.api+json"
+                ]
+              }
+            },
+            "content": {
+              "application\/vnd.api+json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#\/components\/schemas\/resource-user"
+                    },
+                    "included": {
+                      "description": "",
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "$ref": "#\/components\/schemas\/resource-6c97a4-post-resource"
+                          },
+                          {
+                            "$ref": "#\/components\/schemas\/resource-6c97a4-comment-resource"
+                          }
+                        ]
+                      },
+                      "nullable": false
+                    }
+                  },
+                  "nullable": false
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "\/user\/{user}": {
+      "get": {
+        "tags": [
+          "UserController"
+        ],
+        "summary": "user.show",
+        "description": "",
+        "operationId": "GET:user.show",
+        "parameters": [
+          {
+            "name": "user",
+            "in": "path",
+            "required": true,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "type": "string",
+              "nullable": false
+            }
+          },
+          {
+            "name": "filter[][name]",
+            "in": "query",
+            "required": false,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "type": "string",
+              "nullable": false
+            }
+          },
+          {
+            "name": "filter[][value][]",
+            "in": "query",
+            "required": false,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "type": "string",
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "no-cache, private"
+                ]
+              },
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "Fri, 27 Feb 2026 19:55:58 GMT"
+                ]
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "application\/vnd.api+json"
+                ]
+              }
+            },
+            "content": {
+              "application\/vnd.api+json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#\/components\/schemas\/resource-user"
+                    },
+                    "included": {
+                      "description": "",
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "$ref": "#\/components\/schemas\/resource-6c97a4-post-resource"
+                          },
+                          {
+                            "$ref": "#\/components\/schemas\/resource-6c97a4-comment-resource"
+                          }
+                        ]
+                      },
+                      "nullable": false
+                    }
+                  },
+                  "nullable": false
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "UserController"
+        ],
+        "summary": "user.destroy",
+        "description": "",
+        "operationId": "DELETE:user.destroy",
+        "parameters": [
+          {
+            "name": "user",
+            "in": "path",
+            "required": true,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "type": "string",
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "",
+            "content": {
+              "text\/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Authorization-Bearer": []
+          }
+        ]
+      }
+    },
+    "\/user\/{id}": {
+      "put": {
+        "tags": [
+          "UserController"
+        ],
+        "summary": "testapphttpcontrollersjsonapiusercontroller.update",
+        "description": "",
+        "operationId": "PUT:testapphttpcontrollersjsonapiusercontroller.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "type": "string",
+              "nullable": false
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application\/json": {
+              "schema": {
+                "properties": {
+                  "name": {
+                    "description": "",
+                    "type": "string",
+                    "nullable": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "no-cache, private"
+                ]
+              },
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "Fri, 27 Feb 2026 19:55:58 GMT"
+                ]
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "application\/vnd.api+json"
+                ]
+              }
+            },
+            "content": {
+              "application\/vnd.api+json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#\/components\/schemas\/resource-user"
+                    },
+                    "included": {
+                      "description": "",
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "$ref": "#\/components\/schemas\/resource-6c97a4-post-resource"
+                          },
+                          {
+                            "$ref": "#\/components\/schemas\/resource-6c97a4-comment-resource"
+                          }
+                        ]
+                      },
+                      "nullable": false
+                    }
+                  },
+                  "nullable": false
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "UserController"
+        ],
+        "summary": "testapphttpcontrollersjsonapiusercontroller.update",
+        "description": "",
+        "operationId": "PATCH:testapphttpcontrollersjsonapiusercontroller.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "type": "string",
+              "nullable": false
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application\/json": {
+              "schema": {
+                "properties": {
+                  "name": {
+                    "description": "",
+                    "type": "string",
+                    "nullable": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "no-cache, private"
+                ]
+              },
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "Fri, 27 Feb 2026 19:55:58 GMT"
+                ]
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "application\/vnd.api+json"
+                ]
+              }
+            },
+            "content": {
+              "application\/vnd.api+json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#\/components\/schemas\/resource-user"
+                    },
+                    "included": {
+                      "description": "",
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "$ref": "#\/components\/schemas\/resource-6c97a4-post-resource"
+                          },
+                          {
+                            "$ref": "#\/components\/schemas\/resource-6c97a4-comment-resource"
+                          }
+                        ]
+                      },
+                      "nullable": false
+                    }
+                  },
+                  "nullable": false
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "\/user\/{id}\/basic-request": {
+      "put": {
+        "tags": [
+          "UserController"
+        ],
+        "summary": "testapphttpcontrollersjsonapiusercontroller.updaterequest",
+        "description": "",
+        "operationId": "PUT:testapphttpcontrollersjsonapiusercontroller.updaterequest",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "type": "string",
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "no-cache, private"
+                ]
+              },
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "Fri, 27 Feb 2026 19:55:58 GMT"
+                ]
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "application\/vnd.api+json"
+                ]
+              }
+            },
+            "content": {
+              "application\/vnd.api+json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#\/components\/schemas\/resource-user"
+                    },
+                    "included": {
+                      "description": "",
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "$ref": "#\/components\/schemas\/resource-6c97a4-post-resource"
+                          },
+                          {
+                            "$ref": "#\/components\/schemas\/resource-6c97a4-comment-resource"
+                          }
+                        ]
+                      },
+                      "nullable": false
+                    }
+                  },
+                  "nullable": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "UserController"
+        ],
+        "summary": "testapphttpcontrollersjsonapiusercontroller.updaterequest",
+        "description": "",
+        "operationId": "PATCH:testapphttpcontrollersjsonapiusercontroller.updaterequest",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "type": "string",
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "no-cache, private"
+                ]
+              },
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "Fri, 27 Feb 2026 19:55:58 GMT"
+                ]
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "application\/vnd.api+json"
+                ]
+              }
+            },
+            "content": {
+              "application\/vnd.api+json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#\/components\/schemas\/resource-user"
+                    },
+                    "included": {
+                      "description": "",
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "$ref": "#\/components\/schemas\/resource-6c97a4-post-resource"
+                          },
+                          {
+                            "$ref": "#\/components\/schemas\/resource-6c97a4-comment-resource"
+                          }
+                        ]
+                      },
+                      "nullable": false
+                    }
+                  },
+                  "nullable": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "\/user\/{id}\/no-request": {
+      "put": {
+        "tags": [
+          "UserController"
+        ],
+        "summary": "testapphttpcontrollersjsonapiusercontroller.updatenorequest",
+        "description": "",
+        "operationId": "PUT:testapphttpcontrollersjsonapiusercontroller.updatenorequest",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "type": "string",
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "no-cache, private"
+                ]
+              },
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "Fri, 27 Feb 2026 19:55:58 GMT"
+                ]
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "application\/vnd.api+json"
+                ]
+              }
+            },
+            "content": {
+              "application\/vnd.api+json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#\/components\/schemas\/resource-user"
+                    },
+                    "included": {
+                      "description": "",
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "$ref": "#\/components\/schemas\/resource-6c97a4-post-resource"
+                          },
+                          {
+                            "$ref": "#\/components\/schemas\/resource-6c97a4-comment-resource"
+                          }
+                        ]
+                      },
+                      "nullable": false
+                    }
+                  },
+                  "nullable": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "UserController"
+        ],
+        "summary": "testapphttpcontrollersjsonapiusercontroller.updatenorequest",
+        "description": "",
+        "operationId": "PATCH:testapphttpcontrollersjsonapiusercontroller.updatenorequest",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "type": "string",
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "no-cache, private"
+                ]
+              },
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "Fri, 27 Feb 2026 19:55:58 GMT"
+                ]
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "application\/vnd.api+json"
+                ]
+              }
+            },
+            "content": {
+              "application\/vnd.api+json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#\/components\/schemas\/resource-user"
+                    },
+                    "included": {
+                      "description": "",
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "$ref": "#\/components\/schemas\/resource-6c97a4-post-resource"
+                          },
+                          {
+                            "$ref": "#\/components\/schemas\/resource-6c97a4-comment-resource"
+                          }
+                        ]
+                      },
+                      "nullable": false
+                    }
+                  },
+                  "nullable": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "\/user\/basic-request": {
+      "post": {
+        "tags": [
+          "UserController"
+        ],
+        "summary": "testapphttpcontrollersjsonapiusercontroller.storerequest",
+        "description": "",
+        "operationId": "POST:testapphttpcontrollersjsonapiusercontroller.storerequest",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "no-cache, private"
+                ]
+              },
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "Fri, 27 Feb 2026 19:55:58 GMT"
+                ]
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "application\/vnd.api+json"
+                ]
+              }
+            },
+            "content": {
+              "application\/vnd.api+json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#\/components\/schemas\/resource-user"
+                    },
+                    "included": {
+                      "description": "",
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "$ref": "#\/components\/schemas\/resource-6c97a4-post-resource"
+                          },
+                          {
+                            "$ref": "#\/components\/schemas\/resource-6c97a4-comment-resource"
+                          }
+                        ]
+                      },
+                      "nullable": false
+                    }
+                  },
+                  "nullable": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "\/user\/no-request": {
+      "post": {
+        "tags": [
+          "UserController"
+        ],
+        "summary": "testapphttpcontrollersjsonapiusercontroller.storenorequest",
+        "description": "",
+        "operationId": "POST:testapphttpcontrollersjsonapiusercontroller.storenorequest",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "no-cache, private"
+                ]
+              },
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "Fri, 27 Feb 2026 19:55:58 GMT"
+                ]
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "application\/vnd.api+json"
+                ]
+              }
+            },
+            "content": {
+              "application\/vnd.api+json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#\/components\/schemas\/resource-user"
+                    },
+                    "included": {
+                      "description": "",
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "$ref": "#\/components\/schemas\/resource-6c97a4-post-resource"
+                          },
+                          {
+                            "$ref": "#\/components\/schemas\/resource-6c97a4-comment-resource"
+                          }
+                        ]
+                      },
+                      "nullable": false
+                    }
+                  },
+                  "nullable": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "\/comment": {
+      "get": {
+        "tags": [
+          "CommentController"
+        ],
+        "summary": "comment.index",
+        "description": "",
+        "operationId": "GET:comment.index",
+        "parameters": [
+          {
+            "name": "filter[user][]",
+            "in": "query",
+            "required": false,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "type": "integer",
+              "nullable": false
+            }
+          },
+          {
+            "name": "filter[post][]",
+            "in": "query",
+            "required": false,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "type": "integer",
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "no-cache, private"
+                ]
+              },
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "Fri, 27 Feb 2026 19:55:58 GMT"
+                ]
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "application\/vnd.api+json"
+                ]
+              }
+            },
+            "content": {
+              "application\/vnd.api+json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "description": "",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#\/components\/schemas\/resource-6c97a4-comment-resource"
+                      },
+                      "nullable": false
+                    },
+                    "included": {
+                      "description": "",
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "$ref": "#\/components\/schemas\/resource-user"
+                          },
+                          {
+                            "$ref": "#\/components\/schemas\/resource-6c97a4-post-resource"
+                          }
+                        ]
+                      },
+                      "nullable": false
+                    }
+                  },
+                  "nullable": false
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "\/comment\/{comment}": {
+      "get": {
+        "tags": [
+          "CommentController"
+        ],
+        "summary": "comment.show",
+        "description": "",
+        "operationId": "GET:comment.show",
+        "parameters": [
+          {
+            "name": "comment",
+            "in": "path",
+            "required": true,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "type": "string",
+              "nullable": false
+            }
+          },
+          {
+            "name": "filter[user][]",
+            "in": "query",
+            "required": false,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "type": "integer",
+              "nullable": false
+            }
+          },
+          {
+            "name": "filter[post][]",
+            "in": "query",
+            "required": false,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "type": "integer",
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "no-cache, private"
+                ]
+              },
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "Fri, 27 Feb 2026 19:55:58 GMT"
+                ]
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "application\/vnd.api+json"
+                ]
+              }
+            },
+            "content": {
+              "application\/vnd.api+json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#\/components\/schemas\/resource-6c97a4-comment-resource"
+                    },
+                    "included": {
+                      "description": "",
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "$ref": "#\/components\/schemas\/resource-user"
+                          },
+                          {
+                            "$ref": "#\/components\/schemas\/resource-6c97a4-post-resource"
+                          }
+                        ]
+                      },
+                      "nullable": false
+                    }
+                  },
+                  "nullable": false
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "CommentController"
+        ],
+        "summary": "comment.destroy",
+        "description": "",
+        "operationId": "DELETE:comment.destroy",
+        "parameters": [
+          {
+            "name": "comment",
+            "in": "path",
+            "required": true,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "type": "string",
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "",
+            "content": {
+              "text\/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Authorization-Bearer": []
+          }
+        ]
+      }
+    },
+    "\/post": {
+      "get": {
+        "tags": [
+          "PostController"
+        ],
+        "summary": "post.index",
+        "description": "",
+        "operationId": "GET:post.index",
+        "parameters": [
+          {
+            "name": "filter[user][]",
+            "in": "query",
+            "required": false,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "type": "integer",
+              "nullable": false
+            }
+          },
+          {
+            "name": "filter[has_comment]",
+            "in": "query",
+            "description": "acceptable: `true`, `false`, `1`, `0`, `\"1\"`, `\"0\"`",
+            "required": false,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "type": "boolean",
+              "nullable": false
+            }
+          },
+          {
+            "name": "filter[date]",
+            "in": "query",
+            "required": false,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "`=2026-02-27T19:55:58+00:00`",
+              "format": "datetime",
+              "type": "string",
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "no-cache, private"
+                ]
+              },
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "Fri, 27 Feb 2026 19:55:58 GMT"
+                ]
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "application\/vnd.api+json"
+                ]
+              }
+            },
+            "content": {
+              "application\/vnd.api+json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "description": "",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#\/components\/schemas\/resource-6c97a4-post-resource"
+                      },
+                      "nullable": false
+                    },
+                    "included": {
+                      "description": "",
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "$ref": "#\/components\/schemas\/resource-user"
+                          },
+                          {
+                            "$ref": "#\/components\/schemas\/resource-6c97a4-comment-resource"
+                          }
+                        ]
+                      },
+                      "nullable": false
+                    }
+                  },
+                  "nullable": false
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "\/post\/{post}": {
+      "get": {
+        "tags": [
+          "PostController"
+        ],
+        "summary": "post.show",
+        "description": "",
+        "operationId": "GET:post.show",
+        "parameters": [
+          {
+            "name": "post",
+            "in": "path",
+            "required": true,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "type": "string",
+              "nullable": false
+            }
+          },
+          {
+            "name": "filter[user][]",
+            "in": "query",
+            "required": false,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "type": "integer",
+              "nullable": false
+            }
+          },
+          {
+            "name": "filter[has_comment]",
+            "in": "query",
+            "description": "acceptable: `true`, `false`, `1`, `0`, `\"1\"`, `\"0\"`",
+            "required": false,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "type": "boolean",
+              "nullable": false
+            }
+          },
+          {
+            "name": "filter[date]",
+            "in": "query",
+            "required": false,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "`=2026-02-27T19:55:58+00:00`",
+              "format": "datetime",
+              "type": "string",
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "no-cache, private"
+                ]
+              },
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "Fri, 27 Feb 2026 19:55:58 GMT"
+                ]
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": [
+                  "application\/vnd.api+json"
+                ]
+              }
+            },
+            "content": {
+              "application\/vnd.api+json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#\/components\/schemas\/resource-6c97a4-post-resource"
+                    },
+                    "included": {
+                      "description": "",
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "$ref": "#\/components\/schemas\/resource-user"
+                          },
+                          {
+                            "$ref": "#\/components\/schemas\/resource-6c97a4-comment-resource"
+                          }
+                        ]
+                      },
+                      "nullable": false
+                    }
+                  },
+                  "nullable": false
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "PostController"
+        ],
+        "summary": "post.destroy",
+        "description": "",
+        "operationId": "DELETE:post.destroy",
+        "parameters": [
+          {
+            "name": "post",
+            "in": "path",
+            "required": true,
+            "allowEmptyValue": false,
+            "schema": {
+              "description": "",
+              "type": "string",
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "",
+            "content": {
+              "text\/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Authorization-Bearer": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "resource-user": {
+        "description": "",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "",
+            "type": "string",
+            "nullable": false
+          },
+          "type": {
+            "description": "",
+            "default": "user",
+            "type": "string",
+            "nullable": false
+          },
+          "attributes": {
+            "description": "",
+            "type": "object",
+            "properties": {
+              "name": {
+                "description": "",
+                "type": "string",
+                "nullable": true
+              },
+              "email": {
+                "description": "",
+                "type": "string",
+                "nullable": true
+              },
+              "struct-set": {
+                "description": "",
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "description": "",
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "email": {
+                    "description": "",
+                    "type": "string",
+                    "nullable": false
+                  },
+                  "casted": {
+                    "description": "",
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "1": {
+                    "description": "",
+                    "type": "object",
+                    "nullable": false,
+                    "example": "mixed"
+                  },
+                  "closure": {
+                    "description": "",
+                    "type": "object",
+                    "nullable": false,
+                    "example": "mixed"
+                  },
+                  "missing": {
+                    "description": "",
+                    "type": "object",
+                    "nullable": true,
+                    "example": "mixed"
+                  },
+                  "sub-struct": {
+                    "description": "",
+                    "type": "object",
+                    "properties": {
+                      "int": {
+                        "description": "",
+                        "format": "float",
+                        "type": "number",
+                        "nullable": true
+                      },
+                      "float": {
+                        "description": "",
+                        "format": "float",
+                        "type": "number",
+                        "nullable": true
+                      }
+                    },
+                    "nullable": true
+                  },
+                  "third-struct": {
+                    "description": "",
+                    "type": "object",
+                    "properties": {
+                      "int": {
+                        "description": "",
+                        "format": "float",
+                        "type": "number",
+                        "nullable": true
+                      },
+                      "float": {
+                        "description": "",
+                        "format": "float",
+                        "type": "number",
+                        "nullable": true
+                      }
+                    },
+                    "nullable": true
+                  }
+                },
+                "nullable": true
+              }
+            },
+            "nullable": false
+          },
+          "relationships": {
+            "description": "",
+            "type": "object",
+            "properties": {
+              "posts": {
+                "description": "",
+                "type": "array",
+                "items": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "",
+                      "type": "string",
+                      "nullable": false
+                    },
+                    "type": {
+                      "description": "",
+                      "default": "post",
+                      "type": "string",
+                      "nullable": false,
+                      "example": "post"
+                    }
+                  },
+                  "nullable": false,
+                  "x-ref": "#\/components\/schemas\/resource-6c97a4-post-resource"
+                },
+                "nullable": false
+              },
+              "comments": {
+                "description": "",
+                "type": "array",
+                "items": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "",
+                      "type": "string",
+                      "nullable": false
+                    },
+                    "type": {
+                      "description": "",
+                      "default": "comment",
+                      "type": "string",
+                      "nullable": false,
+                      "example": "comment"
+                    }
+                  },
+                  "nullable": false,
+                  "x-ref": "#\/components\/schemas\/resource-6c97a4-comment-resource"
+                },
+                "nullable": false
+              }
+            },
+            "nullable": false
+          },
+          "meta": {
+            "description": "",
+            "type": "object",
+            "properties": {
+              "created_at": {
+                "description": "`=2026-02-27`",
+                "format": "date",
+                "type": "string",
+                "nullable": true
+              },
+              "updated_at": {
+                "description": "`=2026-02-27`",
+                "format": "date",
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "nullable": false
+          }
+        },
+        "nullable": false,
+        "x-type": "resource",
+        "x-name": "User"
+      },
+      "resource-6c97a4-post-resource": {
+        "description": "",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "",
+            "type": "string",
+            "nullable": false
+          },
+          "type": {
+            "description": "",
+            "default": "post",
+            "type": "string",
+            "nullable": false
+          },
+          "attributes": {
+            "description": "",
+            "type": "object",
+            "properties": {
+              "title": {
+                "description": "",
+                "type": "string",
+                "nullable": false
+              },
+              "content": {
+                "description": "",
+                "type": "string",
+                "nullable": false
+              }
+            },
+            "nullable": false
+          },
+          "relationships": {
+            "description": "",
+            "type": "object",
+            "properties": {
+              "user": {
+                "description": "",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "",
+                    "type": "string",
+                    "nullable": false
+                  },
+                  "type": {
+                    "description": "",
+                    "default": "user",
+                    "type": "string",
+                    "nullable": false,
+                    "example": "user"
+                  }
+                },
+                "nullable": false,
+                "x-ref": "#\/components\/schemas\/resource-user"
+              },
+              "comments": {
+                "description": "",
+                "type": "array",
+                "items": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "",
+                      "type": "string",
+                      "nullable": false
+                    },
+                    "type": {
+                      "description": "",
+                      "default": "comment",
+                      "type": "string",
+                      "nullable": false,
+                      "example": "comment"
+                    }
+                  },
+                  "nullable": false,
+                  "x-ref": "#\/components\/schemas\/resource-6c97a4-comment-resource"
+                },
+                "nullable": false
+              }
+            },
+            "nullable": false
+          },
+          "meta": {
+            "description": "",
+            "type": "object",
+            "properties": {
+              "created_at": {
+                "description": "",
+                "type": "object",
+                "nullable": false,
+                "example": "mixed"
+              },
+              "updated_at": {
+                "description": "",
+                "type": "object",
+                "nullable": false,
+                "example": "mixed"
+              }
+            },
+            "nullable": false
+          }
+        },
+        "nullable": false,
+        "x-type": "resource",
+        "x-name": "Post"
+      },
+      "resource-6c97a4-comment-resource": {
+        "description": "",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "",
+            "type": "string",
+            "nullable": false
+          },
+          "type": {
+            "description": "",
+            "default": "comment",
+            "type": "string",
+            "nullable": false
+          },
+          "attributes": {
+            "description": "",
+            "type": "object",
+            "properties": {
+              "content": {
+                "description": "",
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "nullable": false
+          },
+          "relationships": {
+            "description": "",
+            "type": "object",
+            "properties": {
+              "user": {
+                "description": "",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "",
+                    "type": "string",
+                    "nullable": false
+                  },
+                  "type": {
+                    "description": "",
+                    "default": "user",
+                    "type": "string",
+                    "nullable": false,
+                    "example": "user"
+                  }
+                },
+                "nullable": false,
+                "x-ref": "#\/components\/schemas\/resource-user"
+              },
+              "post": {
+                "description": "",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "",
+                    "type": "string",
+                    "nullable": false
+                  },
+                  "type": {
+                    "description": "",
+                    "default": "post",
+                    "type": "string",
+                    "nullable": false,
+                    "example": "post"
+                  }
+                },
+                "nullable": false,
+                "x-ref": "#\/components\/schemas\/resource-6c97a4-post-resource"
+              }
+            },
+            "nullable": false
+          },
+          "meta": {
+            "description": "",
+            "type": "object",
+            "properties": {
+              "created_at": {
+                "description": "`=2026-02-27`",
+                "format": "date",
+                "type": "string",
+                "nullable": true
+              },
+              "updated_at": {
+                "description": "`=2026-02-27`",
+                "format": "date",
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "nullable": false
+          }
+        },
+        "nullable": false,
+        "x-type": "resource",
+        "x-name": "Comment"
+      }
+    },
+    "securitySchemes": {
+      "Authorization-Bearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "token"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "UserController"
+    },
+    {
+      "name": "CommentController"
+    },
+    {
+      "name": "PostController"
+    }
+  ],
+  "x-tagGroups": [
+    {
+      "name": "Controllers",
+      "tags": [
+        "UserController",
+        "CommentController",
+        "PostController"
+      ]
+    }
+  ]
+}
