@@ -9,6 +9,7 @@ use phpDocumentor\Reflection\DocBlockFactory;
 use phpDocumentor\Reflection\Types\Collection;
 use phpDocumentor\Reflection\Types\Compound;
 use phpDocumentor\Reflection\Types\ContextFactory;
+use phpDocumentor\Reflection\PseudoTypes\Generic;
 use ReflectionEnum;
 use ReflectionClass;
 use ReflectionMethod;
@@ -212,10 +213,20 @@ class Reflection
         bool                            $allowBuiltin = false
     )
     {
-        if ($type instanceof Collection) {
+        if (class_exists(Collection::class) && $type instanceof Collection) {
             return Type::make($type->getFqsen())
                 ->sub($type->getValueType())
                 ->generic(true);
+        }
+
+        if (class_exists(Generic::class) && $type instanceof Generic) {
+            $first = $type->getTypes()[0];
+
+            if (method_exists($first, 'getFqsen')) {
+                return Type::make($type->getFqsen())
+                    ->sub($first->getFqsen())
+                    ->generic(true);
+            }
         }
 
         if ($type instanceof Compound) {
