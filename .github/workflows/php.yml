@@ -52,7 +52,7 @@ jobs:
           ${{ runner.os }}-php-${{ matrix.php_version }}-laravel-${{ matrix.laravel_version }}
 
     - name: Install dependencies
-      run: composer require laravel/framework ${{ matrix.laravel_version }} --prefer-dist --no-progress --no-audit
+      run: composer config policy.advisories.block false ; composer require laravel/framework ${{ matrix.laravel_version }} --prefer-dist --no-progress --no-audit
 
     #- name: PHPStan
     #  run: vendor/bin/phpstan analyze

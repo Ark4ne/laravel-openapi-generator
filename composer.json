@@ -40,8 +40,5 @@
       ]
     }
   },
-  "minimum-stability": "stable",
-  "policy" : {
-    "advisories" : { "block": false }
-  }
+  "minimum-stability": "stable"
 }
