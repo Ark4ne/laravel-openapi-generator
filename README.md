@@ -2,33 +2,31 @@ Laravel OpenAPI Generator
 =========================
 
 Generates OpenAPI 3.0, 3.1 and 3.2 documents from a Laravel application: routes, controllers, form requests,
-validation rules and API resources.
+validation rules and API resources. It reads what the application already declares, runs the resources on sampled
+models, and writes each document in the OpenAPI version you choose with
+[`ark4ne/openapi-writer`](https://github.com/Ark4ne/openapi-writer).
 
-> **Status: V1 rewrite in progress** on the `v1.0` branch. Nothing here is usable yet. For the current release,
-> see the [`v0.6` branch](https://github.com/Ark4ne/laravel-openapi-generator/tree/v0.6).
-> The roadmap and its progress are in [`docs/`](docs/README.md) (written in French).
+- **No annotations to maintain**: the return types, the PHPDoc, the form requests and the middlewares are the
+  documentation; PHP attributes complete what cannot be inferred.
+- **Every OpenAPI version**: 3.0.0 → 3.0.4, 3.1.0 → 3.1.2, 3.2.0, chosen per document (3.1.2 by default).
+- **Errors documented**: 401, 403, 404, 419, 422 and 429 from the middlewares, the bindings and the validation;
+  error responses from the `@throws` of the actions.
+- **Extensible**: priority-ordered extractors, rule mappers, samplers and passes, built through the container.
+- **Debuggable**: diagnostics grouped by route, `openapi:inspect` to see what the generator understood of a route.
 
 ## Requirements
 
 - PHP 8.3+
 - Laravel 13
-- `ark4ne/openapi-writer` 1.0, which writes the documents
+- `ark4ne/openapi-writer` 1.0, installed with the package
 
 Optional:
 
-- `ark4ne/laravel-json-api` ^1.9 to document JSON:API resources
+- `opis/json-schema` to validate the generated documents against the official OpenAPI schemas (recommended)
 - `symfony/yaml` to write YAML
-- `opis/json-schema` to validate the generated documents against the official OpenAPI schemas
+- `ark4ne/laravel-json-api` ^1.9 to document JSON:API resources
 
-## What changes in V1
-
-- `goldspecdigital/oooas` (unmaintained, OpenAPI 3.0 only) is replaced by `ark4ne/openapi-writer`: the OpenAPI
-  version is chosen per document (3.0.x, 3.1.x or 3.2.0, 3.1.2 by default).
-- Routes, requests, rules and responses are read by priority-ordered extractors that applications can extend.
-- PHP attributes replace the `@oa-*` PHPDoc tags.
-- The `versions` configuration key becomes `documents`.
-
-An upgrade guide (`UPGRADE.md`) will ship with 1.0.0.
+Upgrading from 0.6? See [UPGRADE.md](UPGRADE.md).
 
 ## Installation
 
@@ -38,8 +36,180 @@ php artisan vendor:publish --tag=openapi-config
 php artisan openapi:generate
 ```
 
-The service provider is discovered automatically. `php artisan about` shows the version, the documents and whether
-the JSON:API integration is enabled.
+The service provider is discovered automatically. The document is written on the default disk, in
+`openapi/openapi-v1.json` with the published configuration. `php artisan about` shows the version, the documents
+and whether the JSON:API integration is enabled.
+
+## How it documents an endpoint
+
+```php
+use App\Http\Requests\StoreBookRequest;
+use App\Http\Resources\BookResource;
+use App\Models\Book;
+use Ark4ne\OpenApi\Attributes\Response;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Pagination\LengthAwarePaginator;
+
+final class BookController
+{
+    /**
+     * List the books.
+     *
+     * Sorted by title.
+     *
+     * @return AnonymousResourceCollection<BookResource>
+     */
+    #[Response(200, resource: BookResource::class, paginator: LengthAwarePaginator::class)]
+    public function index(): AnonymousResourceCollection
+    {
+        return BookResource::collection(Book::query()->orderBy('title')->paginate());
+    }
+
+    /**
+     * Add a book.
+     *
+     * @throws \App\Exceptions\DuplicateIsbnException
+     */
+    public function store(StoreBookRequest $request): BookResource
+    {
+        return new BookResource(Book::query()->create($request->validated()));
+    }
+}
+```
+
+| What the generator reads | What it writes |
+| --- | --- |
+| `Route::post('api/books', …)->middleware('auth:sanctum')` | the path, the operation id (`books.store`), the Sanctum security scheme and a 401 |
+| The PHPDoc | the summary (first line) and the description (the rest); `@deprecated` |
+| `StoreBookRequest::rules()` | the request body (the query for `GET`, `HEAD`, `DELETE`), with every constraint, and a 422 |
+| The return type `BookResource` | a 201 (`POST`) with the `Book` component, built by running the resource on a sampled `Book` |
+| `@throws DuplicateIsbnException` | the response the exception declares with `#[Response(409)]` |
+| A bound model (`Book $book`) | the type of the path parameter and a 404 |
+| `#[Response]` | what the return type cannot tell: here the paginator, giving `data`, `links` and `meta` |
+
+Resources are sampled from the models: with a factory, inside a transaction rolled back at the end of the
+generation; without, from fake values typed by the casts, the `@property` tags and the columns of the table. A key
+of `toArray()` computed with `when()` or `whenLoaded()` is optional, the others are required.
+
+## Attributes
+
+All in `Ark4ne\OpenApi\Attributes`; on the controller class they apply to every action, the action overrides them.
+
+| Attribute | Use |
+| --- | --- |
+| `#[Operation(summary:, description:, operationId:, tags:, deprecated:, externalDocs:)]` | Replaces the metadata given by the PHPDoc and the strategies |
+| `#[Tag('books', description:, parent:, summary:, kind:)]` | Adds and describes a tag; `parent` gives the tag groups |
+| `#[Response(201, resource:, type:, headers:, paginator:, mediaType:, description:, example:)]` | Declares the response of a status (repeatable), on an action or an exception class |
+| `#[RequestBody(type:, resource:, mediaType:, description:, required:)]` | Replaces or completes the body |
+| `#[QueryParameter]`, `#[Header]`, `#[Cookie]`, `#[PathParameter]` | Adds or completes a parameter (`name`, `type`, `description`, `required`, `example`) |
+| `#[Security('sanctum', scopes: [])]` | Alternative security requirements, replacing those of the middlewares |
+| `#[Exclude]` | Leaves a controller, an action or a closure route out |
+| `#[Webhook('order')]`, `#[Callback('paid', url:, webhook:)]` | Requests the application sends (see [Webhooks](#webhooks-and-callbacks)) |
+| `#[ResourceFactory(factory:, parameters:, method:)]` | Builds the sample of a resource that does not receive a model |
+| `#[SchemaName('Book')]` | Name of the component of a resource or an enum |
+
+Types are PHPDoc types: `int`, `positive-int`, `list<string>`, `'asc'|'desc'`, `array{id: int, tags?: list<string>}`,
+a class. Every parameter is described in the [agent skill reference](skills/laravel-openapi-generator/reference.md).
+
+## Requests
+
+The rules of a form request give the fields: `required`, `nullable`, `sometimes`, `string`, `integer`, `numeric`,
+`boolean`, `array`, `in:`, `Rule::in()`, `Rule::enum()`, `min:`, `max:`, `size:`, `between:`, `regex:`, `email`,
+`url`, `uuid`, `date`, `date_format:`, `file`, `image`, `mimes:`, `File`, `Password`, `required_if:` and the other
+conditions (written in the description)… Unknown rules are reported as infos.
+
+A request completes or replaces its rules with `DescribesRequest`; a rule object of the application describes
+itself with `DescribesRule`:
+
+```php
+use Ark4ne\OpenApi\Extraction\Requests\DescribesRequest;
+use Ark4ne\OpenApi\Extraction\Requests\RequestDescriber;
+
+final class SearchRequest extends FormRequest implements DescribesRequest
+{
+    public function rules(): array
+    {
+        return ['q' => 'required|string|min:2'];
+    }
+
+    public function describe(RequestDescriber $request): RequestDescriber
+    {
+        return $request->header('X-Tenant', 'required|uuid', 'Tenant of the request');
+    }
+}
+```
+
+## Errors
+
+| Response | Comes from |
+| --- | --- |
+| 401 | `auth`, `auth:<guard>`, `auth.basic` |
+| 403 | `can:`, `signed`, a form request redefining `authorize()`, `@throws AuthorizationException` |
+| 404 | a bound model or backed enum in the path, `@throws ModelNotFoundException` |
+| 419 | the CSRF middleware |
+| 422 | a form request, `@throws ValidationException` |
+| 429 | `throttle` (with the rate limit headers) |
+| any | `@throws` of the action: `#[Response]` on the exception class, `exceptions.map`, or Laravel and Symfony's rendering |
+
+They are shared responses (`components.responses`) with the `Error` and `ValidationError` bodies of Laravel.
+
+## Webhooks and callbacks
+
+A webhook is a request the application **sends**. Describe it as a route whose action receives it (its form request
+is the payload) and mark it `#[Webhook]`: it is written under `webhooks` (3.1+, or `x-webhooks` before with the
+`redoc` vendor extensions), never under `paths`. `#[Callback]` documents a request sent back to a URL given by the
+client, reusing a webhook or describing its own payload.
+
+These routes exist only to be documented. Do not let them answer: register them in the console only, or protect them
+with a middleware that refuses every request:
+
+```php
+// routes/webhooks.php, loaded from routes/api.php
+if (app()->runningInConsole()) {
+    Route::post('webhooks/orders/paid', [OrderWebhooks::class, 'paid']);
+}
+```
+
+## JSON:API
+
+With [`ark4ne/laravel-json-api`](https://github.com/Ark4ne/laravel-json-api) installed, its resources are written in
+`application/vnd.api+json` as resource objects (`id`, `type`, `attributes`, `relationships`, `links`, `meta`) with
+their `included` resources, its descriptors (`$this->string()`, `$this->date()`, `$this->struct()`…) give the types of
+the attributes, and its `Includes` and `Fields` rules give the `include` and `fields[type]` parameters. Set
+`integrations.json_api.errors` to `true` if the application renders its errors as JSON:API error documents.
+
+## Extending
+
+Every registry takes the classes listed in `extensions` (or tagged in the container by a package), built through the
+container:
+
+| Interface | For |
+| --- | --- |
+| `Extraction\Rules\RuleMapper` | a validation rule the package does not know (`phone`) |
+| `Extraction\Responses\ResponseExtractor` | a return type the package does not know |
+| `Extraction\Requests\RequestExtractor` | another source of parameters or bodies |
+| `Extraction\Operations\OperationExtractor` | other metadata of the operations |
+| `Sampling\Sampler` | building the samples of a class |
+| `Generation\Pass` | a change over the whole document |
+| `Generation\MiddlewareMapper` | what a middleware means (`middlewares` key) |
+
+```php
+final class PhoneRuleMapper implements RuleMapper
+{
+    public function handles(): array
+    {
+        return ['phone'];
+    }
+
+    public function map(RuleInvocation $rule, FieldDescription $field, GenerationContext $context): FieldDescription
+    {
+        return $field->schema($field->schema->type('string')->pattern('^\+[1-9][0-9]{6,14}$'));
+    }
+}
+
+// config/openapi.php
+'extensions' => ['rule_mappers' => [App\Docs\PhoneRuleMapper::class]],
+```
 
 ## Commands
 
@@ -98,6 +268,37 @@ the expected value and the received one (`openapi.documents.v1.openapi: expected
 Third-party packages add extensions with container tags: `openapi.operation-extractors`,
 `openapi.request-extractors`, `openapi.rule-mappers`, `openapi.response-extractors`, `openapi.samplers`,
 `openapi.passes`.
+
+## Agent skill
+
+The package ships a skill for coding agents in [`skills/laravel-openapi-generator/`](skills/laravel-openapi-generator/SKILL.md):
+the rules, the reference of every attribute, configuration key and extension point, and tested recipes. Point your
+agent to `vendor/ark4ne/laravel-openapi-generator/skills/laravel-openapi-generator/`.
+
+## FAQ
+
+**A route is missing from the document.** It is not matched by `routes.include` (`api/*` by default), or it is
+excluded (`routes.exclude`, `#[Exclude]`, a redirect or view route, an internal route of Laravel or of a package).
+`php artisan openapi:inspect <route>` tells whether it is in the document.
+
+**A response has no schema.** The action has no return type, or returns an untyped `JsonResponse`: type its return
+(`@return`) or declare `#[Response(type: 'array{…}')]`. `openapi:generate -v` lists these cases.
+
+**A resource is empty, or a property is missing.** `toArray()` failed on the sampled model: the warning says why.
+Give the model a factory, `@property` tags or casts, or the resource a `#[ResourceFactory]`.
+
+**Does the generation touch the database?** Factories run inside a transaction rolled back at the end, on the
+default connection when its driver is in `sampling.connections`; otherwise models are only made, never saved. Set
+`sampling.transactions` to `false` to never write.
+
+**How do I keep the documentation from degrading?** Run `php artisan openapi:generate --strict --dry-run` in CI: it
+fails on the first warning.
+
+**Can I serve the document (Swagger UI, Redoc, Scalar)?** Not from this package: point a dedicated package or a static
+viewer to the generated file.
+
+**Which version should I write?** 3.1.2 unless a consumer needs another: 3.0.x for older tools and code generators,
+3.2.0 for its new features (tag hierarchy, `query` method, `$self`). One configuration can write several documents.
 
 ## Contributing
 

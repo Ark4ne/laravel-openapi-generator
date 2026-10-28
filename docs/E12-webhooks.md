@@ -91,7 +91,7 @@ gardé (validé le 2026-10-28) : pas de lecture de `#[Webhook]` sur des contrôl
 explique comment protéger ou désactiver ces routes (middleware qui refuse les appels, route enregistrée seulement
 pendant la génération ou en local).
 
-- [ ] Documentation : protéger ou désactiver les routes de webhooks (README et guide, E11)
+- [x] Documentation : protéger ou désactiver les routes de webhooks (README et guide, E11)
 
 ## Critères de sortie
 

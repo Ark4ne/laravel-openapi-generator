@@ -10,22 +10,22 @@ pour les agents.
 ### Dépendances
 
 - [ ] `ark4ne/openapi-writer` 1.0.0 publié sur Packagist ; dépôt `path` retiré de `composer.json`
-- [ ] Contraintes vérifiées au plus bas et au plus haut ; Laravel 14 ajouté s'il est sorti
+- [x] Contraintes vérifiées au plus bas et au plus haut ; Laravel 14 ajouté s'il est sorti
 
 ### Documentation
 
-- [ ] `UPGRADE.md` : configuration v0.6 → V1 (table de E1), balises `@oa-*` → attributs, parsers → extracteurs,
+- [x] `UPGRADE.md` : configuration v0.6 → V1 (table de E1), balises `@oa-*` → attributs, parsers → extracteurs,
       transformateurs → `MiddlewareMapper`, `DescribableRequest`
-- [ ] `README.md` réécrit : installation, configuration, attributs, extensions, FAQ
-- [ ] Skill pour agents `skills/laravel-openapi-generator/` (en anglais, livré dans le paquet, exemples testés),
+- [x] `README.md` réécrit : installation, configuration, attributs, extensions, FAQ
+- [x] Skill pour agents `skills/laravel-openapi-generator/` (en anglais, livré dans le paquet, exemples testés),
       sur le modèle de celui du writer
-- [ ] `CHANGELOG.md` de la 1.0.0
+- [x] `CHANGELOG.md` de la 1.0.0
 
 ### Qualité
 
 - [ ] Couverture ≥ 90 % des lignes, MSI ≥ 80 %
 - [ ] CI verte sur toute la matrice
-- [ ] Génération vérifiée sur une application réelle (Sanctum + JSON:API), documents validés en 3.0, 3.1 et 3.2
+- [x] Génération vérifiée sur une application réelle (Sanctum + JSON:API), documents validés en 3.0, 3.1 et 3.2
 
 ### Publication
 
@@ -35,3 +35,43 @@ pour les agents.
 ## Critères de sortie
 
 - [ ] `composer require ark4ne/laravel-openapi-generator:^1.0` fonctionne sur un projet Laravel 13 neuf
+
+## Notes de réalisation
+
+- **Contraintes.** Les contraintes sont vérifiées au plus bas (`--prefer-lowest`) et au plus haut à chaque épique.
+  Laravel 14 n'est pas sorti au 29/10/2026 (dernière version : 13.39).
+- **`UPGRADE.md`.**
+  - Il reprend la table de configuration de l'E1, en anglais.
+  - Il couvre aussi la seule balise de la v0.6 (`@oa-response-status`) et les arguments de son `#[Response]`, avec
+    leurs remplaçants.
+  - Il traite `DescribableRequest` → `DescribesRequest`, `CustomRuleParser` → `DescribesRule`, les parsers et
+    transformateurs → les points d'extension, et ce qui change dans les documents.
+- **README.** Il est réécrit : ce que le générateur lit et écrit, attributs, requêtes, erreurs, webhooks (et comment
+  ne pas les servir), JSON:API, extensions, commandes, configuration, skill, FAQ.
+- **Skill.** `skills/laravel-openapi-generator/` est livré dans le paquet : `SKILL.md`, `reference.md`, `recipes.md`.
+  `tests/Feature/Skill/SkillTest.php` vérifie que :
+  - chaque recette s'exécute dans une application et donne un document valide en 3.0, 3.1 et 3.2, avec des assertions
+    propres à chaque recette ;
+  - la référence nomme chaque attribut et chacun de ses paramètres, chaque clé de configuration et chaque point
+    d'extension ;
+  - les liens entre fichiers se résolvent.
+- **Couverture.** 92,37 % des lignes. Depuis PHPUnit 12, seules les classes déclarées par `#[CoversClass]` /
+  `#[CoversNamespace]` sont mesurées ; les tests qui exercent les objets de description, les schémas de sécurité, les
+  portées, le chargeur de relations, les valeurs de configuration, les réponses partagées, les squelettes JSON:API et
+  les types MIME les déclarent désormais (87,75 % avant).
+- **Mutation.** Le MSI n'est pas mesuré : Infection n'est pas installé sur la machine de développement (`composer
+  mutation` l'attend globalement). Ce point reste ouvert.
+- **Application réelle.** Squelette `laravel/laravel` 13.17, Sanctum (`install:api`), `ark4ne/laravel-json-api` 1.9
+  et `opis/json-schema` :
+  - un modèle `Post` avec fabrique et énumération, ressources JSON:API avec relations, requêtes `Includes`, `Fields` et
+    `Rule::enum()`, routes publiques et protégées (`auth:sanctum`, `throttle:api`) ;
+  - trois documents (3.0.4 avec `redoc`, 3.1.2, 3.2.0) écrits et validés contre les schémas officiels, sans
+    avertissement ; `openapi:generate --strict --dry-run` réussit.
+  - Constat : les règles validées dans le contrôleur (`$request->validate()`) ne sont pas lues ; le README et le
+    skill le disent.
+- **Restent ouverts**, hors de portée de cette session :
+  - la publication du writer sur Packagist et le retrait du dépôt `path` ;
+  - la CI sur GitHub (rien n'est poussé) et la mesure du MSI ;
+  - la fusion dans `master`, le tag `v1.0.0` et la politique de maintenance de la v0.6 ;
+  - `composer require …:^1.0` sur un projet neuf, qui attend la publication.
+

@@ -9,6 +9,7 @@ use Ark4ne\OpenApi\Extraction\Rules\FieldsBuilder;
 use Ark4ne\OpenApi\Extraction\Rules\FieldTree;
 use Ark4ne\OpenApi\Extraction\Rules\RuleMappers;
 use Ark4ne\OpenApi\Extraction\Rules\RuleParser;
+use Ark4ne\OpenApi\Support\MimeTypes;
 use Ark4ne\OpenApi\Tests\Fixtures\Requests\UnknownRule;
 use Ark4ne\OpenApi\Tests\Fixtures\Requests\UppercaseRule;
 use Ark4ne\OpenApi\Tests\Fixtures\Routing\Enums\Priority;
@@ -19,6 +20,7 @@ use Closure;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\File;
 use Illuminate\Validation\Rules\Password;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversNamespace;
 use PHPUnit\Framework\Attributes\DataProvider;
 
@@ -29,6 +31,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  * top-level keys), `required`, `conditions`, `file`, `contentTypes`, `forbidden`.
  */
 #[CoversNamespace('Ark4ne\OpenApi\Extraction\Rules')]
+#[CoversClass(MimeTypes::class)]
 final class RuleMappersTest extends TestCase
 {
     private const ULID = '^[0-7][0-9a-hjkmnp-tv-zA-HJKMNP-TV-Z]{25}$';

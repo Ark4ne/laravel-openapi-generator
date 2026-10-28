@@ -19,6 +19,7 @@ use Ark4ne\OpenApi\Generation\Passes\NotFoundResponsePass;
 use Ark4ne\OpenApi\Generation\Passes\ThrottleResponsePass;
 use Ark4ne\OpenApi\Generation\Passes\ThrownExceptionResponsePass;
 use Ark4ne\OpenApi\Generation\Passes\ValidationErrorResponsePass;
+use Ark4ne\OpenApi\Generation\SharedResponses;
 use Ark4ne\OpenApi\Tests\Fixtures\Integrations\TestErrorBodies;
 use Ark4ne\OpenApi\Tests\Fixtures\Routing\Models\User;
 use Ark4ne\OpenApi\Tests\Support\Descriptions;
@@ -34,6 +35,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 #[CoversClass(NotFoundResponsePass::class)]
 #[CoversClass(ThrottleResponsePass::class)]
 #[CoversClass(LaravelErrorBodies::class)]
+#[CoversClass(SharedResponses::class)]
 final class ErrorResponsePassesTest extends TestCase
 {
     public function test_responses_of_one_status_are_merged_with_their_causes(): void

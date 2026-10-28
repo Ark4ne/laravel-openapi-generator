@@ -12,6 +12,7 @@ use Ark4ne\OpenApi\Description\ResponseDescription;
 use Ark4ne\OpenApi\Description\ResponseOrigin;
 use Ark4ne\OpenApi\Extraction\OperationContextFactory;
 use Ark4ne\OpenApi\Extraction\Responses\OperationResponses;
+use Ark4ne\OpenApi\Sampling\RelationLoader;
 use Ark4ne\OpenApi\Sampling\Samplers;
 use Ark4ne\OpenApi\Tests\Fixtures\Responses\ChildResponseController;
 use Ark4ne\OpenApi\Tests\Fixtures\Responses\Exceptions\PaymentRequiredException;
@@ -22,6 +23,7 @@ use Ark4ne\OpenApi\Tests\Support\Schemas;
 use Ark4ne\OpenApi\Tests\Unit\Sampling\SamplingTestCase;
 use Ark4ne\OpenApi\Types\TypeResolver;
 use Ark4ne\OpenApiWriter\Objects\Schema;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversNamespace;
 
 /**
@@ -29,6 +31,7 @@ use PHPUnit\Framework\Attributes\CoversNamespace;
  */
 #[CoversNamespace('Ark4ne\OpenApi\Extraction\Responses')]
 #[CoversNamespace('Ark4ne\OpenApi\Extraction\Exceptions')]
+#[CoversClass(RelationLoader::class)]
 final class OperationResponsesTest extends SamplingTestCase
 {
     private const ARTICLE = '{"type":"object","properties":{"id":{"type":"integer"},"title":{"type":"string"},"author":{"$ref":"#/components/schemas/Author"}},"required":["id","title"]}';

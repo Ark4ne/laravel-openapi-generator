@@ -17,8 +17,10 @@ use Ark4ne\OpenApi\Generation\Middlewares\BasicAuthMiddlewareMapper;
 use Ark4ne\OpenApi\Generation\Middlewares\CsrfMiddlewareMapper;
 use Ark4ne\OpenApi\Generation\Middlewares\PassportScopesMiddlewareMapper;
 use Ark4ne\OpenApi\Generation\Middlewares\SanctumAbilitiesMiddlewareMapper;
+use Ark4ne\OpenApi\Generation\Middlewares\Scopes;
 use Ark4ne\OpenApi\Generation\Middlewares\SignedMiddlewareMapper;
 use Ark4ne\OpenApi\Generation\Passes\MiddlewareSecurityPass;
+use Ark4ne\OpenApi\Generation\SecuritySchemes;
 use Ark4ne\OpenApi\Tests\Support\Descriptions;
 use Ark4ne\OpenApi\Tests\TestCase;
 use Ark4ne\OpenApiWriter\Enums\HttpMethod;
@@ -37,6 +39,8 @@ use PHPUnit\Framework\Attributes\DataProvider;
 #[CoversClass(SignedMiddlewareMapper::class)]
 #[CoversClass(PassportScopesMiddlewareMapper::class)]
 #[CoversClass(SanctumAbilitiesMiddlewareMapper::class)]
+#[CoversClass(SecuritySchemes::class)]
+#[CoversClass(Scopes::class)]
 final class MiddlewareSecurityPassTest extends TestCase
 {
     /**

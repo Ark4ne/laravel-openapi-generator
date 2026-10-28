@@ -30,8 +30,10 @@ use Ark4ne\OpenApiWriter\Enums\Version;
 use Ark4ne\OpenApiWriter\Objects\Schema;
 use Ark4ne\OpenApiWriter\Objects\SecurityScheme;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNamespace;
 
 #[CoversClass(DocumentBuilder::class)]
+#[CoversNamespace('Ark4ne\OpenApi\Description')]
 final class DocumentBuilderTest extends TestCase
 {
     public function test_a_complete_description_is_written_field_for_field(): void

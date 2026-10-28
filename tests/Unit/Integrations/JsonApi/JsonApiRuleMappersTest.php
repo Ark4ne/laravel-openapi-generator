@@ -10,6 +10,7 @@ use Ark4ne\OpenApi\Description\FieldDescription;
 use Ark4ne\OpenApi\Extraction\Rules\RuleInvocation;
 use Ark4ne\OpenApi\Integrations\JsonApi\FieldsRuleMapper;
 use Ark4ne\OpenApi\Integrations\JsonApi\IncludesRuleMapper;
+use Ark4ne\OpenApi\Integrations\JsonApi\Skeletons;
 use Ark4ne\OpenApi\Tests\Fixtures\JsonApi\Resources\PostResource;
 use Ark4ne\OpenApi\Tests\Fixtures\JsonApi\Resources\UserResource;
 use Ark4ne\OpenApi\Tests\Fixtures\Types\BrokenJsonApiResource;
@@ -24,6 +25,7 @@ use stdClass;
 #[CoversClass(IncludesRuleMapper::class)]
 #[CoversClass(FieldsRuleMapper::class)]
 #[Group('json-api')]
+#[CoversClass(Skeletons::class)]
 final class JsonApiRuleMappersTest extends TestCase
 {
     public function test_includes_lists_the_relationship_paths_without_going_back(): void

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Ark4ne\OpenApi\Tests\Unit\Configuration;
 
 use Ark4ne\OpenApi\Configuration\Configuration;
+use Ark4ne\OpenApi\Configuration\ConfigurationValues;
 use Ark4ne\OpenApi\Configuration\ExtensionsConfiguration;
 use Ark4ne\OpenApi\Configuration\InfoConfiguration;
 use Ark4ne\OpenApi\Configuration\IntegrationsConfiguration;
@@ -37,6 +38,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 #[CoversClass(\Ark4ne\OpenApi\Configuration\DocumentConfiguration::class)]
 #[CoversClass(ExtensionsConfiguration::class)]
 #[CoversClass(IntegrationsConfiguration::class)]
+#[CoversClass(ConfigurationValues::class)]
 final class ConfigurationTest extends TestCase
 {
     public function test_the_published_configuration_is_read(): void

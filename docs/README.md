@@ -12,7 +12,7 @@ de ses livrables ; le tableau ci-dessous en est calculé automatiquement (`compo
 ## Progression
 
 <!-- progress:start -->
-**Avancement global : `█████████░` 94 % (254 / 268 livrables)**
+**Avancement global : `█████████░` 97 % (261 / 268 livrables)**
 
 | Épique | Statut | Avancement | Livrables |
 | --- | --- | --- | --- |
@@ -27,8 +27,8 @@ de ses livrables ; le tableau ci-dessous en est calculé automatiquement (`compo
 | [E8 — Écriture du document](E08-document-writing.md) | Terminé | `██████████` 100 % | 21 / 21 |
 | [E9 — Intégration JSON:API](E09-json-api.md) | Terminé | `██████████` 100 % | 11 / 11 |
 | [E10 — Intégration Laravel et expérience développeur](E10-laravel-dx.md) | Terminé | `██████████` 100 % | 12 / 12 |
-| [E11 — Migration, documentation et version 1.0.0](E11-release.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 12 |
-| [E12 — Webhooks et callbacks](E12-webhooks.md) | En cours | `█████████░` 93 % | 14 / 15 |
+| [E11 — Migration, documentation et version 1.0.0](E11-release.md) | En cours | `█████░░░░░` 50 % | 6 / 12 |
+| [E12 — Webhooks et callbacks](E12-webhooks.md) | Terminé | `██████████` 100 % | 15 / 15 |
 <!-- progress:end -->
 
 ## Mettre à jour la progression
