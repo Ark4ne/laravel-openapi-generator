@@ -45,4 +45,5 @@ choisie, et rendre compte de sa validité.
 ## Critères de sortie
 
 - [ ] Tests unitaires du `DocumentBuilder` et du `DocumentWriter`
-- [ ] Chaque scénario fonctionnel écrit et valide ses documents attendus en 3.0, 3.1 et 3.2
+- [ ] Chaque scénario fonctionnel écrit et valide ses documents attendus en 3.0, 3.1 et 3.2, y compris le scénario
+      « routes » d'E2 (`tests/Feature/Routes/`)

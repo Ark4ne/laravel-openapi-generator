@@ -57,12 +57,22 @@ return [
             'servers' => [],
 
             /*
-            | Routes of the document: shell masks on the URI.
+            | Routes of the document. `include` and `exclude` take shell masks
+            | on the URI (`['api/*']`), or a map of masks by `uri`, `name`,
+            | `domain` and `middleware` (declared name or class): a route
+            | matches when one mask matches it. An empty `include` keeps every
+            | route. `internal` lists the URIs of Laravel and of common
+            | packages that are never documented. Redirects, views and the
+            | fallback route are always left out, like `#[Exclude]`.
+            |
+            | order: registration | path
             */
             'routes' => [
                 'include' => ['api/*'],
                 'exclude' => [],
                 'ignored_methods' => ['HEAD'],
+                'internal' => Ark4ne\OpenApi\Configuration\RouteFilterConfiguration::INTERNAL,
+                'order' => 'registration',
             ],
 
             /*

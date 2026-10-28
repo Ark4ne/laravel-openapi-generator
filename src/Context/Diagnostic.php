@@ -23,6 +23,8 @@ final readonly class Diagnostic implements Stringable
      */
     public function __toString(): string
     {
-        return '';
+        $where = $this->route === null ? $this->stage->value : "{$this->stage->value} {$this->route}";
+
+        return "[{$this->level->value}] {$where}: {$this->message}";
     }
 }

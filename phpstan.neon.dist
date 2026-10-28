@@ -18,6 +18,10 @@ parameters:
         -
             identifier: return.unusedType
             path: src/*
+        # Description::copy() rebuilds the final subclass from its promoted properties, passed by name.
+        -
+            identifier: new.static
+            path: src/Description/Description.php
 
     # Facades, global helpers and the container belong to src/Laravel/ (docs/architecture.md §2).
     disallowedNamespaces:

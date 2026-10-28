@@ -13,9 +13,11 @@ abstract readonly class Description
 {
     /**
      * A copy of this object with the given promoted properties replaced, by name.
+     *
+     * Every property of a description is promoted by its constructor, so the constructor accepts all of them by name.
      */
     protected function copy(mixed ...$changes): static
     {
-        return $this;
+        return new static(...[...get_object_vars($this), ...$changes]);
     }
 }

@@ -19,13 +19,27 @@ final class Diagnostics implements Countable, IteratorAggregate
     /** @var list<Diagnostic> */
     private array $diagnostics = [];
 
-    public function add(Diagnostic ...$diagnostics): void {}
+    public function add(Diagnostic ...$diagnostics): void
+    {
+        foreach ($diagnostics as $diagnostic) {
+            $this->diagnostics[] = $diagnostic;
+        }
+    }
 
-    public function info(Stage $stage, string $message, ?string $route = null): void {}
+    public function info(Stage $stage, string $message, ?string $route = null): void
+    {
+        $this->add(new Diagnostic(DiagnosticLevel::Info, $stage, $message, $route));
+    }
 
-    public function warning(Stage $stage, string $message, ?string $route = null): void {}
+    public function warning(Stage $stage, string $message, ?string $route = null): void
+    {
+        $this->add(new Diagnostic(DiagnosticLevel::Warning, $stage, $message, $route));
+    }
 
-    public function error(Stage $stage, string $message, ?string $route = null): void {}
+    public function error(Stage $stage, string $message, ?string $route = null): void
+    {
+        $this->add(new Diagnostic(DiagnosticLevel::Error, $stage, $message, $route));
+    }
 
     /**
      * @return list<Diagnostic> in the order they were reported
@@ -40,7 +54,7 @@ final class Diagnostics implements Countable, IteratorAggregate
      */
     public function ofLevel(DiagnosticLevel $level): array
     {
-        return [];
+        return array_values(array_filter($this->diagnostics, static fn(Diagnostic $diagnostic): bool => $diagnostic->level === $level));
     }
 
     /**
@@ -48,17 +62,23 @@ final class Diagnostics implements Countable, IteratorAggregate
      */
     public function has(DiagnosticLevel $level): bool
     {
+        foreach ($this->diagnostics as $diagnostic) {
+            if ($diagnostic->level->isAtLeast($level)) {
+                return true;
+            }
+        }
+
         return false;
     }
 
     public function isEmpty(): bool
     {
-        return true;
+        return $this->diagnostics === [];
     }
 
     public function count(): int
     {
-        return 0;
+        return count($this->diagnostics);
     }
 
     /**
@@ -66,6 +86,6 @@ final class Diagnostics implements Countable, IteratorAggregate
      */
     public function getIterator(): Traversable
     {
-        return new ArrayIterator([]);
+        return new ArrayIterator($this->diagnostics);
     }
 }

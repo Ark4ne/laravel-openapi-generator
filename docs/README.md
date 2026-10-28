@@ -12,13 +12,13 @@ de ses livrables ; le tableau ci-dessous en est calculé automatiquement (`compo
 ## Progression
 
 <!-- progress:start -->
-**Avancement global : `██░░░░░░░░` 20 % (50 / 239 livrables)**
+**Avancement global : `██░░░░░░░░` 29 % (71 / 242 livrables)**
 
 | Épique | Statut | Avancement | Livrables |
 | --- | --- | --- | --- |
 | [E0 — Branche, socle et outillage](E00-bootstrap.md) | En cours | `█████████░` 95 % | 22 / 23 |
 | [E1 — Architecture et contrats](E01-contracts.md) | Terminé | `██████████` 100 % | 26 / 26 |
-| [E2 — Découverte des routes](E02-route-discovery.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 18 |
+| [E2 — Découverte des routes](E02-route-discovery.md) | Terminé | `██████████` 100 % | 21 / 21 |
 | [E3 — Métadonnées d'opération et types](E03-operation-metadata.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 19 |
 | [E4 — Requêtes et règles de validation](E04-requests.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 26 |
 | [E5 — Échantillonnage et inférence de schémas](E05-sampling.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 19 |
@@ -90,4 +90,5 @@ E4 et E5/E6 peuvent avancer en parallèle une fois E3 terminé.
 | 2026-10-28 | Callbacks d'opération (3.0+) : `#[Callback]` répétable, payload partagé avec un webhook ou décrit par une ressource ou un type |
 | 2026-10-28 | `x-webhooks` (avant 3.1) et `x-tagGroups` (avant 3.2) portés par `openapi-writer`, en option désactivée par défaut : livré par le writer (`VendorExtensions`, `09ec7af`), activé par la clé `vendor_extensions` du document |
 | 2026-10-28 | Éléments de la spec ajoutés aux épiques ([spec-coverage.md](spec-coverage.md)), sauf priorité basse (`#[Link]`, exemples nommés, base64) |
+| 2026-10-28 | Découverte (E2) : une `RouteDefinition` par méthode et par chemin ; masques `include` / `exclude` par URI, nom, domaine ou middleware ; `QUERY` et méthodes non standard retirées avant 3.2 en permissif, laissées au writer en strict |
 | 2026-10-28 | Tests : PHPUnit, Orchestra Testbench, fixtures JSON validées contre le schéma officiel ; couverture ≥ 90 % des lignes, MSI ≥ 80 % |

@@ -12,6 +12,8 @@ use Ark4ne\OpenApiWriter\Enums\HttpMethod;
 final readonly class OperationDescription extends Description
 {
     /**
+     * @param HttpMethod|string $method a fixed method of a Path Item, or another method in upper case (`PURGE`,
+     *        `additionalOperations` from 3.2)
      * @param string $path OpenAPI path (`/users/{user}`), or the webhook name for a webhook
      * @param string|null $route route name, or `Controller@method`, for the diagnostics
      * @param list<string> $middlewares resolved middlewares of the route
@@ -24,7 +26,7 @@ final readonly class OperationDescription extends Description
      * @param array<string, mixed> $extensions `x-*` extensions
      */
     protected function __construct(
-        public HttpMethod $method,
+        public HttpMethod|string $method,
         public string $path,
         public RequestDescription $request,
         public ?string $route = null,
@@ -43,7 +45,7 @@ final readonly class OperationDescription extends Description
         public ?string $webhook = null,
     ) {}
 
-    public static function create(HttpMethod $method, string $path): self
+    public static function create(HttpMethod|string $method, string $path): self
     {
         return new self($method, $path, RequestDescription::create());
     }

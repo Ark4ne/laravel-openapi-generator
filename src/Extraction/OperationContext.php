@@ -21,7 +21,7 @@ final readonly class OperationContext
      */
     public function __construct(
         public RouteDefinition $route,
-        public HttpMethod $method,
+        public HttpMethod|string $method,
         public string $path,
         public ?ReflectionFunctionAbstract $action = null,
         public ?Type $requestType = null,

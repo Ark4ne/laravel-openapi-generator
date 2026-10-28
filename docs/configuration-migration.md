@@ -17,9 +17,11 @@ Les clés V1 sont en `snake_case` (convention Laravel) ; celles de la v0.6 étai
 | `versions.<v>.title` | `documents.<v>.info.title` | |
 | `versions.<v>.description` | `documents.<v>.info.description` | |
 | — | `documents.<v>.info.version`, `summary`, `terms_of_service`, `contact`, `license` | La v0.6 écrivait la clé de version comme `info.version` |
-| `versions.<v>.routes` | `documents.<v>.routes.include` | |
-| — | `documents.<v>.routes.exclude` | |
+| `versions.<v>.routes` | `documents.<v>.routes.include` | Même liste de masques d'URI ; ou map `uri` / `name` / `domain` / `middleware` |
+| — | `documents.<v>.routes.exclude` | Même forme que `include` |
 | `versions.<v>.ignore-verbs` | `documents.<v>.routes.ignored_methods` | |
+| — | `documents.<v>.routes.internal` | Routes de Laravel et des paquets jamais documentées (`up`, `sanctum/csrf-cookie`…) |
+| — | `documents.<v>.routes.order` | `registration` (défaut) ou `path` |
 | `versions.<v>.name-by` (`by`, `regex`) | `documents.<v>.strategies.summary` (`by`, `pattern`) | `description` devient `doc` |
 | `versions.<v>.tag-by` | `documents.<v>.strategies.tags` | `regex` devient `pattern` |
 | `versions.<v>.group-by` | `documents.<v>.strategies.groups` | `Tag.parent` en 3.2, `x-tagGroups` avant |

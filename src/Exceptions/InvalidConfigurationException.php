@@ -13,6 +13,16 @@ final class InvalidConfigurationException extends InvalidArgumentException imple
      */
     public static function forKey(string $key, string $expected, mixed $received): self
     {
-        return new self();
+        return new self(sprintf('openapi.%s: expected %s, got %s', $key, $expected, self::describe($received)));
+    }
+
+    private static function describe(mixed $value): string
+    {
+        return match (true) {
+            is_string($value) => "\"{$value}\"",
+            is_int($value), is_float($value) => (string) $value,
+            is_bool($value) => $value ? 'true' : 'false',
+            default => get_debug_type($value),
+        };
     }
 }

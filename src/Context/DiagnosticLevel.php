@@ -14,4 +14,21 @@ enum DiagnosticLevel: string
 
     /** Something the generator could not describe at all. */
     case Error = 'error';
+
+    /**
+     * Whether this level is as severe as the given one, or more.
+     */
+    public function isAtLeast(self $level): bool
+    {
+        return $this->severity() >= $level->severity();
+    }
+
+    private function severity(): int
+    {
+        return match ($this) {
+            self::Info => 0,
+            self::Warning => 1,
+            self::Error => 2,
+        };
+    }
 }
