@@ -35,7 +35,7 @@ final readonly class ThrottleResponsePass implements Pass
         foreach ($document->operations as $operation) {
             foreach ($operation->middlewares as $middleware) {
                 if (Middleware::parse($middleware)->name === 'throttle') {
-                    [$operation, $document] = SharedResponses::add($operation, $document, 'TooManyRequests', 429, 'Too Many Requests', $this->errors->error($context), $headers);
+                    [$operation, $document] = SharedResponses::add($operation, $document, 'TooManyRequests', 429, 'Too Many Requests', $this->errors->error($context), $headers, mediaType: $this->errors->mediaType());
                 }
             }
 

@@ -53,6 +53,37 @@ jobs:
       - name: PHPUnit
         run: vendor/bin/phpunit
 
+  without-json-api:
+    name: Tests without ark4ne/laravel-json-api
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch openapi-writer
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.OPENAPI_WRITER_REPOSITORY }}
+          ref: ${{ env.OPENAPI_WRITER_REF }}
+          path: .openapi-writer
+
+      - name: Place openapi-writer next to the package
+        run: mv .openapi-writer ../openapi-writer
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_sqlite
+          coverage: none
+
+      - uses: ramsey/composer-install@v3
+
+      - name: Remove the JSON:API package
+        run: composer remove --dev ark4ne/laravel-json-api --no-interaction
+
+      - name: PHPUnit without the JSON:API tests
+        # The integration loads none of the classes of the package: everything else works without it.
+        run: vendor/bin/phpunit --exclude-group json-api
+
   static:
     name: Static analysis & code style
     runs-on: ubuntu-latest

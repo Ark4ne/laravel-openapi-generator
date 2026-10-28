@@ -25,7 +25,7 @@ final readonly class ValidationErrorResponsePass implements Pass
 
         foreach ($document->operations as $operation) {
             if ($operation->request->validated) {
-                [$operation, $document] = SharedResponses::add($operation, $document, 'ValidationFailed', 422, 'Validation failed', $this->errors->validation($context));
+                [$operation, $document] = SharedResponses::add($operation, $document, 'ValidationFailed', 422, 'Validation failed', $this->errors->validation($context), mediaType: $this->errors->mediaType());
             }
 
             $operations[] = $operation;

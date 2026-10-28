@@ -1,0 +1,1107 @@
+{
+    "openapi": "3.1.2",
+    "info": {
+        "title": "Scenario",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/users": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "List the users.",
+                "operationId": "users.index",
+                "parameters": [
+                    {
+                        "name": "include",
+                        "in": "query",
+                        "schema": {
+                            "description": "Relationships to include, separated by commas: `posts`, `posts.comments`, `comments`, `comments.post`.",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "fields",
+                        "in": "query",
+                        "style": "deepObject",
+                        "explode": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "user": {
+                                    "description": "Fields of `user`, separated by commas: `name`, `email`, `profile`, `profile.name`, `profile.initials`, `profile.verified`, `profile.hidden`, `profile.scores.rank`, `profile.scores.ratio`.",
+                                    "type": "string"
+                                },
+                                "post": {
+                                    "description": "Fields of `post`, separated by commas: `title`, `content`, `status`.",
+                                    "type": "string"
+                                },
+                                "comment": {
+                                    "description": "Fields of `comment`, separated by commas: `content`.",
+                                    "type": "string"
+                                }
+                            },
+                            "additionalProperties": false
+                        }
+                    },
+                    {
+                        "name": "filter[name]",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "data",
+                                        "links",
+                                        "meta"
+                                    ],
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/User"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object",
+                                            "required": [
+                                                "first",
+                                                "last",
+                                                "prev",
+                                                "next"
+                                            ],
+                                            "properties": {
+                                                "first": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "last": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "next": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "required": [
+                                                "current_page",
+                                                "from",
+                                                "last_page",
+                                                "links",
+                                                "path",
+                                                "per_page",
+                                                "to",
+                                                "total"
+                                            ],
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer"
+                                                },
+                                                "from": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "last_page": {
+                                                    "type": "integer"
+                                                },
+                                                "links": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "required": [
+                                                            "url",
+                                                            "label",
+                                                            "page",
+                                                            "active"
+                                                        ],
+                                                        "properties": {
+                                                            "url": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "page": {
+                                                                "type": [
+                                                                    "integer",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "active": {
+                                                                "type": "boolean"
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "path": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "per_page": {
+                                                    "type": "integer"
+                                                },
+                                                "to": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "total": {
+                                                    "type": "integer"
+                                                }
+                                            }
+                                        },
+                                        "included": {
+                                            "type": "array",
+                                            "items": {
+                                                "oneOf": [
+                                                    {
+                                                        "$ref": "#/components/schemas/Post"
+                                                    },
+                                                    {
+                                                        "$ref": "#/components/schemas/Comment"
+                                                    },
+                                                    {
+                                                        "$ref": "#/components/schemas/User"
+                                                    }
+                                                ],
+                                                "discriminator": {
+                                                    "propertyName": "type",
+                                                    "mapping": {
+                                                        "post": "#/components/schemas/Post",
+                                                        "comment": "#/components/schemas/Comment",
+                                                        "user": "#/components/schemas/User"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationFailed"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Create a user.",
+                "operationId": "users.store",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "name",
+                                    "email"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 255
+                                    },
+                                    "email": {
+                                        "format": "email",
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "data"
+                                    ],
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/User"
+                                        },
+                                        "included": {
+                                            "type": "array",
+                                            "items": {
+                                                "oneOf": [
+                                                    {
+                                                        "$ref": "#/components/schemas/Post"
+                                                    },
+                                                    {
+                                                        "$ref": "#/components/schemas/Comment"
+                                                    },
+                                                    {
+                                                        "$ref": "#/components/schemas/User"
+                                                    }
+                                                ],
+                                                "discriminator": {
+                                                    "propertyName": "type",
+                                                    "mapping": {
+                                                        "post": "#/components/schemas/Post",
+                                                        "comment": "#/components/schemas/Comment",
+                                                        "user": "#/components/schemas/User"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationFailed"
+                    }
+                }
+            }
+        },
+        "/api/users/{user}": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Show one user.",
+                "operationId": "users.show",
+                "parameters": [
+                    {
+                        "name": "include",
+                        "in": "query",
+                        "schema": {
+                            "description": "Relationships to include, separated by commas: `posts`, `posts.comments`, `comments`, `comments.post`.",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "fields",
+                        "in": "query",
+                        "style": "deepObject",
+                        "explode": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "user": {
+                                    "description": "Fields of `user`, separated by commas: `name`, `email`, `profile`, `profile.name`, `profile.initials`, `profile.verified`, `profile.hidden`, `profile.scores.rank`, `profile.scores.ratio`.",
+                                    "type": "string"
+                                },
+                                "post": {
+                                    "description": "Fields of `post`, separated by commas: `title`, `content`, `status`.",
+                                    "type": "string"
+                                },
+                                "comment": {
+                                    "description": "Fields of `comment`, separated by commas: `content`.",
+                                    "type": "string"
+                                }
+                            },
+                            "additionalProperties": false
+                        }
+                    },
+                    {
+                        "name": "filter[name]",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "data"
+                                    ],
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/User"
+                                        },
+                                        "included": {
+                                            "type": "array",
+                                            "items": {
+                                                "oneOf": [
+                                                    {
+                                                        "$ref": "#/components/schemas/Post"
+                                                    },
+                                                    {
+                                                        "$ref": "#/components/schemas/Comment"
+                                                    },
+                                                    {
+                                                        "$ref": "#/components/schemas/User"
+                                                    }
+                                                ],
+                                                "discriminator": {
+                                                    "propertyName": "type",
+                                                    "mapping": {
+                                                        "post": "#/components/schemas/Post",
+                                                        "comment": "#/components/schemas/Comment",
+                                                        "user": "#/components/schemas/User"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationFailed"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Delete a user.",
+                "operationId": "users.destroy",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthenticated"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    },
+                    {
+                        "session": [],
+                        "xsrf": []
+                    }
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "user",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ]
+        },
+        "/api/posts": {
+            "get": {
+                "tags": [
+                    "Post"
+                ],
+                "summary": "List the posts.",
+                "operationId": "posts.index",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "data"
+                                    ],
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Post"
+                                            }
+                                        },
+                                        "included": {
+                                            "type": "array",
+                                            "items": {
+                                                "oneOf": [
+                                                    {
+                                                        "$ref": "#/components/schemas/User"
+                                                    },
+                                                    {
+                                                        "$ref": "#/components/schemas/Comment"
+                                                    },
+                                                    {
+                                                        "$ref": "#/components/schemas/Post"
+                                                    }
+                                                ],
+                                                "discriminator": {
+                                                    "propertyName": "type",
+                                                    "mapping": {
+                                                        "user": "#/components/schemas/User",
+                                                        "comment": "#/components/schemas/Comment",
+                                                        "post": "#/components/schemas/Post"
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "version": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/posts/{post}": {
+            "get": {
+                "tags": [
+                    "Post"
+                ],
+                "summary": "Show one post.",
+                "operationId": "posts.show",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "data"
+                                    ],
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Post"
+                                        },
+                                        "included": {
+                                            "type": "array",
+                                            "items": {
+                                                "oneOf": [
+                                                    {
+                                                        "$ref": "#/components/schemas/User"
+                                                    },
+                                                    {
+                                                        "$ref": "#/components/schemas/Comment"
+                                                    },
+                                                    {
+                                                        "$ref": "#/components/schemas/Post"
+                                                    }
+                                                ],
+                                                "discriminator": {
+                                                    "propertyName": "type",
+                                                    "mapping": {
+                                                        "user": "#/components/schemas/User",
+                                                        "comment": "#/components/schemas/Comment",
+                                                        "post": "#/components/schemas/Post"
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "version": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "post",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ]
+        },
+        "/api/comments/{comment}": {
+            "get": {
+                "tags": [
+                    "Comment"
+                ],
+                "summary": "Show one comment.",
+                "operationId": "comments.show",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "data"
+                                    ],
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Comment"
+                                        },
+                                        "included": {
+                                            "type": "array",
+                                            "items": {
+                                                "oneOf": [
+                                                    {
+                                                        "$ref": "#/components/schemas/User"
+                                                    },
+                                                    {
+                                                        "$ref": "#/components/schemas/Post"
+                                                    },
+                                                    {
+                                                        "$ref": "#/components/schemas/Comment"
+                                                    }
+                                                ],
+                                                "discriminator": {
+                                                    "propertyName": "type",
+                                                    "mapping": {
+                                                        "user": "#/components/schemas/User",
+                                                        "post": "#/components/schemas/Post",
+                                                        "comment": "#/components/schemas/Comment"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "comment",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ]
+        }
+    },
+    "components": {
+        "schemas": {
+            "User": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "type"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "type": {
+                        "const": "user",
+                        "type": "string"
+                    },
+                    "attributes": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "email": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "profile": {
+                                "type": [
+                                    "object",
+                                    "null"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "initials": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "verified": {
+                                        "type": "boolean"
+                                    },
+                                    "hidden": {},
+                                    "scores": {
+                                        "type": [
+                                            "object",
+                                            "null"
+                                        ],
+                                        "properties": {
+                                            "rank": {
+                                                "type": [
+                                                    "integer",
+                                                    "null"
+                                                ]
+                                            },
+                                            "ratio": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "relationships": {
+                        "type": "object",
+                        "properties": {
+                            "posts": {
+                                "type": "object",
+                                "properties": {
+                                    "data": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "required": [
+                                                "type",
+                                                "id"
+                                            ],
+                                            "properties": {
+                                                "type": {
+                                                    "const": "post",
+                                                    "type": "string"
+                                                },
+                                                "id": {
+                                                    "type": "integer"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "links": {
+                                        "type": "object",
+                                        "required": [
+                                            "self",
+                                            "related"
+                                        ],
+                                        "properties": {
+                                            "self": {
+                                                "type": "string"
+                                            },
+                                            "related": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "comments": {
+                                "type": "object",
+                                "properties": {
+                                    "data": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "required": [
+                                                "type",
+                                                "id"
+                                            ],
+                                            "properties": {
+                                                "type": {
+                                                    "const": "comment",
+                                                    "type": "string"
+                                                },
+                                                "id": {
+                                                    "type": "integer"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "meta": {
+                        "type": "object",
+                        "properties": {
+                            "created_at": {
+                                "format": "date-time",
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "updated_at": {
+                                "format": "date",
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            "Post": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "type"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "type": {
+                        "const": "post",
+                        "type": "string"
+                    },
+                    "attributes": {
+                        "type": "object",
+                        "properties": {
+                            "title": {
+                                "type": "string"
+                            },
+                            "content": {
+                                "type": "string"
+                            },
+                            "status": {
+                                "enum": [
+                                    "draft",
+                                    "published",
+                                    null
+                                ],
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        }
+                    },
+                    "relationships": {
+                        "type": "object",
+                        "properties": {
+                            "user": {
+                                "type": "object",
+                                "properties": {
+                                    "data": {
+                                        "type": [
+                                            "object",
+                                            "null"
+                                        ],
+                                        "required": [
+                                            "type",
+                                            "id"
+                                        ],
+                                        "properties": {
+                                            "type": {
+                                                "const": "user",
+                                                "type": "string"
+                                            },
+                                            "id": {
+                                                "type": "integer"
+                                            }
+                                        }
+                                    },
+                                    "meta": {
+                                        "type": "object",
+                                        "required": [
+                                            "role"
+                                        ],
+                                        "properties": {
+                                            "role": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "comments": {
+                                "type": "object",
+                                "properties": {
+                                    "data": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "required": [
+                                                "type",
+                                                "id"
+                                            ],
+                                            "properties": {
+                                                "type": {
+                                                    "const": "comment",
+                                                    "type": "string"
+                                                },
+                                                "id": {
+                                                    "type": "integer"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "links": {
+                        "type": "object",
+                        "properties": {
+                            "self": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "Comment": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "type"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "type": {
+                        "const": "comment",
+                        "type": "string"
+                    },
+                    "attributes": {
+                        "type": "object",
+                        "properties": {
+                            "content": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        }
+                    },
+                    "relationships": {
+                        "type": "object",
+                        "properties": {
+                            "user": {
+                                "type": "object",
+                                "properties": {
+                                    "data": {
+                                        "type": [
+                                            "object",
+                                            "null"
+                                        ],
+                                        "required": [
+                                            "type",
+                                            "id"
+                                        ],
+                                        "properties": {
+                                            "type": {
+                                                "const": "user",
+                                                "type": "string"
+                                            },
+                                            "id": {
+                                                "type": "integer"
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "post": {
+                                "type": "object",
+                                "properties": {
+                                    "data": {
+                                        "type": [
+                                            "object",
+                                            "null"
+                                        ],
+                                        "required": [
+                                            "type",
+                                            "id"
+                                        ],
+                                        "properties": {
+                                            "type": {
+                                                "const": "post",
+                                                "type": "string"
+                                            },
+                                            "id": {
+                                                "type": "integer"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "JsonApiErrors": {
+                "type": "object",
+                "required": [
+                    "errors"
+                ],
+                "properties": {
+                    "errors": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "string"
+                                },
+                                "status": {
+                                    "type": "string"
+                                },
+                                "code": {
+                                    "type": "string"
+                                },
+                                "title": {
+                                    "type": "string"
+                                },
+                                "detail": {
+                                    "type": "string"
+                                },
+                                "source": {
+                                    "type": "object",
+                                    "properties": {
+                                        "pointer": {
+                                            "type": "string"
+                                        },
+                                        "parameter": {
+                                            "type": "string"
+                                        },
+                                        "header": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "meta": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "responses": {
+            "Unauthenticated": {
+                "description": "Unauthenticated",
+                "content": {
+                    "application/vnd.api+json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/JsonApiErrors"
+                        }
+                    }
+                }
+            },
+            "NotFound": {
+                "description": "Not Found",
+                "content": {
+                    "application/vnd.api+json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/JsonApiErrors"
+                        }
+                    }
+                }
+            },
+            "ValidationFailed": {
+                "description": "Validation failed",
+                "content": {
+                    "application/vnd.api+json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/JsonApiErrors"
+                        }
+                    }
+                }
+            }
+        },
+        "securitySchemes": {
+            "sanctum": {
+                "type": "http",
+                "scheme": "bearer"
+            },
+            "session": {
+                "type": "apiKey",
+                "name": "laravel_session",
+                "in": "cookie"
+            },
+            "xsrf": {
+                "type": "apiKey",
+                "name": "X-XSRF-TOKEN",
+                "in": "header"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "User"
+        },
+        {
+            "name": "Post"
+        },
+        {
+            "name": "Comment"
+        }
+    ]
+}

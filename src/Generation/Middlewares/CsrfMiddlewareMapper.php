@@ -41,6 +41,6 @@ final readonly class CsrfMiddlewareMapper implements MiddlewareMapper
         $header = ParameterDescription::header('X-CSRF-TOKEN')->description('CSRF token, unless the body holds `_token`.');
         $operation = $operation->request($operation->request->parameters(...FieldPlacer::merge($operation->request->parameters, [$header])));
 
-        return SharedResponses::add($operation, $document, 'PageExpired', 419, 'Page Expired', $this->errors->error($context));
+        return SharedResponses::add($operation, $document, 'PageExpired', 419, 'Page Expired', $this->errors->error($context), mediaType: $this->errors->mediaType());
     }
 }

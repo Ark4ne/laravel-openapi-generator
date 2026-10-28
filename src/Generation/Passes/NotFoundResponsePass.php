@@ -27,7 +27,7 @@ final readonly class NotFoundResponsePass implements Pass
         foreach ($document->operations as $operation) {
             foreach ($operation->request->parameters as $parameter) {
                 if ($parameter->in === ParameterLocation::Path && $parameter->boundTo !== null) {
-                    [$operation, $document] = SharedResponses::add($operation, $document, 'NotFound', 404, 'Not Found', $this->errors->error($context));
+                    [$operation, $document] = SharedResponses::add($operation, $document, 'NotFound', 404, 'Not Found', $this->errors->error($context), mediaType: $this->errors->mediaType());
                 }
             }
 

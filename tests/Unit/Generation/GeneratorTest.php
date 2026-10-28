@@ -9,6 +9,7 @@ use Ark4ne\OpenApi\Description\OperationDescription;
 use Ark4ne\OpenApi\Generation\GeneratedDocument;
 use Ark4ne\OpenApi\Generation\Generator;
 use Ark4ne\OpenApi\Tests\Feature\DocumentScenario;
+use Ark4ne\OpenApi\Tests\Fixtures\Integrations\TestIntegration;
 use Ark4ne\OpenApi\Tests\Fixtures\Metadata\Controllers\UserController;
 use Ark4ne\OpenApi\Tests\Fixtures\Responses\ResponseController;
 use Ark4ne\OpenApi\Tests\Fixtures\Types\BrokenWebhooks;
@@ -17,6 +18,7 @@ use Ark4ne\OpenApi\Tests\Fixtures\Webhooks\OrderWebhooks;
 use Ark4ne\OpenApi\Tests\Fixtures\Webhooks\PaymentWebhooks;
 use Ark4ne\OpenApi\Tests\Support\Schemas;
 use Ark4ne\OpenApiWriter\Enums\Version;
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Translation\Translator;
 use PHPUnit\Framework\Attributes\CoversClass;
 
@@ -87,6 +89,19 @@ final class GeneratorTest extends DocumentScenario
 
         self::assertCount(2, $invalid);
         self::assertSame(['broken.sent'], array_map(static fn(OperationDescription $o): ?string => $o->operationId, $generated->description->webhooks));
+    }
+
+    public function test_the_available_integrations_add_their_formats_their_mappers_and_their_error_bodies(): void
+    {
+        $this->router()->get('api/articles/{article}', [ResponseController::class, 'show'])->middleware('auth');
+        $container = $this->app?->make(Container::class);
+        self::assertInstanceOf(Container::class, $container);
+        $generator = Generator::make($this->router(), $container, $this->samplingSession(), integrations: [new TestIntegration(false, 'application/unused', 'application/unused'), new TestIntegration(true, 'application/x-article', 'application/problem+json')]);
+
+        $generated = $generator->generate($this->configuration(), 'v1');
+
+        self::assertSame(['application/problem+json'], array_keys($generated->description->responses['Unauthenticated']->contents ?? []));
+        self::assertSame(['application/x-article'], array_keys($generated->description->operations[0]->responses[0]->contents));
     }
 
     private function configuration(): Configuration

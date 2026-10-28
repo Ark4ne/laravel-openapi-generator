@@ -12,7 +12,7 @@ de ses livrables ; le tableau ci-dessous en est calculé automatiquement (`compo
 ## Progression
 
 <!-- progress:start -->
-**Avancement global : `████████░░` 86 % (231 / 268 livrables)**
+**Avancement global : `█████████░` 90 % (242 / 268 livrables)**
 
 | Épique | Statut | Avancement | Livrables |
 | --- | --- | --- | --- |
@@ -25,7 +25,7 @@ de ses livrables ; le tableau ci-dessous en est calculé automatiquement (`compo
 | [E6 — Réponses](E06-responses.md) | Terminé | `██████████` 100 % | 32 / 32 |
 | [E7 — Passes du pipeline](E07-pipeline-passes.md) | Terminé | `██████████` 100 % | 26 / 26 |
 | [E8 — Écriture du document](E08-document-writing.md) | Terminé | `██████████` 100 % | 21 / 21 |
-| [E9 — Intégration JSON:API](E09-json-api.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 11 |
+| [E9 — Intégration JSON:API](E09-json-api.md) | Terminé | `██████████` 100 % | 11 / 11 |
 | [E10 — Intégration Laravel et expérience développeur](E10-laravel-dx.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 12 |
 | [E11 — Migration, documentation et version 1.0.0](E11-release.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 12 |
 | [E12 — Webhooks et callbacks](E12-webhooks.md) | En cours | `█████████░` 93 % | 14 / 15 |

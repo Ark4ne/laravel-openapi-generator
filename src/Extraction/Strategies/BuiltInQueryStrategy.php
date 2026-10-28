@@ -22,7 +22,8 @@ use Ark4ne\OpenApiWriter\Objects\Schema;
  *   `deepObject`;
  * - `querystring`: the whole query as one `querystring` parameter (3.2), `none` before.
  *
- * A query field without type is a string. A flattened field is required only when no list is above it.
+ * A query field without type is a string. A flattened field is required only when no list is above it; an object
+ * left as one field (`fields[post]`) is a `deepObject`.
  */
 final readonly class BuiltInQueryStrategy implements QueryStrategy
 {
@@ -87,7 +88,8 @@ final readonly class BuiltInQueryStrategy implements QueryStrategy
             }
 
             $name = array_shift($segments) . implode('', array_map(static fn(string $segment): string => $segment === '*' ? '[]' : "[{$segment}]", $segments));
-            $parameters[] = ParameterDescription::query($name, $schema)->required($field->required && ! str_contains($field->name, '*'));
+            $parameter = ParameterDescription::query($name, $schema)->required($field->required && ! str_contains($field->name, '*'));
+            $parameters[] = SchemaTypes::of($schema) === 'object' ? $parameter->style(ParameterStyle::DeepObject)->explode() : $parameter;
         }
 
         return $parameters;

@@ -13,6 +13,11 @@ use Ark4ne\OpenApiWriter\Objects\Schema;
  */
 interface ErrorBodies
 {
+    /**
+     * The media type of the error responses.
+     */
+    public function mediaType(): string;
+
     public function error(GenerationContext $context): Schema;
 
     public function validation(GenerationContext $context): Schema;

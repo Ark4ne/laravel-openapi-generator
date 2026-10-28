@@ -29,11 +29,11 @@ final readonly class AuthorizationResponsePass implements Pass
 
         foreach ($document->operations as $operation) {
             if (self::authenticated($operation->security ?? $document->security)) {
-                [$operation, $document] = SharedResponses::add($operation, $document, 'Unauthenticated', 401, 'Unauthenticated', $this->errors->error($context));
+                [$operation, $document] = SharedResponses::add($operation, $document, 'Unauthenticated', 401, 'Unauthenticated', $this->errors->error($context), mediaType: $this->errors->mediaType());
             }
 
             if ($operation->request->authorized || self::authorizes($operation)) {
-                [$operation, $document] = SharedResponses::add($operation, $document, 'Forbidden', 403, 'Forbidden', $this->errors->error($context));
+                [$operation, $document] = SharedResponses::add($operation, $document, 'Forbidden', 403, 'Forbidden', $this->errors->error($context), mediaType: $this->errors->mediaType());
             }
 
             $operations[] = $operation;

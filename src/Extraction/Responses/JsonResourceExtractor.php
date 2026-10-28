@@ -14,7 +14,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
 /**
- * A `JsonResource`: its component under `data` (or unwrapped), with `with()` and `additional()`; 201 when
+ * A `JsonResource`: its component under `data` (or unwrapped), with `with()` and `additional()`, or as its format
+ * writes it; 201 when
  * returned by `POST` (Laravel answers 201 for a model just created), 200 otherwise.
  */
 final readonly class JsonResourceExtractor implements ResponseExtractor
@@ -44,6 +45,6 @@ final readonly class JsonResourceExtractor implements ResponseExtractor
         $created = $operation->method === HttpMethod::Post;
         $body = $this->resources->envelope($type->name, $this->resources->schema($type->name, $context), $context);
 
-        return [ResponseDescription::create($created ? 201 : 200)->description($created ? 'Created' : 'OK')->content('application/json', $body)];
+        return [ResponseDescription::create($created ? 201 : 200)->description($created ? 'Created' : 'OK')->content($this->resources->mediaType($type->name), $body)];
     }
 }

@@ -12,6 +12,7 @@ use Ark4ne\OpenApi\Tests\Fixtures\Sampling\Http\Resources\ConstructorResource;
 use Ark4ne\OpenApi\Tests\Fixtures\Sampling\Http\Resources\ExplicitCollection;
 use Ark4ne\OpenApi\Tests\Fixtures\Sampling\Http\Resources\MixinResource;
 use Ark4ne\OpenApi\Tests\Fixtures\Sampling\Http\Resources\OrphanResource;
+use Ark4ne\OpenApi\Tests\Fixtures\Sampling\Http\Resources\TemplatedChildResource;
 use Ark4ne\OpenApi\Tests\Fixtures\Sampling\Http\Resources\UsedResource;
 use Ark4ne\OpenApi\Tests\Fixtures\Sampling\Models\Author;
 use Ark4ne\OpenApi\Tests\Fixtures\Sampling\Models\Tagged;
@@ -32,6 +33,7 @@ final class ResourceModelsTest extends TestCase
     {
         yield 'constructor type' => [ConstructorResource::class, Author::class];
         yield '@extends JsonResource<Post>' => [PostResource::class, Post::class];
+        yield '@extends Base<Author> of a base with its own template' => [TemplatedChildResource::class, Author::class];
         yield '@mixin' => [MixinResource::class, Author::class];
         yield '#[UseResource] on a loaded model' => [UsedResource::class, Tagged::class];
         yield 'naming convention' => [AuthorResource::class, Author::class];

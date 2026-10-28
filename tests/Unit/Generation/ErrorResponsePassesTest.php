@@ -19,6 +19,7 @@ use Ark4ne\OpenApi\Generation\Passes\NotFoundResponsePass;
 use Ark4ne\OpenApi\Generation\Passes\ThrottleResponsePass;
 use Ark4ne\OpenApi\Generation\Passes\ThrownExceptionResponsePass;
 use Ark4ne\OpenApi\Generation\Passes\ValidationErrorResponsePass;
+use Ark4ne\OpenApi\Tests\Fixtures\Integrations\TestErrorBodies;
 use Ark4ne\OpenApi\Tests\Fixtures\Routing\Models\User;
 use Ark4ne\OpenApi\Tests\Support\Descriptions;
 use Ark4ne\OpenApi\Tests\Support\Schemas;
@@ -118,6 +119,17 @@ final class ErrorResponsePassesTest extends TestCase
 
         self::assertSame('TooManyRequests', $document->operations[0]->responses[1]->reference);
         self::assertSame(['X-RateLimit-Limit', 'X-RateLimit-Remaining', 'Retry-After', 'X-RateLimit-Reset'], array_map(static fn(HeaderDescription $h): string => $h->name, $document->responses['TooManyRequests']->headers));
+    }
+
+    public function test_the_shared_error_responses_take_the_media_type_of_the_error_bodies(): void
+    {
+        $errors = new TestErrorBodies();
+        $operation = Descriptions::operation(HttpMethod::Get, '/api/users/{user}')->request(RequestDescription::create()->parameters(ParameterDescription::path('user')->boundTo(User::class)));
+
+        $document = $this->process(new NotFoundResponsePass($errors), $operation);
+
+        self::assertSame(['application/problem+json'], array_keys($document->responses['NotFound']->contents));
+        self::assertSame('application/json', (new LaravelErrorBodies())->mediaType());
     }
 
     private function process(Pass $pass, OperationDescription ...$operations): DocumentDescription

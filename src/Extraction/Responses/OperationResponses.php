@@ -38,10 +38,10 @@ final readonly class OperationResponses
         private ResourceSchemas $resources,
     ) {}
 
-    public static function default(Samplers $samplers, TypeResolver $types): self
+    public static function default(Samplers $samplers, TypeResolver $types, ResourceFormat ...$formats): self
     {
         $models = new ResourceModels($types);
-        $resources = new ResourceSchemas($models, $samplers, new SchemaInferrer(new ModelSchemas($types)), new RelationLoader($samplers));
+        $resources = new ResourceSchemas($models, $samplers, new SchemaInferrer(new ModelSchemas($types)), new RelationLoader($samplers), array_values($formats));
         $inferrer = $resources->inferrer();
         $values = new ValueSchemas($resources, $samplers, $inferrer);
         $extractors = ResponseExtractors::default($resources, $models, $values, $samplers, $inferrer);

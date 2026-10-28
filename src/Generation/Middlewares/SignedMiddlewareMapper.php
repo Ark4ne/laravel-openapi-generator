@@ -37,6 +37,6 @@ final readonly class SignedMiddlewareMapper implements MiddlewareMapper
         ];
         $operation = $operation->request($operation->request->parameters(...FieldPlacer::merge($operation->request->parameters, $parameters)));
 
-        return SharedResponses::add($operation, $document, 'Forbidden', 403, 'Forbidden', $this->errors->error($context));
+        return SharedResponses::add($operation, $document, 'Forbidden', 403, 'Forbidden', $this->errors->error($context), mediaType: $this->errors->mediaType());
     }
 }

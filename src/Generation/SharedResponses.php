@@ -21,7 +21,7 @@ final class SharedResponses
      *
      * @return array{OperationDescription, DocumentDescription}
      */
-    public static function add(OperationDescription $operation, DocumentDescription $document, string $name, int $status, string $description, Schema $body, array $headers = []): array
+    public static function add(OperationDescription $operation, DocumentDescription $document, string $name, int $status, string $description, Schema $body, array $headers = [], string $mediaType = 'application/json'): array
     {
         foreach ($operation->responses as $response) {
             if ($response->status === $status) {
@@ -32,7 +32,7 @@ final class SharedResponses
         if (! isset($document->responses[$name])) {
             $document = $document->response($name, ResponseDescription::create($status)
                 ->description($description)
-                ->content('application/json', $body)
+                ->content($mediaType, $body)
                 ->headers(...$headers)
                 ->origin(ResponseOrigin::Pass));
         }

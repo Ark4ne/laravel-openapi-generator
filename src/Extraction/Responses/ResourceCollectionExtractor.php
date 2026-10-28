@@ -41,9 +41,9 @@ final readonly class ResourceCollectionExtractor implements ResponseExtractor
     public function extract(Type $type, OperationContext $operation, GenerationContext $context): array
     {
         $item = self::collected($type) ?? ($type instanceof NamedType && class_exists($type->name) ? $this->models->collected($type->name) : null);
-        $items = $item === null ? Schema::create() : $this->resources->schema($item, $context);
+        $body = $item === null ? Paginations::object(['data' => Schema::array()->items(Schema::create())]) : $this->resources->collection($item, null, $context);
 
-        return [ResponseDescription::ok()->description('OK')->content('application/json', Paginations::object(['data' => Schema::array()->items($items)]))];
+        return [ResponseDescription::ok()->description('OK')->content($item === null ? 'application/json' : $this->resources->mediaType($item), $body)];
     }
 
     /**
@@ -55,7 +55,7 @@ final readonly class ResourceCollectionExtractor implements ResponseExtractor
     {
         $item = $this->models->collected($collection);
 
-        return Paginations::object(['data' => Schema::array()->items($item === null ? Schema::create() : $this->resources->schema($item, $context))]);
+        return $item === null ? Paginations::object(['data' => Schema::array()->items(Schema::create())]) : $this->resources->collection($item, null, $context);
     }
 
     /**
@@ -65,7 +65,7 @@ final readonly class ResourceCollectionExtractor implements ResponseExtractor
      */
     public function paginated(string $resource, string $paginator, GenerationContext $context): Schema
     {
-        return Paginations::resource($paginator, $this->resources->schema($resource, $context));
+        return $this->resources->collection($resource, $paginator, $context);
     }
 
     /**

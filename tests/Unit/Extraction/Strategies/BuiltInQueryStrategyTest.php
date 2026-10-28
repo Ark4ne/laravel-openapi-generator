@@ -70,6 +70,15 @@ final class BuiltInQueryStrategyTest extends TestCase
         self::assertSame(ParameterLocation::Query, $parameters[0]->in);
     }
 
+    public function test_a_flattened_object_field_is_a_deep_object(): void
+    {
+        $parameters = (new BuiltInQueryStrategy('all'))->parameters([FieldDescription::create('fields')->schema(Schema::object()->properties(Schema::string()->objectId('post')))], $this->context());
+
+        self::assertSame('fields', $parameters[0]->name);
+        self::assertSame(ParameterStyle::DeepObject, $parameters[0]->style);
+        self::assertTrue($parameters[0]->explode);
+    }
+
     /**
      * @return array<string, array{schema: array<string, mixed>, required: bool}>
      */

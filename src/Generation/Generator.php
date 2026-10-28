@@ -16,6 +16,7 @@ use Ark4ne\OpenApi\Extraction\OperationContextFactory;
 use Ark4ne\OpenApi\Extraction\Operations\OperationExtractors;
 use Ark4ne\OpenApi\Extraction\Requests\RequestExtractors;
 use Ark4ne\OpenApi\Extraction\Responses\OperationResponses;
+use Ark4ne\OpenApi\Extraction\Rules\RuleMappers;
 use Ark4ne\OpenApi\Extraction\Strategies\BuiltInStrategies;
 use Ark4ne\OpenApi\Sampling\Samplers;
 use Ark4ne\OpenApi\Sampling\SamplingSession;
@@ -27,9 +28,15 @@ use Illuminate\Routing\Router;
 /**
  * Generates the documents of the configuration: for each document and each language, the routes (E2), their
  * metadata, requests and responses (E3 to E6) inside one sampling session, the passes (E7), then the writer's object.
+ *
+ * The available integrations add their resource formats and rule mappers, and the last one that has error bodies
+ * replaces Laravel's.
  */
 final readonly class Generator
 {
+    /**
+     * @param list<Integration> $integrations those not available are left out
+     */
     public function __construct(
         private RouteCollector $routes,
         private Container $container,
@@ -37,11 +44,15 @@ final readonly class Generator
         private TypeResolver $types,
         private ?Translator $translator = null,
         private DocumentBuilder $builder = new DocumentBuilder(),
+        private array $integrations = [],
     ) {}
 
-    public static function make(Router $router, Container $container, SamplingSession $session, ?Translator $translator = null): self
+    /**
+     * @param list<Integration> $integrations
+     */
+    public static function make(Router $router, Container $container, SamplingSession $session, ?Translator $translator = null, array $integrations = []): self
     {
-        return new self(new RouteCollector($router, new MiddlewareResolver($router), new PathParameterResolver()), $container, $session, new TypeResolver(), $translator);
+        return new self(new RouteCollector($router, new MiddlewareResolver($router), new PathParameterResolver()), $container, $session, new TypeResolver(), $translator, integrations: $integrations);
     }
 
     /**
@@ -67,9 +78,31 @@ final readonly class Generator
         $document = is_string($document) ? $configuration->document($document) : $document;
         $context = GenerationContext::for($configuration, $document, $locale);
         $description = $this->session->run(fn(): DocumentDescription => $this->describe($context), $context);
-        $description = Passes::default($configuration)->process($description, $context);
+        $description = Passes::default($configuration, $this->errorBodies())->process($description, $context);
 
         return new GeneratedDocument($this->builder->build($description, $context), $description, $context);
+    }
+
+    /**
+     * @return list<Integration>
+     */
+    private function available(): array
+    {
+        return array_values(array_filter($this->integrations, static fn(Integration $integration): bool => $integration->available()));
+    }
+
+    /**
+     * The error bodies of the last available integration that has some, Laravel's otherwise.
+     */
+    private function errorBodies(): ErrorBodies
+    {
+        $errors = new LaravelErrorBodies();
+
+        foreach ($this->available() as $integration) {
+            $errors = $integration->errorBodies() ?? $errors;
+        }
+
+        return $errors;
     }
 
     private function describe(GenerationContext $context): DocumentDescription
@@ -83,8 +116,11 @@ final readonly class Generator
             $this->translator,
             BuiltInStrategies::groups($configuration->groups),
         );
-        $responses = OperationResponses::default(Samplers::default($this->session, $this->types), $this->types);
-        $requests = RequestExtractors::default($this->container, BuiltInStrategies::query($configuration->query), types: $this->types, resources: $responses->resources());
+        $integrations = $this->available();
+        $formats = array_merge(...array_map(static fn(Integration $integration): array => $integration->resourceFormats(), $integrations));
+        $mappers = array_merge(...array_map(static fn(Integration $integration): array => $integration->ruleMappers(), $integrations));
+        $responses = OperationResponses::default(Samplers::default($this->session, $this->types), $this->types, ...$formats);
+        $requests = RequestExtractors::default($this->container, BuiltInStrategies::query($configuration->query), RuleMappers::default()->with(...$mappers), $this->types, $responses->resources());
         $callbacks = new DeclaredCallbacks($responses->declared());
         $document = DocumentDescription::create();
 

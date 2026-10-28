@@ -26,7 +26,8 @@ final readonly class ResourceModels
     ) {}
 
     /**
-     * In order: the type of the constructor, `@extends JsonResource<User>`, `@mixin`, `#[UseResource]` or
+     * In order: the type of the constructor, `@extends JsonResource<User>`, the model given to a base resource with its
+     * own template (`@extends JsonApiResource<User>`), `@mixin`, `#[UseResource]` or
      * `#[UseResourceCollection]` of a loaded model, the naming convention (`…\Http\Resources\UserResource` →
      * `…\Models\User`, then `App\Models\User`).
      *
@@ -40,6 +41,7 @@ final readonly class ResourceModels
 
         return $this->constructor($class)
             ?? self::modelOf($this->types->genericArguments($class, JsonResource::class)[0] ?? null)
+            ?? $this->extended($class)
             ?? $this->mixin($class)
             ?? self::declaredBy($resource)
             ?? self::convention($resource);
@@ -87,6 +89,34 @@ final readonly class ResourceModels
         $type = $class->getConstructor()?->getParameters()[0]?->getType();
 
         return $type instanceof ReflectionNamedType ? self::modelOf(new NamedType($type->getName())) : null;
+    }
+
+    /**
+     * The first model given to the template of a parent, from the class up.
+     *
+     * @param ReflectionClass<object> $class
+     *
+     * @return class-string<Model>|null
+     */
+    private function extended(ReflectionClass $class): ?string
+    {
+        for ($current = $class; $current !== false; $current = $current->getParentClass()) {
+            $parent = $current->getParentClass();
+
+            if ($parent === false) {
+                return null;
+            }
+
+            foreach ($this->types->genericArguments($current, $parent->getName()) as $argument) {
+                $model = self::modelOf($argument);
+
+                if ($model !== null) {
+                    return $model;
+                }
+            }
+        }
+
+        return null;
     }
 
     /**

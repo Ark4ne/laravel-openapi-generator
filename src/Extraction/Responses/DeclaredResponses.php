@@ -76,7 +76,7 @@ final readonly class DeclaredResponses
 
         if ($body !== null) {
             $body = $attribute->example === null ? $body : $body->example($attribute->example);
-            $mediaType = $attribute->mediaType ?? 'application/json';
+            $mediaType = $attribute->mediaType ?? ($attribute->resource !== null && is_subclass_of($attribute->resource, JsonResource::class) ? $this->resources->mediaType($attribute->resource) : 'application/json');
             $response = $mediaType === 'text/event-stream' ? $response->itemContent($mediaType, $body) : $response->content($mediaType, $body);
         }
 

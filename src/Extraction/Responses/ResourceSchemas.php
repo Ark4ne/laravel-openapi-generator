@@ -33,6 +33,8 @@ use WeakMap;
  * - A second sample tells the values that do not change from one sample to the other (`type: cat`): the discriminators.
  * - The resource is a component (`#[SchemaName]`, or its name without `Resource`), referenced by `$ref` unless
  *   `use_references` is off. What is learnt is kept per generation context: each document gets its components.
+ * - A resource a format supports (JSON:API) is written by that format: its component, its body, its collections and
+ *   their media type.
  */
 final class ResourceSchemas implements ResourceDescriber
 {
@@ -41,11 +43,15 @@ final class ResourceSchemas implements ResourceDescriber
     /** @var WeakMap<GenerationContext, array{described: array<string, true>, values: array<string, array<string, mixed>>, samples: array<string, list<mixed>>}> */
     private WeakMap $states;
 
+    /**
+     * @param list<ResourceFormat> $formats the first that supports a resource writes it
+     */
     public function __construct(
         private readonly ResourceModels $models,
         private readonly Samplers $samplers,
         SchemaInferrer $inferrer,
         private readonly RelationLoader $relations,
+        private readonly array $formats = [],
     ) {
         $this->inferrer = $inferrer->withResources($this);
         $this->states = new WeakMap();
@@ -57,6 +63,64 @@ final class ResourceSchemas implements ResourceDescriber
     public function inferrer(): SchemaInferrer
     {
         return $this->inferrer;
+    }
+
+    /**
+     * What a resource receives and what a collection collects, for the formats.
+     */
+    public function models(): ResourceModels
+    {
+        return $this->models;
+    }
+
+    /**
+     * The format that writes a resource, or the resource a collection collects; `null` for Laravel's.
+     *
+     * @param class-string<JsonResource> $resource
+     */
+    public function format(string $resource): ?ResourceFormat
+    {
+        if (is_subclass_of($resource, ResourceCollection::class)) {
+            $collected = $this->models->collected($resource);
+
+            return $collected === null ? null : $this->format($collected);
+        }
+
+        foreach ($this->formats as $format) {
+            if ($format->supports($resource)) {
+                return $format;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * The media type of the bodies of a resource or of a collection: its format's, `application/json` otherwise.
+     *
+     * @param class-string<JsonResource> $resource
+     */
+    public function mediaType(string $resource): string
+    {
+        return $this->format($resource)?->mediaType() ?? 'application/json';
+    }
+
+    /**
+     * The body of a list of a resource, as a resource collection writes it: `data`, with `links` and `meta` when
+     * paginated.
+     *
+     * @param class-string<JsonResource> $resource
+     */
+    public function collection(string $resource, ?string $paginator, GenerationContext $context): Schema
+    {
+        $data = $this->schema($resource, $context);
+        $format = $this->format($resource);
+
+        return match (true) {
+            $format !== null => $format->collection($resource, $data, $paginator, $this, $context),
+            $paginator !== null => Paginations::resource($paginator, $data),
+            default => Paginations::object(['data' => Schema::array()->items($data)]),
+        };
     }
 
     public function describe(JsonResource $resource, GenerationContext $context): Schema
@@ -98,6 +162,12 @@ final class ResourceSchemas implements ResourceDescriber
      */
     public function envelope(string $resource, Schema $inner, GenerationContext $context): Schema
     {
+        $format = $this->format($resource);
+
+        if ($format !== null) {
+            return $format->document($resource, $inner, $this, $context);
+        }
+
         $wrap = (new ReflectionProperty($resource, 'wrap'))->getValue();
         $wrap = is_string($wrap) && $wrap !== '' ? $wrap : null;
         $extras = $this->extras($resource, $context);
@@ -145,6 +215,18 @@ final class ResourceSchemas implements ResourceDescriber
      */
     private function run(string $resource, string $name, GenerationContext $context): Schema
     {
+        $format = $this->format($resource);
+
+        if ($format !== null) {
+            try {
+                return $format->component($resource, $this, $context);
+            } catch (Throwable $error) {
+                $context->diagnostics->warning(Stage::Response, "cannot describe {$resource}: {$error->getMessage()}");
+
+                return Schema::object();
+            }
+        }
+
         $samples = $this->samples($resource, $context);
         $request = Request::create('/');
 
@@ -232,7 +314,7 @@ final class ResourceSchemas implements ResourceDescriber
      *
      * @return list<mixed>
      */
-    private function samples(string $resource, GenerationContext $context): array
+    public function samples(string $resource, GenerationContext $context): array
     {
         $state = $this->state($context);
 

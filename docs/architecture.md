@@ -62,7 +62,10 @@ Support ← Types ← Attributes ← Configuration ← Description ← Context �
   `Generation\DocumentBuilder` et `Output` construisent les autres objets du writer (`OpenApi`, `PathItem`,
   `Operation`…). Le writer est la seule façon d'écrire de l'OpenAPI.
 - `Integrations` n'est jamais une dépendance du cœur : une intégration s'enregistre par la configuration ou par
-  le fournisseur de services, et son paquet tiers reste en `suggest`.
+  le fournisseur de services, et son paquet tiers reste en `suggest`. Elle implémente `Generation\Integration`
+  (formats de ressource, mappers de règles, corps d'erreur). Le `Generator` ne retient que les intégrations
+  disponibles : une intégration dont le paquet manque n'en charge aucune classe. Seul `Integrations\JsonApi`
+  dépend de `Ark4ne\JsonApi` (`phpat`), et la CI lance la suite sans ce paquet.
 
 ## 3. Le modèle de description
 
@@ -167,7 +170,11 @@ interface ResponseExtractor
   par l'ordre d'un tableau de configuration (cause principale des erreurs de configuration en v0.6).
 - L'utilisateur ajoute ou remplace un extracteur par la configuration (`extensions`) ou par un fournisseur de
   services ; un extracteur d'intégration a une priorité supérieure à celle des extracteurs génériques qu'il
-  spécialise (`JsonApiResource` avant `JsonResource`).
+  spécialise.
+- Une famille de ressources écrite autrement (JSON:API) est un **`ResourceFormat`** plutôt qu'un extracteur. Le
+  format écrit le composant, le corps et les collections de ses ressources, dans son type de média. `ResourceSchemas`
+  consulte le premier format qui accepte une ressource, où qu'elle apparaisse : retournée, déclarée, imbriquée ou
+  collectée.
 - **Un extracteur ne lève pas d'exception pour une route qu'il ne comprend pas** : il ajoute un diagnostic et
   renvoie une description partielle. Une seule route ratée ne bloque jamais la génération (sauf mode `--strict`).
 

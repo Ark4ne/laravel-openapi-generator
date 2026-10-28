@@ -13,6 +13,11 @@ use Ark4ne\OpenApiWriter\Objects\Schema;
  */
 final readonly class LaravelErrorBodies implements ErrorBodies
 {
+    public function mediaType(): string
+    {
+        return 'application/json';
+    }
+
     public function error(GenerationContext $context): Schema
     {
         return ErrorSchemas::error($context);

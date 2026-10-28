@@ -11,6 +11,7 @@ use Ark4ne\OpenApi\Context\Stage;
 use Ark4ne\OpenApi\Extraction\Exceptions\ExceptionMapper;
 use Ark4ne\OpenApi\Extraction\Operations\OperationExtractor;
 use Ark4ne\OpenApi\Extraction\Requests\RequestExtractor;
+use Ark4ne\OpenApi\Extraction\Responses\ResourceFormat;
 use Ark4ne\OpenApi\Extraction\Responses\ResponseExtractor;
 use Ark4ne\OpenApi\Extraction\Rules\RuleMapper;
 use Ark4ne\OpenApi\Extraction\Strategies\GroupStrategy;
@@ -18,6 +19,8 @@ use Ark4ne\OpenApi\Extraction\Strategies\OperationIdStrategy;
 use Ark4ne\OpenApi\Extraction\Strategies\QueryStrategy;
 use Ark4ne\OpenApi\Extraction\Strategies\SummaryStrategy;
 use Ark4ne\OpenApi\Extraction\Strategies\TagStrategy;
+use Ark4ne\OpenApi\Generation\ErrorBodies;
+use Ark4ne\OpenApi\Generation\Integration;
 use Ark4ne\OpenApi\Generation\MiddlewareMapper;
 use Ark4ne\OpenApi\Generation\Pass;
 use Ark4ne\OpenApi\Sampling\Sampler;
@@ -81,6 +84,16 @@ final class ArchitectureTest
         }
     }
 
+    public function test_only_the_json_api_integration_depends_on_its_package(): ArchitectureRule
+    {
+        return PHPat::rule()
+            ->classes(Selector::inNamespace(self::ROOT))
+            ->excluding(Selector::inNamespace(self::ROOT . '\Integrations\JsonApi'), Selector::inNamespace(self::TESTS))
+            ->shouldNotDependOn()
+            ->classes(Selector::inNamespace('Ark4ne\JsonApi'))
+            ->because('the generator works without ark4ne/laravel-json-api: only its integration loads its classes.');
+    }
+
     public function test_exceptions_depend_only_on_support_and_the_diagnostics(): ArchitectureRule
     {
         return PHPat::rule()
@@ -107,6 +120,9 @@ final class ArchitectureTest
             'Sampler' => [Sampler::class],
             'Pass' => [Pass::class],
             'MiddlewareMapper' => [MiddlewareMapper::class],
+            'Format' => [ResourceFormat::class],
+            'Integration' => [Integration::class],
+            'ErrorBodies' => [ErrorBodies::class],
             'ExceptionMapper' => [ExceptionMapper::class],
             'Strategy' => [SummaryStrategy::class, TagStrategy::class, GroupStrategy::class, OperationIdStrategy::class, QueryStrategy::class],
         ];

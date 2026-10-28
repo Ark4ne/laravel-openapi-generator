@@ -6,6 +6,7 @@ namespace Ark4ne\OpenApi\Tests\Feature;
 
 use Ark4ne\OpenApi\Configuration\Configuration;
 use Ark4ne\OpenApi\Generation\Generator;
+use Ark4ne\OpenApi\Generation\Integration;
 use Ark4ne\OpenApi\Output\DocumentValidator;
 use Ark4ne\OpenApi\Output\DocumentWriter;
 use Ark4ne\OpenApi\Tests\Unit\Sampling\SamplingTestCase;
@@ -64,6 +65,16 @@ abstract class DocumentScenario extends SamplingTestCase
         self::assertInstanceOf(Container::class, $container);
         $translator = $this->app?->make(Translator::class);
 
-        return Generator::make($this->router(), $container, $this->samplingSession(), $translator instanceof Translator ? $translator : null);
+        return Generator::make($this->router(), $container, $this->samplingSession(), $translator instanceof Translator ? $translator : null, $this->integrations());
+    }
+
+    /**
+     * The integrations of the scenario.
+     *
+     * @return list<Integration>
+     */
+    protected function integrations(): array
+    {
+        return [];
     }
 }
