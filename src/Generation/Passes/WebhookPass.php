@@ -30,7 +30,8 @@ final readonly class WebhookPass implements Pass
             $label = RouteDefinition::labelOf($webhook->method, $name);
 
             if (array_key_exists($label, $seen)) {
-                $context->diagnostics->warning(Stage::Pass, "the webhook {$name} is already sent with this method by {$seen[$label]}, operation left out", $webhook->route);
+                $by = $seen[$label] === null ? '' : " by {$seen[$label]}";
+                $context->diagnostics->warning(Stage::Pass, "the webhook {$name} is already sent with this method{$by}, operation left out", $webhook->route);
 
                 continue;
             }

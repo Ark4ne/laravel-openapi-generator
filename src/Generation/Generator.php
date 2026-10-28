@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Ark4ne\OpenApi\Generation;
 
-use Ark4ne\OpenApi\Attributes\Webhook;
 use Ark4ne\OpenApi\Configuration\Configuration;
 use Ark4ne\OpenApi\Configuration\DocumentConfiguration;
 use Ark4ne\OpenApi\Context\GenerationContext;
@@ -99,8 +98,8 @@ final readonly class Generator
 
             // A webhook is filed apart from the start: the passes tied to the routes never see it.
             $document = match (true) {
+                $description->excluded => $document,
                 $description->webhook !== null => $document->addWebhooks($description),
-                $operation->attributes(Webhook::class, $context) !== [] => $document,
                 default => $document->addOperations($description),
             };
         }

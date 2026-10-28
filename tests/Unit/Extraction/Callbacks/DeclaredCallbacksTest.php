@@ -11,7 +11,9 @@ use Ark4ne\OpenApi\Description\CallbackDescription;
 use Ark4ne\OpenApi\Extraction\Callbacks\DeclaredCallbacks;
 use Ark4ne\OpenApi\Extraction\Responses\OperationResponses;
 use Ark4ne\OpenApi\Sampling\Samplers;
+use Ark4ne\OpenApi\Tests\Fixtures\Types\BrokenWebhooks;
 use Ark4ne\OpenApi\Tests\Fixtures\Webhooks\OrderController;
+use Ark4ne\OpenApi\Tests\Fixtures\Webhooks\OrderPayload;
 use Ark4ne\OpenApi\Tests\Support\Schemas;
 use Ark4ne\OpenApi\Tests\Unit\Sampling\SamplingTestCase;
 use Ark4ne\OpenApi\Types\TypeResolver;
@@ -58,12 +60,24 @@ final class DeclaredCallbacksTest extends SamplingTestCase
         self::assertStringContainsString('invalid #[' . Callback::class . ']', (string) $context->diagnostics->all()[0]);
     }
 
+    public function test_a_resource_the_generator_does_not_know_is_reported(): void
+    {
+        $context = $this->context();
+
+        $callbacks = $this->callbacks('dto', $context, BrokenWebhooks::class);
+
+        self::assertNull($callbacks[0]->operation?->request->body);
+        self::assertDiagnostics(['[warning] response POST /api/orders: #[Callback] dto: ' . OrderPayload::class . ' is not a resource, request written without body'], $context);
+    }
+
     /**
+     * @param class-string $controller
+     *
      * @return list<CallbackDescription>
      */
-    private function callbacks(string $action, ?GenerationContext $context = null): array
+    private function callbacks(string $action, ?GenerationContext $context = null, string $controller = OrderController::class): array
     {
-        $this->router()->post('api/orders', [OrderController::class, $action]);
+        $this->router()->post('api/orders', [$controller, $action]);
         $context ??= $this->context();
         $types = new TypeResolver();
         $responses = OperationResponses::default(Samplers::default($this->samplingSession(), $types), $types);

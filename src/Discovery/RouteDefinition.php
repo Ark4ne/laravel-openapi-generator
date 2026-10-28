@@ -63,6 +63,14 @@ final readonly class RouteDefinition
         return "{$method} {$path}";
     }
 
+    /**
+     * A fixed method of a Path Item, or another method in upper case (`PURGE`).
+     */
+    public static function method(string $name): HttpMethod|string
+    {
+        return HttpMethod::tryFrom(strtolower($name)) ?? strtoupper($name);
+    }
+
     public function isClosure(): bool
     {
         return $this->controller === null;

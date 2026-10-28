@@ -119,20 +119,24 @@ final readonly class DocumentBuilder
      */
     private function callbacks(array $callbacks): array
     {
-        /** @var array<string, list<OperationDescription>> $byName */
+        /** @var array<string, array<string, list<OperationDescription>>> $byName name → expression → requests */
         $byName = [];
 
         foreach ($callbacks as $callback) {
             if ($callback->operation !== null) {
-                $byName[$callback->name][] = $callback->operation->path($callback->expression);
+                $byName[$callback->name][$callback->expression][] = $callback->operation;
             }
         }
 
         $written = [];
 
-        foreach ($byName as $name => $operations) {
-            $callback = Callback::create($name);
-            $written[] = $callback->pathItems(...$this->pathItems($operations, static fn(OperationDescription $operation): string => $operation->path));
+        foreach ($byName as $name => $byExpression) {
+            $items = array_map(
+                fn(string $expression, array $operations): PathItem => PathItem::create($expression)->operations(...array_map($this->operation(...), $operations)),
+                array_keys($byExpression),
+                array_values($byExpression),
+            );
+            $written[] = Callback::create($name)->pathItems(...$items);
         }
 
         return $written;

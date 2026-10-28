@@ -11,6 +11,7 @@ use Ark4ne\OpenApi\Generation\Generator;
 use Ark4ne\OpenApi\Tests\Feature\DocumentScenario;
 use Ark4ne\OpenApi\Tests\Fixtures\Metadata\Controllers\UserController;
 use Ark4ne\OpenApi\Tests\Fixtures\Responses\ResponseController;
+use Ark4ne\OpenApi\Tests\Fixtures\Types\BrokenWebhooks;
 use Ark4ne\OpenApi\Tests\Fixtures\Webhooks\OrderController;
 use Ark4ne\OpenApi\Tests\Fixtures\Webhooks\OrderWebhooks;
 use Ark4ne\OpenApi\Tests\Fixtures\Webhooks\PaymentWebhooks;
@@ -75,6 +76,17 @@ final class GeneratorTest extends DocumentScenario
         self::assertSame(['/api/orders'], array_map(static fn(OperationDescription $o): string => $o->path, $description->operations));
         self::assertSame(['order.created'], array_map(static fn(OperationDescription $o): ?string => $o->webhook, $description->webhooks));
         self::assertCount(4, $description->operations[0]->callbacks);
+    }
+
+    public function test_the_webhook_attributes_are_read_once(): void
+    {
+        $this->router()->post('hooks/broken', [BrokenWebhooks::class, 'sent']);
+
+        $generated = $this->generator()->generate($this->configuration(), 'v1');
+        $invalid = array_values(array_filter(array_map(strval(...), $generated->context->diagnostics->all()), static fn(string $d): bool => str_contains($d, 'invalid #[')));
+
+        self::assertCount(2, $invalid);
+        self::assertSame(['broken.sent'], array_map(static fn(OperationDescription $o): ?string => $o->operationId, $generated->description->webhooks));
     }
 
     private function configuration(): Configuration

@@ -102,7 +102,8 @@ pendant la génération ou en local).
 
 - **Nom et `operationId`** : `AttributeOperationExtractor` nomme le webhook ; son nom sert d'`operationId`, sauf
   `#[Operation(operationId:)]` (les stratégies de nommage lisent la route, qui n'est pas ce qui est appelé). Sans nom,
-  avertissement : le générateur ignore la route.
+  avertissement et `OperationDescription::exclude()` : le générateur range une opération d'après sa seule description
+  (exclue, webhook ou chemin), sans relire les attributs.
 - **`WebhookPass`** (première passe) : paramètres de chemin et serveurs de la route retirés ; même nom et même méthode
   en double → avertissement, première opération gardée. `DocumentBuilder` écrit les méthodes d'un nom dans un seul
   Path Item, et un document sans `paths`.
@@ -113,9 +114,12 @@ pendant la génération ou en local).
   (`OperationContext`) la change en avertissement qui nomme la cible, l'attribut est ignoré.
 - **`CallbackResolutionPass`** (deuxième passe) : un callback qui réutilise un webhook prend **toutes ses méthodes**
   (la `method` de l'attribut est alors sans effet), sans `operationId` (unique dans le document) ; webhook absent →
-  avertissement, callback retiré ; nom, expression et méthode en double → avertissement, premier gardé.
+  avertissement, callback retiré ; nom, expression et méthode en double → avertissement, premier gardé. Les callbacks
+  des webhooks sont résolus d'abord : un webhook réutilisé apporte les siens (un niveau). Une `resource` que le
+  générateur ne sait pas décrire donne un avertissement et une requête sans corps.
 - **Passes transverses** : `TagPass`, `OperationIdPass`, `CleanupPass` traitaient déjà `webhooks` ; `SchemaWalker`
-  parcourt aussi les callbacks, donc `ComponentExtractionPass` en extrait les schémas.
+  et `CleanupPass` parcourent aussi les callbacks (schémas extraits en composants, tags dédoublonnés, réponse
+  `default` quand il n'y en a aucune, la copie d'un webhook étant prise avant le nettoyage).
 - La documentation de la protection des routes de webhooks reste à écrire avec le README (E11).
 
 ## Dépendance à openapi-writer

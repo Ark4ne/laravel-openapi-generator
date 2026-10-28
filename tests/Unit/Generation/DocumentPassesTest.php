@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Ark4ne\OpenApi\Tests\Unit\Generation;
 
 use Ark4ne\OpenApi\Description\BodyDescription;
+use Ark4ne\OpenApi\Description\CallbackDescription;
 use Ark4ne\OpenApi\Description\DocumentDescription;
 use Ark4ne\OpenApi\Description\OperationDescription;
 use Ark4ne\OpenApi\Description\ParameterDescription;
@@ -127,6 +128,17 @@ final class DocumentPassesTest extends TestCase
         self::assertSame(['/users/{user}/posts/{post}', '/users/{user}/posts/{post}', '/posts/{post}'], array_map(static fn(OperationDescription $o): string => $o->path, $document->operations));
         self::assertSame(['user', 'post', 'id'], array_map(static fn(ParameterDescription $p): string => $p->name, $document->operations[1]->request->parameters));
         self::assertSame('[info] pass PUT /users/{id}/posts/{slug}: /users/{id}/posts/{slug} is the path /users/{user}/posts/{post} for the router, written as it', (string) $context->diagnostics->all()[0]);
+    }
+
+    public function test_the_requests_of_the_callbacks_are_cleaned_too(): void
+    {
+        $sent = OperationDescription::create(HttpMethod::Post, '{$request.body#/url}')->tags('orders', 'orders');
+        $operation = Descriptions::operation(HttpMethod::Post)->callbacks(CallbackDescription::create('created', '{$request.body#/url}', $sent));
+
+        $cleaned = (new CleanupPass())->process(Descriptions::document($operation), $this->context())->operations[0]->callbacks[0]->operation;
+
+        self::assertSame(['orders'], $cleaned?->tags);
+        self::assertSame(['default'], array_map(static fn(ResponseDescription $r): int|string => $r->status, $cleaned->responses));
     }
 
     public function test_the_path_parameters_shared_by_every_operation_of_a_path_go_up(): void

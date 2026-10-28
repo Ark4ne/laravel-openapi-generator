@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Ark4ne\OpenApi\Generation\Passes;
 
 use Ark4ne\OpenApi\Context\GenerationContext;
+use Ark4ne\OpenApi\Description\CallbackDescription;
 use Ark4ne\OpenApi\Description\DocumentDescription;
 use Ark4ne\OpenApi\Description\OperationDescription;
 use Ark4ne\OpenApi\Description\ResponseDescription;
@@ -18,8 +19,10 @@ final readonly class CleanupPass implements Pass
 {
     public function process(DocumentDescription $document, GenerationContext $context): DocumentDescription
     {
-        $clean = static function (OperationDescription $operation): OperationDescription {
-            $operation = $operation->tags(...array_values(array_unique($operation->tags)));
+        $clean = static function (OperationDescription $operation) use (&$clean): OperationDescription {
+            $operation = $operation
+                ->tags(...array_values(array_unique($operation->tags)))
+                ->callbacks(...array_map(static fn(CallbackDescription $callback): CallbackDescription => $callback->operation === null ? $callback : $callback->operation($clean($callback->operation)), $operation->callbacks));
 
             return $operation->responses === [] ? $operation->responses(ResponseDescription::create('default')->description('Response')) : $operation;
         };

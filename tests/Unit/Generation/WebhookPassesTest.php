@@ -67,6 +67,29 @@ final class WebhookPassesTest extends TestCase
         self::assertSame('Created', $resolved->summary);
     }
 
+    public function test_a_callback_reusing_a_webhook_gets_its_callbacks_resolved(): void
+    {
+        $operation = Descriptions::operation(HttpMethod::Post, '/api/orders')->callbacks(CallbackDescription::fromWebhook('created', '{$request.body#/url}', 'order.created'));
+        $document = DocumentDescription::create()->operations($operation)->webhooks(
+            self::webhook('order.created')->callbacks(CallbackDescription::fromWebhook('shipped', '{$request.body#/next}', 'order.shipped')),
+            self::webhook('order.shipped')->summary('Shipped'),
+        );
+
+        $nested = (new CallbackResolutionPass())->process($document, $this->context())->operations[0]->callbacks[0]->operation?->callbacks[0];
+
+        self::assertSame('Shipped', $nested?->operation?->summary);
+        self::assertSame('{$request.body#/next}', $nested->operation->path);
+    }
+
+    public function test_a_webhook_given_twice_without_route_is_reported_without_it(): void
+    {
+        $context = $this->context();
+
+        (new WebhookPass())->process(DocumentDescription::create()->webhooks(self::webhook('order.created')->route(null), self::webhook('order.created')->route(null)), $context);
+
+        self::assertDiagnostics(['[warning] pass: the webhook order.created is already sent with this method, operation left out'], $context);
+    }
+
     public function test_a_callback_reusing_a_missing_webhook_is_left_out_with_a_warning(): void
     {
         $context = $this->context();

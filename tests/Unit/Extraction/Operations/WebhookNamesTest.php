@@ -66,7 +66,10 @@ final class WebhookNamesTest extends TestCase
         $context = $this->context();
         $operation = $this->operation($context);
 
-        self::assertNull((new AttributeOperationExtractor())->extract($operation, $operation->describe(), $context)->webhook);
+        $description = (new AttributeOperationExtractor())->extract($operation, $operation->describe(), $context);
+
+        self::assertNull($description->webhook);
+        self::assertTrue($description->excluded);
         self::assertDiagnostics(['[warning] operation POST /hooks/failed: #[Webhook] without name on a route without name, route left out'], $context);
     }
 }

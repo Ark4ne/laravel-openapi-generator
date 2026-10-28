@@ -17,22 +17,37 @@ use Ark4ne\OpenApi\Generation\Pass;
  * webhook, with its payload and its responses, under the expression of the callback and without operationId (an
  * operationId is unique in the document). A webhook that does not exist leaves the callback out with a warning.
  *
- * A callback name, expression and method given twice keeps its first request, with a warning.
+ * A callback name, expression and method given twice keeps its first request, with a warning. The callbacks of the
+ * webhooks are resolved first, so that a reused webhook brings its own callbacks.
  */
 final readonly class CallbackResolutionPass implements Pass
 {
     public function process(DocumentDescription $document, GenerationContext $context): DocumentDescription
     {
-        /** @var array<string, list<OperationDescription>> $webhooks */
-        $webhooks = [];
+        // The webhooks first, then the operations from the resolved webhooks: a webhook reused by a callback brings its
+        // own callbacks resolved (one level, a webhook reusing itself is not followed).
+        $webhooks = array_map(static fn(OperationDescription $webhook): OperationDescription => self::resolve($webhook, self::byName($document->webhooks), $context), $document->webhooks);
+        $resolved = self::byName($webhooks);
 
-        foreach ($document->webhooks as $webhook) {
-            $webhooks[$webhook->webhook ?? $webhook->path][] = $webhook;
+        return $document
+            ->operations(...array_map(static fn(OperationDescription $operation): OperationDescription => self::resolve($operation, $resolved, $context), $document->operations))
+            ->webhooks(...$webhooks);
+    }
+
+    /**
+     * @param list<OperationDescription> $webhooks
+     *
+     * @return array<string, list<OperationDescription>>
+     */
+    private static function byName(array $webhooks): array
+    {
+        $byName = [];
+
+        foreach ($webhooks as $webhook) {
+            $byName[$webhook->webhook ?? $webhook->path][] = $webhook;
         }
 
-        $resolve = static fn(OperationDescription $operation): OperationDescription => self::resolve($operation, $webhooks, $context);
-
-        return $document->operations(...array_map($resolve, $document->operations))->webhooks(...array_map($resolve, $document->webhooks));
+        return $byName;
     }
 
     /**

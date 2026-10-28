@@ -28,6 +28,7 @@ use Illuminate\Routing\Router;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(RouteCollector::class)]
+#[CoversClass(RouteDefinition::class)]
 final class RouteCollectorTest extends TestCase
 {
     public function test_the_routes_are_collected_in_registration_order(): void
@@ -219,6 +220,11 @@ final class RouteCollectorTest extends TestCase
 
         self::assertSame(['DELETE /api/cache'], $this->labels(context: $context));
         self::assertDiagnostics(['[warning] discovery PURGE /api/cache: the PURGE method is written in additionalOperations from OpenAPI 3.2, operation left out'], $context);
+    }
+
+    public function test_a_method_is_a_fixed_method_or_another_method_in_upper_case(): void
+    {
+        self::assertSame([HttpMethod::Put, HttpMethod::Query, 'PURGE'], array_map(RouteDefinition::method(...), ['PUT', 'query', 'purge']));
     }
 
     public function test_the_definitions_can_be_sorted_by_path(): void

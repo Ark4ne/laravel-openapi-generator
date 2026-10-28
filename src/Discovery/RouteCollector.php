@@ -171,7 +171,7 @@ final readonly class RouteCollector
         $kept = [];
 
         foreach ($methods as $name) {
-            $method = HttpMethod::tryFrom(strtolower($name)) ?? $name;
+            $method = RouteDefinition::method($name);
             $additional = ! $method instanceof HttpMethod;
 
             if (($additional || $method === HttpMethod::Query)

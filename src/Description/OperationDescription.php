@@ -26,6 +26,7 @@ final readonly class OperationDescription extends Description
      * @param list<CallbackDescription> $callbacks
      * @param list<ServerDescription> $servers servers of the operation (routes with a domain)
      * @param array<string, mixed> $extensions `x-*` extensions
+     * @param bool $excluded left out of the document by the generator (a webhook without name)
      */
     protected function __construct(
         public HttpMethod|string $method,
@@ -46,6 +47,7 @@ final readonly class OperationDescription extends Description
         public array $servers = [],
         public array $extensions = [],
         public ?string $webhook = null,
+        public bool $excluded = false,
     ) {}
 
     public static function create(HttpMethod|string $method, string $path): self
@@ -182,6 +184,14 @@ final readonly class OperationDescription extends Description
     public function webhook(?string $name): static
     {
         return $this->copy(webhook: $name);
+    }
+
+    /**
+     * Leaves the operation out of the document: set by an extractor that finds the route cannot be written.
+     */
+    public function exclude(bool $excluded = true): static
+    {
+        return $this->copy(excluded: $excluded);
     }
 
     /**
