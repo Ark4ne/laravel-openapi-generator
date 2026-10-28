@@ -68,4 +68,47 @@ final class ConfigurationValues
         /** @var list<string> $values */
         return $values;
     }
+
+    /**
+     * @throws InvalidConfigurationException
+     */
+    public static function boolean(string $key, mixed $value): bool
+    {
+        return is_bool($value) ? $value : throw InvalidConfigurationException::forKey($key, 'a boolean', $value);
+    }
+
+    /**
+     * @return list<class-string>
+     *
+     * @throws InvalidConfigurationException
+     */
+    public static function classes(string $key, mixed $values): array
+    {
+        if (! is_array($values) || ! array_is_list($values)) {
+            throw InvalidConfigurationException::forKey($key, 'a list of classes', $values);
+        }
+
+        $classes = [];
+
+        foreach ($values as $value) {
+            $classes[] = is_string($value) && class_exists($value) ? $value : throw InvalidConfigurationException::forKey($key, 'existing classes', $value);
+        }
+
+        return $classes;
+    }
+
+    /**
+     * @param array<array-key, mixed> $config
+     * @param list<string> $keys the keys the entry accepts
+     *
+     * @throws InvalidConfigurationException on the first other key
+     */
+    public static function keys(string $key, array $config, array $keys): void
+    {
+        foreach (array_keys($config) as $name) {
+            if (! in_array($name, $keys, true)) {
+                throw InvalidConfigurationException::forKey($key, 'the keys ' . implode(', ', $keys), $name);
+            }
+        }
+    }
 }

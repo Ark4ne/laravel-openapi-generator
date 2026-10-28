@@ -7,10 +7,13 @@ namespace Ark4ne\OpenApi\Configuration;
 use Ark4ne\OpenApi\Exceptions\InvalidConfigurationException;
 
 /**
- * Classes the application adds to the registries, resolved through the container by the Laravel layer.
+ * Classes the application adds to the registries, resolved through the container by the Laravel layer, which checks
+ * that each one implements the interface of its registry.
  */
 final readonly class ExtensionsConfiguration
 {
+    public const KEYS = ['operation_extractors', 'request_extractors', 'rule_mappers', 'response_extractors', 'samplers', 'passes'];
+
     /**
      * @param list<class-string> $operationExtractors
      * @param list<class-string> $requestExtractors
@@ -31,10 +34,19 @@ final readonly class ExtensionsConfiguration
     /**
      * @param array<array-key, mixed> $config
      *
-     * @throws InvalidConfigurationException when a class does not exist or does not implement its interface
+     * @throws InvalidConfigurationException when a key is unknown or a class does not exist
      */
     public static function fromArray(string $key, array $config): self
     {
-        return new self();
+        ConfigurationValues::keys($key, $config, self::KEYS);
+
+        return new self(
+            ConfigurationValues::classes("{$key}.operation_extractors", $config['operation_extractors'] ?? []),
+            ConfigurationValues::classes("{$key}.request_extractors", $config['request_extractors'] ?? []),
+            ConfigurationValues::classes("{$key}.rule_mappers", $config['rule_mappers'] ?? []),
+            ConfigurationValues::classes("{$key}.response_extractors", $config['response_extractors'] ?? []),
+            ConfigurationValues::classes("{$key}.samplers", $config['samplers'] ?? []),
+            ConfigurationValues::classes("{$key}.passes", $config['passes'] ?? []),
+        );
     }
 }

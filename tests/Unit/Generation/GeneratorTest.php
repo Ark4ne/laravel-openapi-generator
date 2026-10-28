@@ -6,10 +6,22 @@ namespace Ark4ne\OpenApi\Tests\Unit\Generation;
 
 use Ark4ne\OpenApi\Configuration\Configuration;
 use Ark4ne\OpenApi\Description\OperationDescription;
+use Ark4ne\OpenApi\Description\ParameterDescription;
 use Ark4ne\OpenApi\Description\ResponseDescription;
 use Ark4ne\OpenApi\Generation\GeneratedDocument;
 use Ark4ne\OpenApi\Generation\Generator;
+use Ark4ne\OpenApi\Generation\GeneratorExtensions;
 use Ark4ne\OpenApi\Tests\Feature\DocumentScenario;
+use Ark4ne\OpenApi\Tests\Fixtures\Extensions\Stamp;
+use Ark4ne\OpenApi\Tests\Fixtures\Extensions\StampOperationExtractor;
+use Ark4ne\OpenApi\Tests\Fixtures\Extensions\StampPass;
+use Ark4ne\OpenApi\Tests\Fixtures\Extensions\StampRequestExtractor;
+use Ark4ne\OpenApi\Tests\Fixtures\Extensions\TeapotController;
+use Ark4ne\OpenApi\Tests\Fixtures\Extensions\TeapotResponseExtractor;
+use Ark4ne\OpenApi\Tests\Fixtures\Extensions\TeapotSampler;
+use Ark4ne\OpenApi\Tests\Fixtures\Extensions\TenantMiddlewareMapper;
+use Ark4ne\OpenApi\Tests\Fixtures\Extensions\TitleSummaryStrategy;
+use Ark4ne\OpenApi\Tests\Fixtures\Extensions\UppercaseRuleMapper;
 use Ark4ne\OpenApi\Tests\Fixtures\Integrations\TestIntegration;
 use Ark4ne\OpenApi\Tests\Fixtures\Metadata\Controllers\UserController;
 use Ark4ne\OpenApi\Tests\Fixtures\Responses\ResponseController;
@@ -19,12 +31,14 @@ use Ark4ne\OpenApi\Tests\Fixtures\Webhooks\OrderWebhooks;
 use Ark4ne\OpenApi\Tests\Fixtures\Webhooks\PaymentWebhooks;
 use Ark4ne\OpenApi\Tests\Support\Schemas;
 use Ark4ne\OpenApiWriter\Enums\Version;
+use Ark4ne\OpenApiWriter\Objects\Schema;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Translation\Translator;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(Generator::class)]
 #[CoversClass(GeneratedDocument::class)]
+#[CoversClass(GeneratorExtensions::class)]
 final class GeneratorTest extends DocumentScenario
 {
     public function test_a_document_is_generated_from_the_routes(): void
@@ -116,6 +130,36 @@ final class GeneratorTest extends DocumentScenario
         $notFound = array_values(array_filter($responses, static fn(ResponseDescription $response): bool => $response->status === 404))[0] ?? null;
 
         self::assertSame(['application/problem+json'], array_keys($notFound->contents ?? []));
+    }
+
+    public function test_the_extensions_join_their_registries_and_the_strategies_come_from_the_container(): void
+    {
+        $this->app?->instance(Stamp::class, new Stamp('container'));
+        $this->router()->post('api/tea', [TeapotController::class, 'brew'])->middleware('tenant');
+        $container = $this->app?->make(Container::class);
+        self::assertInstanceOf(Container::class, $container);
+        $extensions = new GeneratorExtensions(
+            operationExtractors: [new StampOperationExtractor(new Stamp())],
+            requestExtractors: [new StampRequestExtractor()],
+            ruleMappers: [new UppercaseRuleMapper()],
+            responseExtractors: [new TeapotResponseExtractor()],
+            samplers: [new TeapotSampler()],
+            passes: [new StampPass()],
+        );
+        $configuration = Configuration::fromArray([
+            'documents' => ['v1' => ['info' => ['title' => 'API', 'version' => '1'], 'routes' => ['include' => null], 'strategies' => ['summary' => ['by' => TitleSummaryStrategy::class]]]],
+            'middlewares' => ['tenant' => [TenantMiddlewareMapper::class]],
+        ]);
+
+        $operation = Generator::make($this->router(), $container, $this->samplingSession(), extensions: $extensions)->generate($configuration, 'v1')->description->operations[0];
+
+        self::assertSame(['extracted' => 'stamped', 'tenant' => true, 'pass' => true], $operation->extensions);
+        self::assertSame('Summary container', $operation->summary);
+        self::assertSame(['X-Stamp'], array_map(static fn(ParameterDescription $parameter): string => $parameter->name, $operation->request->parameters));
+        $blend = $operation->request->body?->contents['application/json']->properties['blend'] ?? null;
+        self::assertInstanceOf(Schema::class, $blend);
+        self::assertSame('^[^a-z]*$', $blend->pattern);
+        self::assertSame([418, 422], array_map(static fn(ResponseDescription $response): int|string => $response->status, $operation->responses));
     }
 
     private function configuration(): Configuration

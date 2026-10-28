@@ -12,7 +12,7 @@ de ses livrables ; le tableau ci-dessous en est calculé automatiquement (`compo
 ## Progression
 
 <!-- progress:start -->
-**Avancement global : `█████████░` 90 % (242 / 268 livrables)**
+**Avancement global : `█████████░` 94 % (254 / 268 livrables)**
 
 | Épique | Statut | Avancement | Livrables |
 | --- | --- | --- | --- |
@@ -26,7 +26,7 @@ de ses livrables ; le tableau ci-dessous en est calculé automatiquement (`compo
 | [E7 — Passes du pipeline](E07-pipeline-passes.md) | Terminé | `██████████` 100 % | 26 / 26 |
 | [E8 — Écriture du document](E08-document-writing.md) | Terminé | `██████████` 100 % | 21 / 21 |
 | [E9 — Intégration JSON:API](E09-json-api.md) | Terminé | `██████████` 100 % | 11 / 11 |
-| [E10 — Intégration Laravel et expérience développeur](E10-laravel-dx.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 12 |
+| [E10 — Intégration Laravel et expérience développeur](E10-laravel-dx.md) | Terminé | `██████████` 100 % | 12 / 12 |
 | [E11 — Migration, documentation et version 1.0.0](E11-release.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 12 |
 | [E12 — Webhooks et callbacks](E12-webhooks.md) | En cours | `█████████░` 93 % | 14 / 15 |
 <!-- progress:end -->
@@ -103,3 +103,4 @@ E4 et E5/E6 peuvent avancer en parallèle une fois E3 terminé.
 | 2026-10-28 | Réponses (E6) : ressource exécutée sans puis avec ses relations, en composant ; 201 pour une ressource renvoyée par `POST` ; `#[Response]` sans corps garde le contenu inféré de son statut |
 | 2026-10-28 | Passes (E7) : elles ne voient que la description ; groupe de tags, serveurs de domaine et `#[Security]` décidés à l'extraction ; réponses d'erreur partagées, ajoutées seulement si le statut manque ; corps d'erreur remplaçables (`ErrorBodies`) |
 | 2026-10-28 | Tests : PHPUnit, Orchestra Testbench, fixtures JSON validées contre le schéma officiel ; couverture ≥ 90 % des lignes, MSI ≥ 80 % |
+| 2026-10-28 | E10 : un document de 500 routes est généré, validé et écrit en 0,43 s, avec un pic de 68,7 Mo (`composer benchmark`, PHP 8.5, SQLite en mémoire) |

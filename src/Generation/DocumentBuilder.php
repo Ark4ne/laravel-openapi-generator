@@ -58,7 +58,9 @@ final readonly class DocumentBuilder
             ->externalDocs(self::externalDocs($configuration->externalDocs));
         // A setter called without argument writes an empty collection: each one is called only with items.
         $openApi = self::with($openApi, $openApi->servers(...), array_map(self::documentServer(...), $configuration->servers));
-        $openApi = self::with($openApi, $openApi->paths(...), $this->paths($document));
+        $paths = $this->paths($document);
+        // A document without operation keeps empty paths: 3.0 requires them, 3.1 requires paths, webhooks or components.
+        $openApi = $paths === [] && $document->webhooks === [] ? $openApi->paths() : self::with($openApi, $openApi->paths(...), $paths);
         $openApi = self::with($openApi, $openApi->webhooks(...), $this->pathItems($document->webhooks, static fn(OperationDescription $webhook): string => $webhook->webhook ?? $webhook->path));
         $openApi = self::with($openApi, $openApi->tags(...), array_map(self::tag(...), $document->tags));
         $openApi = self::with($openApi, $openApi->security(...), array_map(self::security(...), $document->security));

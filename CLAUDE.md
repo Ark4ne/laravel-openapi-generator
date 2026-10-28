@@ -29,6 +29,7 @@ composer stan            # PHPStan max + Larastan + phpat architecture rules
 composer cs              # code style check (PER-CS); composer cs:fix to fix
 composer progress        # rebuild the progress table of docs/README.md
 composer fixtures:update # rewrite expected documents from the current output (review the diff)
+composer benchmark       # a document of 500 routes: time and peak memory
 composer ci              # every blocking check except coverage and mutation
 
 vendor/bin/phpunit --filter test_name

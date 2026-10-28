@@ -13,7 +13,7 @@ use Ark4ne\OpenApi\Extraction\Exceptions\LaravelErrorBodies;
 
 /**
  * The passes, in their explicit order: exception responses → security → error responses → tags and groups →
- * operationId → components → path parameters → cleanup.
+ * operationId → components → path parameters → the application's → cleanup.
  */
 final class Passes
 {
@@ -43,9 +43,10 @@ final class Passes
     }
 
     /**
-     * The built-in chain; `middlewares` of the configuration replace the mappers of their middleware.
+     * The built-in chain; `middlewares` of the configuration replace the mappers of their middleware, the other passes
+     * run after the built-in ones, before the cleanup.
      */
-    public static function default(?Configuration $configuration = null, ErrorBodies $errors = new LaravelErrorBodies()): self
+    public static function default(?Configuration $configuration = null, ErrorBodies $errors = new LaravelErrorBodies(), Pass ...$others): self
     {
         $mappers = MiddlewareMappers::default($errors);
 
@@ -53,7 +54,7 @@ final class Passes
             $mappers = $mappers->with($middleware, ...array_map(static fn(string $class): MiddlewareMapper => self::mapper($class), $classes));
         }
 
-        return new self(
+        return new self(...[
             new Passes\WebhookPass(),
             new Passes\CallbackResolutionPass(),
             new Passes\ThrownExceptionResponsePass(),
@@ -68,8 +69,9 @@ final class Passes
             new Passes\ComponentExtractionPass(),
             new Passes\EquivalentPathsPass(),
             new Passes\PathParametersPass(),
+            ...$others,
             new Passes\CleanupPass(),
-        );
+        ]);
     }
 
     /**

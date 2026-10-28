@@ -10,9 +10,11 @@ use Ark4ne\OpenApi\Sampling\FakeObject;
 use Ark4ne\OpenApi\Sampling\FakeObjectSampler;
 use Ark4ne\OpenApi\Sampling\FakeValues;
 use Ark4ne\OpenApi\Sampling\ModelFactorySampler;
+use Ark4ne\OpenApi\Sampling\NullSamplingSession;
 use Ark4ne\OpenApi\Sampling\ResourceFactorySampler;
 use Ark4ne\OpenApi\Sampling\SampleRequest;
 use Ark4ne\OpenApi\Sampling\Samplers;
+use Ark4ne\OpenApi\Tests\Fixtures\Extensions\TeapotSampler;
 use Ark4ne\OpenApi\Tests\Fixtures\Routing\Enums\Priority;
 use Ark4ne\OpenApi\Tests\Fixtures\Routing\Enums\Status;
 use Ark4ne\OpenApi\Tests\Fixtures\Routing\Models\User;
@@ -178,5 +180,12 @@ final class SamplersTest extends SamplingTestCase
     private function samplers(): Samplers
     {
         return Samplers::default($this->samplingSession(), new TypeResolver());
+    }
+
+    public function test_other_samplers_join_by_priority(): void
+    {
+        $samplers = Samplers::default(new NullSamplingSession(), new TypeResolver())->with(new TeapotSampler());
+
+        self::assertInstanceOf(TeapotSampler::class, $samplers->all()[0]);
     }
 }

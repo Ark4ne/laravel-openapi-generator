@@ -42,17 +42,18 @@ final readonly class OperationResponses
 
     /**
      * @param list<ResourceFormat> $formats
+     * @param list<ResponseExtractor> $extractors joining the built-in ones by priority
      */
-    public static function default(Samplers $samplers, TypeResolver $types, array $formats = [], ErrorBodies $errors = new LaravelErrorBodies()): self
+    public static function default(Samplers $samplers, TypeResolver $types, array $formats = [], ErrorBodies $errors = new LaravelErrorBodies(), array $extractors = []): self
     {
         $models = new ResourceModels($types);
         $resources = new ResourceSchemas($models, $samplers, new SchemaInferrer(new ModelSchemas($types)), new RelationLoader($samplers), $formats);
         $inferrer = $resources->inferrer();
         $values = new ValueSchemas($resources, $samplers, $inferrer);
-        $extractors = ResponseExtractors::default($resources, $models, $values, $samplers, $inferrer);
+        $registry = ResponseExtractors::default($resources, $models, $values, $samplers, $inferrer)->with(...$extractors);
         $declared = new DeclaredResponses($resources, new ResourceCollectionExtractor($resources, $models), $types);
 
-        return new self($extractors, $declared, new ExceptionResponses(ExceptionMappers::default($declared, $errors)), $resources);
+        return new self($registry, $declared, new ExceptionResponses(ExceptionMappers::default($declared, $errors)), $resources);
     }
 
     /**

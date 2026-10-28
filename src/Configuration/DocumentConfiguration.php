@@ -95,12 +95,44 @@ final readonly class DocumentConfiguration
             groups: $groups === null ? null : self::strategy("{$key}.strategies.groups", $groups, 'controller'),
             operationId: self::strategy("{$key}.strategies.operation_id", $strategies['operation_id'] ?? [], 'name'),
             query: self::strategy("{$key}.strategies.query", $strategies['query'] ?? [], 'all'),
-            useReferences: is_bool($config['use_references'] ?? null) ? $config['use_references'] : true,
+            useReferences: ConfigurationValues::boolean("{$key}.use_references", $config['use_references'] ?? true),
             securitySchemes: self::schemes("{$key}.security_schemes", $config['security_schemes'] ?? []),
             externalDocs: $externalDocs,
             self: ConfigurationValues::nullableString("{$key}.self", $config['self'] ?? null),
             extensions: array_filter($extensions, static fn(int|string $name): bool => is_string($name), ARRAY_FILTER_USE_KEY),
             security: ConfigurationValues::strings("{$key}.security", $config['security'] ?? []),
+        );
+    }
+
+    /**
+     * This document written in another format (`openapi:generate --format`), its file taking the extension of the
+     * format when it has the extension of the other one.
+     */
+    public function withFormat(OutputFormat $format): self
+    {
+        $file = (string) preg_replace('/\.(json|ya?ml)$/', $format === OutputFormat::Yaml ? '.yaml' : '.json', $this->output->file);
+        $output = new OutputConfiguration($this->output->disk, $this->output->directory, $file, $format);
+
+        return new self(
+            $this->name,
+            $this->info,
+            $this->version,
+            $this->strictness,
+            $this->vendorExtensions,
+            $this->servers,
+            $this->routes,
+            $output,
+            $this->summary,
+            $this->tags,
+            $this->groups,
+            $this->operationId,
+            $this->query,
+            $this->useReferences,
+            $this->securitySchemes,
+            $this->externalDocs,
+            $this->self,
+            $this->extensions,
+            $this->security,
         );
     }
 

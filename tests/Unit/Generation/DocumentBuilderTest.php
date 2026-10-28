@@ -153,6 +153,19 @@ final class DocumentBuilderTest extends TestCase
         self::assertArrayNotHasKey('paths', $written);
     }
 
+    public function test_a_document_without_operation_keeps_empty_paths(): void
+    {
+        $document = new DocumentConfiguration('v1', new InfoConfiguration('API', '1.0.0'));
+        $context = GenerationContext::for(new Configuration(['v1' => $document]), $document);
+
+        foreach ([Version::V3_0_4, Version::V3_1_2] as $version) {
+            $written = (new DocumentBuilder())->build(DocumentDescription::create(), $context)->toArray($version);
+
+            self::assertArrayHasKey('paths', $written, $version->value);
+            self::assertEmpty((array) $written['paths'], $version->value);
+        }
+    }
+
     public function test_the_callbacks_are_grouped_by_name_then_by_expression(): void
     {
         $sent = static fn(HttpMethod $method, string $expression): OperationDescription => OperationDescription::create($method, $expression)->responses(ResponseDescription::ok()->description('OK'));

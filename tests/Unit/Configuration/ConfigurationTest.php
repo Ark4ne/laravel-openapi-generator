@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Ark4ne\OpenApi\Tests\Unit\Configuration;
 
 use Ark4ne\OpenApi\Configuration\Configuration;
+use Ark4ne\OpenApi\Configuration\ExtensionsConfiguration;
 use Ark4ne\OpenApi\Configuration\InfoConfiguration;
+use Ark4ne\OpenApi\Configuration\IntegrationsConfiguration;
 use Ark4ne\OpenApi\Configuration\OutputConfiguration;
 use Ark4ne\OpenApi\Configuration\OutputFormat;
 use Ark4ne\OpenApi\Configuration\RouteMasks;
@@ -13,6 +15,9 @@ use Ark4ne\OpenApi\Configuration\RouteOrder;
 use Ark4ne\OpenApi\Configuration\SamplingConfiguration;
 use Ark4ne\OpenApi\Configuration\ServerConfiguration;
 use Ark4ne\OpenApi\Exceptions\InvalidConfigurationException;
+use Ark4ne\OpenApi\Tests\Fixtures\Extensions\StampPass;
+use Ark4ne\OpenApi\Tests\Fixtures\Extensions\TenantMiddlewareMapper;
+use Ark4ne\OpenApi\Tests\Fixtures\Extensions\UppercaseRuleMapper;
 use Ark4ne\OpenApi\Tests\TestCase;
 use Ark4ne\OpenApiWriter\Enums\Strictness;
 use Ark4ne\OpenApiWriter\Enums\VendorExtensions;
@@ -21,7 +26,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
- * The parts of the configuration the epics done so far read; the whole loading comes with E10.
+ * The loading of `config/openapi.php`: every key, and an explicit error for each invalid one.
  */
 #[CoversClass(Configuration::class)]
 #[CoversClass(SamplingConfiguration::class)]
@@ -29,6 +34,8 @@ use PHPUnit\Framework\Attributes\DataProvider;
 #[CoversClass(ServerConfiguration::class)]
 #[CoversClass(OutputConfiguration::class)]
 #[CoversClass(\Ark4ne\OpenApi\Configuration\DocumentConfiguration::class)]
+#[CoversClass(ExtensionsConfiguration::class)]
+#[CoversClass(IntegrationsConfiguration::class)]
 final class ConfigurationTest extends TestCase
 {
     public function test_the_published_configuration_is_read(): void
@@ -148,6 +155,58 @@ final class ConfigurationTest extends TestCase
         self::assertSame('uri', $document->groups?->by);
         self::assertSame('action', $document->operationId->by);
         self::assertFalse($configuration->exceptions->readThrows);
+    }
+
+    public function test_the_middlewares_the_extensions_and_the_integrations_are_read(): void
+    {
+        $configuration = Configuration::fromArray([
+            'middlewares' => ['tenant' => [TenantMiddlewareMapper::class]],
+            'extensions' => ['rule_mappers' => [UppercaseRuleMapper::class], 'passes' => [StampPass::class]],
+            'integrations' => ['json_api' => ['errors' => true]],
+        ]);
+
+        self::assertSame(['tenant' => [TenantMiddlewareMapper::class]], $configuration->middlewares);
+        self::assertEquals(new ExtensionsConfiguration(ruleMappers: [UppercaseRuleMapper::class], passes: [StampPass::class]), $configuration->extensions);
+        self::assertTrue($configuration->integrations->jsonApiErrors);
+        self::assertFalse(Configuration::fromArray([])->integrations->jsonApiErrors);
+    }
+
+    /**
+     * @return iterable<string, array{array<array-key, mixed>, string}>
+     */
+    public static function invalidEntries(): iterable
+    {
+        yield 'v0.6 key' => [['versions' => []], 'openapi: expected the keys documents, servers, output, sampling, date_formats, middlewares, extensions, integrations, exceptions, languages, got "versions"'];
+        yield 'middleware mappers not a list' => [['middlewares' => ['tenant' => TenantMiddlewareMapper::class]], 'openapi.middlewares.tenant: expected a list of classes'];
+        yield 'missing middleware mapper' => [['middlewares' => ['tenant' => ['App\\Missing']]], 'openapi.middlewares.tenant: expected existing classes, got "App\\Missing"'];
+        yield 'unknown registry' => [['extensions' => ['parsers' => []]], 'openapi.extensions: expected the keys operation_extractors, request_extractors, rule_mappers, response_extractors, samplers, passes, got "parsers"'];
+        yield 'missing extension' => [['extensions' => ['passes' => ['App\\Missing']]], 'openapi.extensions.passes: expected existing classes, got "App\\Missing"'];
+        yield 'unknown integration' => [['integrations' => ['sanctum' => []]], 'openapi.integrations: expected the keys json_api, got "sanctum"'];
+        yield 'json api errors' => [['integrations' => ['json_api' => ['errors' => 'yes']]], 'openapi.integrations.json_api.errors: expected a boolean, got "yes"'];
+        yield 'use references' => [['documents' => ['v1' => ['use_references' => 'no']]], 'openapi.documents.v1.use_references: expected a boolean, got "no"'];
+    }
+
+    /**
+     * @param array<array-key, mixed> $config
+     */
+    #[DataProvider('invalidEntries')]
+    public function test_an_invalid_entry_is_rejected_with_the_expected_value(array $config, string $message): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage($message);
+
+        Configuration::fromArray($config);
+    }
+
+    public function test_the_format_of_the_output_can_be_replaced(): void
+    {
+        $document = Configuration::fromArray(['documents' => ['v1' => []]])->document('v1')->withFormat(OutputFormat::Yaml);
+
+        self::assertSame(OutputFormat::Yaml, $document->output->format);
+        self::assertSame('{document}.yaml', $document->output->file);
+        self::assertSame('v1', $document->name);
+        self::assertSame('docs/{document}.json', Configuration::fromArray(['documents' => ['v1' => ['output' => ['file' => 'docs/{document}.yml', 'format' => 'yaml']]]])->document('v1')->withFormat(OutputFormat::Json)->output->file);
+        self::assertSame('{document}', Configuration::fromArray(['documents' => ['v1' => ['output' => ['file' => '{document}']]]])->document('v1')->withFormat(OutputFormat::Yaml)->output->file);
     }
 
     public function test_an_unknown_document_is_rejected(): void

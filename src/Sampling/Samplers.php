@@ -23,6 +23,14 @@ final class Samplers
     }
 
     /**
+     * These samplers with others, sorted together by priority.
+     */
+    public function with(Sampler ...$others): self
+    {
+        return new self(...$this->all(), ...$others);
+    }
+
+    /**
      * @return list<Sampler> by decreasing priority
      */
     public function all(): array

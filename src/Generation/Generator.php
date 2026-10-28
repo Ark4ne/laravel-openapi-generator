@@ -32,7 +32,8 @@ use Illuminate\Routing\Router;
  * metadata, requests and responses (E3 to E6) inside one sampling session, the passes (E7), then the writer's object.
  *
  * The available integrations add their resource formats and rule mappers, and the last one that has error bodies
- * replaces Laravel's.
+ * replaces Laravel's; the extensions of the application join the registries, and its strategy classes come from the
+ * container.
  */
 final readonly class Generator
 {
@@ -47,14 +48,15 @@ final readonly class Generator
         private ?Translator $translator = null,
         private DocumentBuilder $builder = new DocumentBuilder(),
         private array $integrations = [],
+        private GeneratorExtensions $extensions = new GeneratorExtensions(),
     ) {}
 
     /**
      * @param list<Integration> $integrations
      */
-    public static function make(Router $router, Container $container, SamplingSession $session, ?Translator $translator = null, array $integrations = []): self
+    public static function make(Router $router, Container $container, SamplingSession $session, ?Translator $translator = null, array $integrations = [], GeneratorExtensions $extensions = new GeneratorExtensions()): self
     {
-        return new self(new RouteCollector($router, new MiddlewareResolver($router), new PathParameterResolver()), $container, $session, new TypeResolver(), $translator, integrations: $integrations);
+        return new self(new RouteCollector($router, new MiddlewareResolver($router), new PathParameterResolver()), $container, $session, new TypeResolver(), $translator, integrations: $integrations, extensions: $extensions);
     }
 
     /**
@@ -82,7 +84,7 @@ final readonly class Generator
         $integrations = array_values(array_filter($this->integrations, static fn(Integration $integration): bool => $integration->available()));
         $errors = self::errorBodies($integrations);
         $description = $this->session->run(fn(): DocumentDescription => $this->describe($context, $integrations, $errors), $context);
-        $description = Passes::default($configuration, $errors)->process($description, $context);
+        $description = Passes::default($configuration, $errors, ...$this->extensions->passes)->process($description, $context);
 
         return new GeneratedDocument($this->builder->build($description, $context), $description, $context);
     }
@@ -111,16 +113,18 @@ final readonly class Generator
         $configuration = $context->document;
         $factory = new OperationContextFactory($this->types);
         $operations = OperationExtractors::default(
-            BuiltInStrategies::summary($configuration->summary),
-            BuiltInStrategies::tags($configuration->tags),
-            BuiltInStrategies::operationId($configuration->operationId),
+            BuiltInStrategies::summary($configuration->summary, container: $this->container),
+            BuiltInStrategies::tags($configuration->tags, container: $this->container),
+            BuiltInStrategies::operationId($configuration->operationId, container: $this->container),
             $this->translator,
-            BuiltInStrategies::groups($configuration->groups),
-        );
+            BuiltInStrategies::groups($configuration->groups, container: $this->container),
+        )->with(...$this->extensions->operationExtractors);
         $formats = array_merge(...array_map(static fn(Integration $integration): array => $integration->resourceFormats(), $integrations));
         $mappers = array_merge(...array_map(static fn(Integration $integration): array => $integration->ruleMappers(), $integrations));
-        $responses = OperationResponses::default(Samplers::default($this->session, $this->types), $this->types, $formats, $errors);
-        $requests = RequestExtractors::default($this->container, BuiltInStrategies::query($configuration->query), RuleMappers::default()->with(...$mappers), $this->types, $responses->resources());
+        $samplers = Samplers::default($this->session, $this->types)->with(...$this->extensions->samplers);
+        $responses = OperationResponses::default($samplers, $this->types, $formats, $errors, $this->extensions->responseExtractors);
+        $requests = RequestExtractors::default($this->container, BuiltInStrategies::query($configuration->query, container: $this->container), RuleMappers::default()->with(...$mappers, ...$this->extensions->ruleMappers), $this->types, $responses->resources())
+            ->with(...$this->extensions->requestExtractors);
         $callbacks = new DeclaredCallbacks($responses->declared());
         $document = DocumentDescription::create();
 

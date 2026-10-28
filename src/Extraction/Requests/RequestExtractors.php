@@ -28,6 +28,14 @@ final class RequestExtractors
     }
 
     /**
+     * These extractors with others, sorted together by priority.
+     */
+    public function with(RequestExtractor ...$others): self
+    {
+        return new self(...$this->all(), ...$others);
+    }
+
+    /**
      * @return list<RequestExtractor> by increasing priority
      */
     public function all(): array

@@ -229,7 +229,7 @@ final class TypeResolver
         $node = $this->docBlock($class)->node;
 
         foreach ([...$node->getExtendsTagValues(), ...$node->getImplementsTagValues()] as $tag) {
-            $name = $scope->resolveClass($tag->type->type->name);
+            $name = $scope->resolveClass(self::identifier($tag->type->type));
             $arguments = array_values(array_map(fn(TypeNode $argument): Type => $this->fromNode($argument, $scope), $tag->type->genericTypes));
 
             if (strcasecmp($name, $ancestor) === 0) {
@@ -311,7 +311,7 @@ final class TypeResolver
             $node instanceof ArrayShapeNode => $this->shape($node, $scope),
             $node instanceof ConstTypeNode => $this->constant($node, $scope),
             $node instanceof ThisTypeNode => $scope->self === null ? new MixedType() : new NamedType($scope->self),
-            $node instanceof CallableTypeNode => $this->name($node->identifier->name, $scope),
+            $node instanceof CallableTypeNode => $this->name(self::identifier($node->identifier), $scope),
             $node instanceof ObjectShapeNode => new NamedType('object'),
             $node instanceof ConditionalTypeNode, $node instanceof ConditionalTypeForParameterNode => self::union([$this->fromNode($node->if, $scope), $this->fromNode($node->else, $scope)]),
             default => new MixedType(),
@@ -336,13 +336,13 @@ final class TypeResolver
     private function generic(GenericTypeNode $node, TypeScope $scope): Type
     {
         $arguments = array_values(array_map(fn(TypeNode $type): Type => $this->fromNode($type, $scope), $node->genericTypes));
-        $lower = strtolower($node->type->name);
+        $lower = strtolower(self::identifier($node->type));
 
         if ($lower === 'list' || $lower === 'non-empty-list') {
             return new ListType($arguments[0] ?? new MixedType(), nonEmpty: $lower === 'non-empty-list');
         }
 
-        $base = $this->name($node->type->name, $scope);
+        $base = $this->name(self::identifier($node->type), $scope);
 
         return match (true) {
             $arguments === [], ! $base instanceof NamedType => $base,
@@ -600,5 +600,14 @@ final class TypeResolver
         };
 
         return $nullable && $members !== [] ? new NullableType($type) : $type;
+    }
+
+    /**
+     * The name of an identifier node, or of the name node phpdoc-parser 2.4 types next to it (which its parser never
+     * produces), as written.
+     */
+    private static function identifier(TypeNode $node): string
+    {
+        return $node instanceof IdentifierTypeNode ? $node->name : (string) $node;
     }
 }

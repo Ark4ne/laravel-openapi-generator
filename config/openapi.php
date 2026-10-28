@@ -235,6 +235,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Integrations
+    |--------------------------------------------------------------------------
+    |
+    | Packages documented when they are installed. `json_api`
+    | (ark4ne/laravel-json-api): resources in `application/vnd.api+json`,
+    | `include` and `fields[type]` parameters; `errors` writes the error
+    | responses as JSON:API error documents, for an application that renders
+    | its errors so (the package itself leaves Laravel's errors as they are).
+    |
+    */
+    'integrations' => [
+        'json_api' => [
+            'errors' => false,
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Exceptions
     |--------------------------------------------------------------------------
     |

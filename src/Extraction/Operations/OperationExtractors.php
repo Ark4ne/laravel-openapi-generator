@@ -26,6 +26,14 @@ final class OperationExtractors
     }
 
     /**
+     * These extractors with others, sorted together by priority.
+     */
+    public function with(OperationExtractor ...$others): self
+    {
+        return new self(...$this->all(), ...$others);
+    }
+
+    /**
      * @return list<OperationExtractor> by increasing priority
      */
     public function all(): array

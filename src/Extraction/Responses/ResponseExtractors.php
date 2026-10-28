@@ -26,6 +26,14 @@ final class ResponseExtractors
     }
 
     /**
+     * These extractors with others, sorted together by priority.
+     */
+    public function with(ResponseExtractor ...$others): self
+    {
+        return new self(...$this->all(), ...$others);
+    }
+
+    /**
      * @return list<ResponseExtractor> by decreasing priority
      */
     public function all(): array

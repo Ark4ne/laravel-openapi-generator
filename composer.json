@@ -89,7 +89,8 @@
         "fixtures:update": [
             "@putenv OPENAPI_GENERATOR_UPDATE_FIXTURES=1",
             "phpunit --testsuite Feature"
-        ]
+        ],
+        "benchmark": "phpunit --testsuite Benchmark --group benchmark"
     },
     "scripts-descriptions": {
         "test": "Run the whole PHPUnit suite.",
@@ -100,7 +101,15 @@
         "mutation": "Run mutation testing (requires infection to be installed globally).",
         "ci": "Run every blocking check of the CI locally.",
         "progress": "Rebuild the progress table of docs/README.md from the epic checklists.",
-        "fixtures:update": "Rewrite the expected documents of the Feature scenarios from the current output (review the diff)."
+        "fixtures:update": "Rewrite the expected documents of the Feature scenarios from the current output (review the diff).",
+        "benchmark": "Generate a document of 500 routes and print the time and the peak memory."
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Ark4ne\\OpenApi\\Laravel\\OpenApiServiceProvider"
+            ]
+        }
     },
     "config": {
         "sort-packages": true

@@ -9,14 +9,16 @@ use Ark4ne\OpenApi\Exceptions\InvalidConfigurationException;
 /**
  * The whole `config/openapi.php`, typed and validated once when it is loaded.
  *
- * Read so far: the documents (see DocumentConfiguration), `servers`, `output`, `sampling`, `date_formats`, `languages`
- * and `exceptions`; `middlewares` and `extensions` come with the service provider (E10).
+ * Every key is read; an unknown top-level key is rejected (`versions` of v0.6 among them), as is any invalid value,
+ * with its key, the expected value and the received one.
  *
  * Nothing outside the Laravel layer reads `config()`: every component receives this object, or the
  * DocumentConfiguration of the document being generated.
  */
 final readonly class Configuration
 {
+    public const KEYS = ['documents', 'servers', 'output', 'sampling', 'date_formats', 'middlewares', 'extensions', 'integrations', 'exceptions', 'languages'];
+
     /**
      * @param array<string, DocumentConfiguration> $documents
      * @param array<string, list<class-string>> $middlewares middleware name or class → middleware mappers
@@ -31,6 +33,7 @@ final readonly class Configuration
         public array $dateFormats = [],
         public array $languages = [],
         public ExceptionsConfiguration $exceptions = new ExceptionsConfiguration(),
+        public IntegrationsConfiguration $integrations = new IntegrationsConfiguration(),
     ) {}
 
     /**
@@ -40,6 +43,10 @@ final readonly class Configuration
      */
     public static function fromArray(array $config): self
     {
+        if ($config !== []) {
+            ConfigurationValues::keys('', $config, self::KEYS);
+        }
+
         $entries = $config['documents'] ?? [];
 
         if (! is_array($entries)) {
@@ -88,8 +95,29 @@ final readonly class Configuration
             SamplingConfiguration::fromArray('sampling', $sampling),
             dateFormats: $dateFormats,
             languages: ConfigurationValues::strings('languages', $config['languages'] ?? []),
+            middlewares: self::middlewares(ConfigurationValues::array('middlewares', $config['middlewares'] ?? [])),
+            extensions: ExtensionsConfiguration::fromArray('extensions', ConfigurationValues::array('extensions', $config['extensions'] ?? [])),
             exceptions: ExceptionsConfiguration::fromArray('exceptions', $exceptions),
+            integrations: IntegrationsConfiguration::fromArray('integrations', ConfigurationValues::array('integrations', $config['integrations'] ?? [])),
         );
+    }
+
+    /**
+     * @param array<array-key, mixed> $middlewares
+     *
+     * @return array<string, list<class-string>>
+     *
+     * @throws InvalidConfigurationException
+     */
+    private static function middlewares(array $middlewares): array
+    {
+        $mappers = [];
+
+        foreach ($middlewares as $middleware => $classes) {
+            $mappers[(string) $middleware] = ConfigurationValues::classes("middlewares.{$middleware}", $classes);
+        }
+
+        return $mappers;
     }
 
     /**

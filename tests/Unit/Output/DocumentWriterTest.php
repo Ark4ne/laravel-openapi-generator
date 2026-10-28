@@ -41,6 +41,18 @@ final class DocumentWriterTest extends TestCase
         self::assertSame((string) json_encode($this->document()->toArray(Version::V3_1_2), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . "\n", Storage::disk('docs')->get($path));
     }
 
+    public function test_contents_already_written_are_stored_without_writing_them_again(): void
+    {
+        Storage::fake('docs');
+        $context = $this->writing(new OutputConfiguration('docs', 'openapi', '{document}.json'));
+
+        $path = $this->writer()->store('{}', $context);
+
+        self::assertSame('openapi/v1.json', $path);
+        self::assertSame('{}', Storage::disk('docs')->get($path));
+        self::assertCount(0, $context->diagnostics);
+    }
+
     public function test_the_document_can_be_written_as_yaml(): void
     {
         Storage::fake('docs');

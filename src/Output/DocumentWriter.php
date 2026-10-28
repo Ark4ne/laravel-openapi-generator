@@ -35,8 +35,16 @@ final readonly class DocumentWriter
      */
     public function write(OpenApi $document, GenerationContext $context): string
     {
+        return $this->store($this->contents($document, $context), $context);
+    }
+
+    /**
+     * Stores contents already written (`contents()`) at the path of the document and returns that path.
+     */
+    public function store(string $contents, GenerationContext $context): string
+    {
         $path = $this->path($context);
-        $this->disks->disk($context->document->output->disk)->put($path, $this->contents($document, $context));
+        $this->disks->disk($context->document->output->disk)->put($path, $contents);
 
         return $path;
     }
