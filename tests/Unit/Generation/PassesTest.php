@@ -11,6 +11,7 @@ use Ark4ne\OpenApi\Generation\Passes;
 use Ark4ne\OpenApi\Generation\Passes\AuthorizationResponsePass;
 use Ark4ne\OpenApi\Generation\Passes\CleanupPass;
 use Ark4ne\OpenApi\Generation\Passes\ComponentExtractionPass;
+use Ark4ne\OpenApi\Generation\Passes\EquivalentPathsPass;
 use Ark4ne\OpenApi\Generation\Passes\MiddlewareSecurityPass;
 use Ark4ne\OpenApi\Generation\Passes\NotFoundResponsePass;
 use Ark4ne\OpenApi\Generation\Passes\OperationIdPass;
@@ -42,6 +43,7 @@ final class PassesTest extends TestCase
             TagGroupPass::class,
             OperationIdPass::class,
             ComponentExtractionPass::class,
+            EquivalentPathsPass::class,
             PathParametersPass::class,
             CleanupPass::class,
         ], array_map(get_class(...), Passes::default()->all()));

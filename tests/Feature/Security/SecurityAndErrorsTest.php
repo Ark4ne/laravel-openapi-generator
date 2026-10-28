@@ -18,10 +18,10 @@ use Ark4ne\OpenApi\Extraction\Strategies\BuiltInSummaryStrategy;
 use Ark4ne\OpenApi\Extraction\Strategies\BuiltInTagStrategy;
 use Ark4ne\OpenApi\Generation\Passes;
 use Ark4ne\OpenApi\Sampling\Samplers;
+use Ark4ne\OpenApi\Tests\Feature\DocumentScenario;
 use Ark4ne\OpenApi\Tests\Fixtures\Requests\RequestController;
 use Ark4ne\OpenApi\Tests\Fixtures\Responses\ResponseController;
 use Ark4ne\OpenApi\Tests\Fixtures\Routing\Controllers\BindingController;
-use Ark4ne\OpenApi\Tests\Unit\Sampling\SamplingTestCase;
 use Ark4ne\OpenApi\Types\TypeResolver;
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Contracts\Container\Container;
@@ -29,11 +29,10 @@ use Illuminate\Routing\Middleware\ThrottleRequests;
 use PHPUnit\Framework\Attributes\CoversNothing;
 
 /**
- * Security and error responses of a small application, from its routes through extraction and passes. The expected
- * documents come with the writing (E8).
+ * Security and error responses of a small application, from its routes through extraction and passes.
  */
 #[CoversNothing]
-final class SecurityAndErrorsTest extends SamplingTestCase
+final class SecurityAndErrorsTest extends DocumentScenario
 {
     protected function defineRoutes($router): void
     {
@@ -76,6 +75,11 @@ final class SecurityAndErrorsTest extends SamplingTestCase
 
         self::assertSame(['getApiArticlesByArticle', 'postApiUsers', 'getApiUsersByUser', 'getApiPublic'], array_map(static fn(OperationDescription $operation): ?string => $operation->operationId, $document->operations));
         self::assertSame(['/api/articles/{article}', '/api/users/{user}'], array_keys($document->pathParameters));
+    }
+
+    public function test_the_documents_are_those_expected(): void
+    {
+        $this->assertExpectedDocuments(__DIR__);
     }
 
     private function document(): DocumentDescription

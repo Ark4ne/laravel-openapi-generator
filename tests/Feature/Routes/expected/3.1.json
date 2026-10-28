@@ -1,0 +1,389 @@
+{
+    "openapi": "3.1.2",
+    "info": {
+        "title": "Scenario",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/user": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "operationId": "user.index",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "User"
+                ],
+                "operationId": "postUser",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/user/{user}": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "operationId": "user.show",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "User"
+                ],
+                "operationId": "putUserById",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "User"
+                ],
+                "operationId": "user.destroy",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthenticated"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    },
+                    {
+                        "session": [],
+                        "xsrf": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "User"
+                ],
+                "operationId": "patchUserById",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "user",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ]
+        },
+        "/user/{id}/basic-request": {
+            "put": {
+                "tags": [
+                    "User"
+                ],
+                "operationId": "putUserByIdBasicRequest",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "patch": {
+                "tags": [
+                    "User"
+                ],
+                "operationId": "patchUserByIdBasicRequest",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ]
+        },
+        "/user/{id}/no-request": {
+            "put": {
+                "tags": [
+                    "User"
+                ],
+                "operationId": "putUserByIdNoRequest",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "patch": {
+                "tags": [
+                    "User"
+                ],
+                "operationId": "patchUserByIdNoRequest",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ]
+        },
+        "/user/basic-request": {
+            "post": {
+                "tags": [
+                    "User"
+                ],
+                "operationId": "postUserBasicRequest",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/user/no-request": {
+            "post": {
+                "tags": [
+                    "User"
+                ],
+                "operationId": "postUserNoRequest",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/comment": {
+            "get": {
+                "tags": [
+                    "Comment"
+                ],
+                "operationId": "comment.index",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/comment/{comment}": {
+            "get": {
+                "tags": [
+                    "Comment"
+                ],
+                "operationId": "comment.show",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Comment"
+                ],
+                "operationId": "comment.destroy",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    },
+                    {
+                        "session": [],
+                        "xsrf": []
+                    }
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "comment",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "/post": {
+            "get": {
+                "tags": [
+                    "Post"
+                ],
+                "operationId": "post.index",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/post/{post}": {
+            "get": {
+                "tags": [
+                    "Post"
+                ],
+                "operationId": "post.show",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Post"
+                ],
+                "operationId": "post.destroy",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthenticated"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    },
+                    {
+                        "session": [],
+                        "xsrf": []
+                    }
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "post",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ]
+        }
+    },
+    "components": {
+        "schemas": {
+            "Error": {
+                "type": "object",
+                "required": [
+                    "message"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "responses": {
+            "Unauthenticated": {
+                "description": "Unauthenticated",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/Error"
+                        }
+                    }
+                }
+            },
+            "NotFound": {
+                "description": "Not Found",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "securitySchemes": {
+            "sanctum": {
+                "type": "http",
+                "scheme": "bearer"
+            },
+            "session": {
+                "type": "apiKey",
+                "name": "laravel_session",
+                "in": "cookie"
+            },
+            "xsrf": {
+                "type": "apiKey",
+                "name": "X-XSRF-TOKEN",
+                "in": "header"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "User"
+        },
+        {
+            "name": "Comment"
+        },
+        {
+            "name": "Post"
+        }
+    ]
+}

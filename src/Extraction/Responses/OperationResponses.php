@@ -51,6 +51,14 @@ final readonly class OperationResponses
     }
 
     /**
+     * The resources this object describes, shared with the request bodies (`#[RequestBody(resource:)]`).
+     */
+    public function resources(): ResourceSchemas
+    {
+        return $this->resources;
+    }
+
+    /**
      * @return list<ResponseDescription>
      */
     public function describe(OperationContext $operation, GenerationContext $context): array

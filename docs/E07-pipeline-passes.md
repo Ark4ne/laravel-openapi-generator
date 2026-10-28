@@ -70,6 +70,9 @@ sécurité, réponses d'erreur, tags et groupes, identifiants uniques, composant
 
 - [x] Serveurs d'opération pour les routes à domaine (`https://{account}.example.com` et ses variables, posés à
       l'extraction) ; les serveurs du document viennent de la configuration à l'écriture (E8)
+- [x] `EquivalentPathsPass` : chemins qui ne diffèrent que par le nom de leurs paramètres (`/users/{id}`,
+      `/users/{user}`) réunis sous le premier, paramètres renommés (ajouté en E8 : interdit par OpenAPI, révélé par la
+      validation des documents attendus)
 - [x] `PathParametersPass` : paramètres de chemin communs à toutes les méthodes d'un chemin remontés au Path Item
 - [x] Nettoyage : tags d'opération en double retirés, une réponse `default` pour une opération qui n'en a aucune
       (obligatoire en 3.0), ordre des chemins stable

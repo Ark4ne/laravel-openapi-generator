@@ -1,0 +1,379 @@
+{
+    "openapi": "3.0.4",
+    "info": {
+        "title": "Scenario",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/articles/{article}": {
+            "get": {
+                "tags": [
+                    "Response"
+                ],
+                "operationId": "getApiArticlesByArticle",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ],
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Article"
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "required": [
+                                                "version"
+                                            ],
+                                            "properties": {
+                                                "version": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthenticated"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    },
+                    {
+                        "session": [],
+                        "xsrf": []
+                    }
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "article",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "/api/users": {
+            "post": {
+                "tags": [
+                    "Request"
+                ],
+                "operationId": "postApiUsers",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "name",
+                                    "email"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 255
+                                    },
+                                    "email": {
+                                        "description": "Unique in users.email.",
+                                        "format": "email",
+                                        "type": "string"
+                                    },
+                                    "status": {
+                                        "enum": [
+                                            "draft",
+                                            "published"
+                                        ],
+                                        "type": "string"
+                                    },
+                                    "tags": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "maxItems": 5,
+                                        "uniqueItems": true
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthenticated"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationFailed"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    },
+                    {
+                        "session": [],
+                        "xsrf": []
+                    }
+                ]
+            }
+        },
+        "/api/users/{user}": {
+            "get": {
+                "tags": [
+                    "Binding"
+                ],
+                "operationId": "getApiUsersByUser",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthenticated"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    },
+                    {
+                        "session": [],
+                        "xsrf": []
+                    }
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "user",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ]
+        },
+        "/api/public": {
+            "get": {
+                "tags": [
+                    "Response"
+                ],
+                "operationId": "getApiPublic",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Article": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "title"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "author": {
+                        "$ref": "#/components/schemas/Author"
+                    }
+                }
+            },
+            "Author": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "name"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                }
+            },
+            "Error": {
+                "type": "object",
+                "required": [
+                    "message"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string"
+                    }
+                }
+            },
+            "ValidationError": {
+                "type": "object",
+                "required": [
+                    "message",
+                    "errors"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string"
+                    },
+                    "errors": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "responses": {
+            "Unauthenticated": {
+                "description": "Unauthenticated",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/Error"
+                        }
+                    }
+                }
+            },
+            "Forbidden": {
+                "description": "Forbidden",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/Error"
+                        }
+                    }
+                }
+            },
+            "NotFound": {
+                "description": "Not Found",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/Error"
+                        }
+                    }
+                }
+            },
+            "ValidationFailed": {
+                "description": "Validation failed",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        }
+                    }
+                }
+            },
+            "TooManyRequests": {
+                "description": "Too Many Requests",
+                "headers": {
+                    "X-RateLimit-Limit": {
+                        "description": "Requests allowed in the window.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    "X-RateLimit-Remaining": {
+                        "description": "Requests left in the window.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    "Retry-After": {
+                        "description": "Seconds before a new request is allowed.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    "X-RateLimit-Reset": {
+                        "description": "Unix timestamp of the end of the window.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "securitySchemes": {
+            "sanctum": {
+                "type": "http",
+                "scheme": "bearer"
+            },
+            "session": {
+                "type": "apiKey",
+                "name": "laravel_session",
+                "in": "cookie"
+            },
+            "xsrf": {
+                "type": "apiKey",
+                "name": "X-XSRF-TOKEN",
+                "in": "header"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Response"
+        },
+        {
+            "name": "Request"
+        },
+        {
+            "name": "Binding"
+        }
+    ]
+}

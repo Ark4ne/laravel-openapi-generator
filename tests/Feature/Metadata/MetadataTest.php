@@ -9,16 +9,15 @@ use Ark4ne\OpenApi\Description\OperationDescription;
 use Ark4ne\OpenApi\Extraction\OperationContextFactory;
 use Ark4ne\OpenApi\Extraction\Operations\OperationExtractors;
 use Ark4ne\OpenApi\Extraction\Strategies\BuiltInStrategies;
-use Ark4ne\OpenApi\Tests\TestCase;
+use Ark4ne\OpenApi\Tests\Feature\DocumentScenario;
 use Ark4ne\OpenApi\Types\TypeResolver;
 use PHPUnit\Framework\Attributes\CoversNothing;
 
 /**
- * Metadata of the operations of a fixture application, with the default strategies of `config/openapi.php`. The
- * expected documents come with the writing (E8).
+ * Metadata of the operations of a fixture application, with the default strategies of `config/openapi.php`.
  */
 #[CoversNothing]
-final class MetadataTest extends TestCase
+final class MetadataTest extends DocumentScenario
 {
     protected function defineRoutes($router): void
     {
@@ -48,6 +47,11 @@ final class MetadataTest extends TestCase
             'GET /api/admin/reports' => ['summary' => null, 'description' => null, 'tags' => ['Admin\Report'], 'operationId' => 'admin.reports.index', 'deprecated' => false],
             'GET /api/ping' => ['summary' => 'Ping the API.', 'description' => null, 'tags' => [], 'operationId' => 'getApiPing', 'deprecated' => false],
         ], $summary);
+    }
+
+    public function test_the_documents_are_those_expected(): void
+    {
+        $this->assertExpectedDocuments(__DIR__);
     }
 
     /**

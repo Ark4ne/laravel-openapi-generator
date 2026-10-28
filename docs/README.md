@@ -12,7 +12,7 @@ de ses livrables ; le tableau ci-dessous en est calculé automatiquement (`compo
 ## Progression
 
 <!-- progress:start -->
-**Avancement global : `███████░░░` 74 % (197 / 265 livrables)**
+**Avancement global : `████████░░` 81 % (219 / 268 livrables)**
 
 | Épique | Statut | Avancement | Livrables |
 | --- | --- | --- | --- |
@@ -23,8 +23,8 @@ de ses livrables ; le tableau ci-dessous en est calculé automatiquement (`compo
 | [E4 — Requêtes et règles de validation](E04-requests.md) | Terminé | `██████████` 100 % | 29 / 29 |
 | [E5 — Échantillonnage et inférence de schémas](E05-sampling.md) | Terminé | `██████████` 100 % | 20 / 20 |
 | [E6 — Réponses](E06-responses.md) | Terminé | `██████████` 100 % | 32 / 32 |
-| [E7 — Passes du pipeline](E07-pipeline-passes.md) | Terminé | `██████████` 100 % | 25 / 25 |
-| [E8 — Écriture du document](E08-document-writing.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 19 |
+| [E7 — Passes du pipeline](E07-pipeline-passes.md) | Terminé | `██████████` 100 % | 26 / 26 |
+| [E8 — Écriture du document](E08-document-writing.md) | Terminé | `██████████` 100 % | 21 / 21 |
 | [E9 — Intégration JSON:API](E09-json-api.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 11 |
 | [E10 — Intégration Laravel et expérience développeur](E10-laravel-dx.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 12 |
 | [E11 — Migration, documentation et version 1.0.0](E11-release.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 12 |

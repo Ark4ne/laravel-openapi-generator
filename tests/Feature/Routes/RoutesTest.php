@@ -10,16 +10,16 @@ use Ark4ne\OpenApi\Discovery\MiddlewareResolver;
 use Ark4ne\OpenApi\Discovery\PathParameterResolver;
 use Ark4ne\OpenApi\Discovery\RouteCollector;
 use Ark4ne\OpenApi\Discovery\RouteDefinition;
+use Ark4ne\OpenApi\Tests\Feature\DocumentScenario;
 use Ark4ne\OpenApi\Tests\Fixtures\Routing\Models\Post;
 use Ark4ne\OpenApi\Tests\Fixtures\Routing\Models\User;
-use Ark4ne\OpenApi\Tests\TestCase;
 use PHPUnit\Framework\Attributes\CoversNothing;
 
 /**
- * Discovery of the routes of the v0.6 test application. The expected documents come with the writing (E8).
+ * Discovery of the routes of the v0.6 test application.
  */
 #[CoversNothing]
-final class RoutesTest extends TestCase
+final class RoutesTest extends DocumentScenario
 {
     protected function defineRoutes($router): void
     {
@@ -66,6 +66,11 @@ final class RoutesTest extends TestCase
         self::assertSame(Post::class, $byLabel['GET /post/{post}']->parameters[0]->boundTo);
         self::assertSchema(['type' => 'string'], $byLabel['GET /comment/{comment}']->parameters[0]->schema);
         self::assertSame(['auth:sanctum'], $byLabel['DELETE /post/{post}']->middlewares);
+    }
+
+    public function test_the_documents_are_those_expected(): void
+    {
+        $this->assertExpectedDocuments(__DIR__);
     }
 
     /**

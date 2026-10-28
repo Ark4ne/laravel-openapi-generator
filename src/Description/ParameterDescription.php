@@ -56,6 +56,11 @@ final readonly class ParameterDescription extends Description
         return new self($name, ParameterLocation::Cookie, $schema ?? Schema::string());
     }
 
+    public function name(string $name): static
+    {
+        return $this->copy(name: $name);
+    }
+
     public function schema(Schema $schema): static
     {
         return $this->copy(schema: $schema);

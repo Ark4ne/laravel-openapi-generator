@@ -12,8 +12,7 @@ use Ark4ne\OpenApiWriter\Enums\Version;
 /**
  * One document to generate (`documents.<name>` of the configuration).
  *
- * Read so far: `routes` and `strategies`; the other keys keep their defaults until the loading of the configuration
- * is completed (E10).
+ * Every key of `documents.<name>` is read; an unknown key is ignored.
  */
 final readonly class DocumentConfiguration
 {
@@ -72,10 +71,24 @@ final readonly class DocumentConfiguration
         }
 
         $groups = $strategies['groups'] ?? null;
+        $documentServers = ConfigurationValues::array("{$key}.servers", $config['servers'] ?? []);
+        $externalDocs = $config['external_docs'] ?? null;
+
+        if ($externalDocs !== null && ! (is_array($externalDocs) && is_string($externalDocs['url'] ?? null))) {
+            throw InvalidConfigurationException::forKey("{$key}.external_docs", 'null or an array with an url', $externalDocs);
+        }
+
+        /** @var array{url: string, description?: string}|null $externalDocs */
+        $extensions = ConfigurationValues::array("{$key}.extensions", $config['extensions'] ?? []);
 
         return new self(
             $name,
-            new InfoConfiguration('', ''),
+            InfoConfiguration::fromArray("{$key}.info", ConfigurationValues::array("{$key}.info", $config['info'] ?? ['title' => $name])),
+            ConfigurationValues::enum("{$key}.openapi", $config['openapi'] ?? Version::default()->value, Version::class),
+            is_bool($config['strict'] ?? true) ? (($config['strict'] ?? true) ? Strictness::Strict : Strictness::Lenient) : throw InvalidConfigurationException::forKey("{$key}.strict", 'a boolean', $config['strict']),
+            ConfigurationValues::enum("{$key}.vendor_extensions", $config['vendor_extensions'] ?? VendorExtensions::None->value, VendorExtensions::class),
+            $documentServers === [] ? $servers : array_map(static fn(int|string $index, mixed $server): ServerConfiguration => ServerConfiguration::fromArray("{$key}.servers.{$index}", ConfigurationValues::array("{$key}.servers.{$index}", $server)), array_keys($documentServers), $documentServers),
+            output: OutputConfiguration::fromArray("{$key}.output", [...$output, ...ConfigurationValues::array("{$key}.output", $config['output'] ?? [])]),
             routes: RouteFilterConfiguration::fromArray("{$key}.routes", $routes),
             summary: self::strategy("{$key}.strategies.summary", $strategies['summary'] ?? [], 'doc'),
             tags: self::strategy("{$key}.strategies.tags", $strategies['tags'] ?? [], 'controller'),
@@ -84,6 +97,9 @@ final readonly class DocumentConfiguration
             query: self::strategy("{$key}.strategies.query", $strategies['query'] ?? [], 'all'),
             useReferences: is_bool($config['use_references'] ?? null) ? $config['use_references'] : true,
             securitySchemes: self::schemes("{$key}.security_schemes", $config['security_schemes'] ?? []),
+            externalDocs: $externalDocs,
+            self: ConfigurationValues::nullableString("{$key}.self", $config['self'] ?? null),
+            extensions: array_filter($extensions, static fn(int|string $name): bool => is_string($name), ARRAY_FILTER_USE_KEY),
             security: ConfigurationValues::strings("{$key}.security", $config['security'] ?? []),
         );
     }

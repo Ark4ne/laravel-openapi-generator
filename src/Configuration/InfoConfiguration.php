@@ -32,6 +32,22 @@ final readonly class InfoConfiguration
      */
     public static function fromArray(string $key, array $config): self
     {
-        return new self('', '');
+        $contact = ConfigurationValues::array("{$key}.contact", $config['contact'] ?? []);
+        $license = ConfigurationValues::array("{$key}.license", $config['license'] ?? []);
+
+        /** @var array{name?: string, url?: string, email?: string} $contact */
+        $contact = array_filter($contact, is_string(...));
+        /** @var array{name?: string, identifier?: string, url?: string} $license */
+        $license = array_filter($license, is_string(...));
+
+        return new self(
+            ConfigurationValues::string("{$key}.title", $config['title'] ?? null),
+            ConfigurationValues::string("{$key}.version", $config['version'] ?? '1.0.0'),
+            ConfigurationValues::nullableString("{$key}.summary", $config['summary'] ?? null),
+            ConfigurationValues::nullableString("{$key}.description", $config['description'] ?? null),
+            ConfigurationValues::nullableString("{$key}.terms_of_service", $config['terms_of_service'] ?? null),
+            $contact,
+            $license,
+        );
     }
 }

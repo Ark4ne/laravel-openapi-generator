@@ -13,6 +13,7 @@ use Ark4ne\OpenApi\Description\ResponseDescription;
 use Ark4ne\OpenApi\Description\TagDescription;
 use Ark4ne\OpenApi\Generation\Passes\CleanupPass;
 use Ark4ne\OpenApi\Generation\Passes\ComponentExtractionPass;
+use Ark4ne\OpenApi\Generation\Passes\EquivalentPathsPass;
 use Ark4ne\OpenApi\Generation\Passes\OperationIdPass;
 use Ark4ne\OpenApi\Generation\Passes\PathParametersPass;
 use Ark4ne\OpenApi\Generation\Passes\TagGroupPass;
@@ -34,6 +35,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 #[CoversClass(ComponentExtractionPass::class)]
 #[CoversClass(SchemaWalker::class)]
 #[CoversClass(PathParametersPass::class)]
+#[CoversClass(EquivalentPathsPass::class)]
 #[CoversClass(CleanupPass::class)]
 final class DocumentPassesTest extends TestCase
 {
@@ -110,6 +112,21 @@ final class DocumentPassesTest extends TestCase
 
         self::assertSame([], $document->schemas);
         Schemas::assertSame('{"type":"object","properties":{"id":{"type":"integer"}}}', $document->operations[0]->request->body->contents['application/json'] ?? Schema::create());
+    }
+
+    public function test_paths_that_differ_only_by_the_names_of_their_parameters_are_one(): void
+    {
+        $context = $this->context();
+
+        $document = (new EquivalentPathsPass())->process(Descriptions::document(
+            Descriptions::operation(HttpMethod::Get, '/users/{user}/posts/{post}'),
+            Descriptions::operation(HttpMethod::Put, '/users/{id}/posts/{slug}')->request(RequestDescription::create()->parameters(ParameterDescription::path('id'), ParameterDescription::path('slug'), ParameterDescription::query('id'))),
+            Descriptions::operation(HttpMethod::Get, '/posts/{post}'),
+        ), $context);
+
+        self::assertSame(['/users/{user}/posts/{post}', '/users/{user}/posts/{post}', '/posts/{post}'], array_map(static fn(OperationDescription $o): string => $o->path, $document->operations));
+        self::assertSame(['user', 'post', 'id'], array_map(static fn(ParameterDescription $p): string => $p->name, $document->operations[1]->request->parameters));
+        self::assertSame('[info] pass PUT /users/{id}/posts/{slug}: /users/{id}/posts/{slug} is the path /users/{user}/posts/{post} for the router, written as it', (string) $context->diagnostics->all()[0]);
     }
 
     public function test_the_path_parameters_shared_by_every_operation_of_a_path_go_up(): void

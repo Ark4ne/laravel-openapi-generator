@@ -10,18 +10,18 @@ use Ark4ne\OpenApi\Description\ResponseDescription;
 use Ark4ne\OpenApi\Extraction\OperationContextFactory;
 use Ark4ne\OpenApi\Extraction\Responses\OperationResponses;
 use Ark4ne\OpenApi\Sampling\Samplers;
+use Ark4ne\OpenApi\Tests\Feature\DocumentScenario;
 use Ark4ne\OpenApi\Tests\Fixtures\Responses\ResponseController;
-use Ark4ne\OpenApi\Tests\Unit\Sampling\SamplingTestCase;
 use Ark4ne\OpenApi\Types\TypeResolver;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\CoversNothing;
 
 /**
  * The responses of a whole application, inside one sampling session: the statuses of the v0.6 application
- * (`openapi-jsonresource.json`), and no row left in the database. The expected documents come with the writing (E8).
+ * (`openapi-jsonresource.json`), and no row left in the database.
  */
 #[CoversNothing]
-final class ResponsesTest extends SamplingTestCase
+final class ResponsesTest extends DocumentScenario
 {
     private ?GenerationContext $sampled = null;
 
@@ -60,6 +60,11 @@ final class ResponsesTest extends SamplingTestCase
 
         self::assertSame(0, DB::table('articles')->count());
         self::assertSame(['Article', 'Author'], array_keys($this->sampled?->components->all() ?? []));
+    }
+
+    public function test_the_documents_are_those_expected(): void
+    {
+        $this->assertExpectedDocuments(__DIR__);
     }
 
     /**

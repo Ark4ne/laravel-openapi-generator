@@ -53,6 +53,11 @@ final readonly class OperationDescription extends Description
         return new self($method, $path, RequestDescription::create());
     }
 
+    public function path(string $path): static
+    {
+        return $this->copy(path: $path);
+    }
+
     public function route(?string $route): static
     {
         return $this->copy(route: $route);

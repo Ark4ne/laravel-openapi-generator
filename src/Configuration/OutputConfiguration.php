@@ -25,6 +25,13 @@ final readonly class OutputConfiguration
      */
     public static function fromArray(string $key, array $config): self
     {
-        return new self();
+        $defaults = new self();
+
+        return new self(
+            ConfigurationValues::nullableString("{$key}.disk", $config['disk'] ?? null),
+            ConfigurationValues::string("{$key}.directory", $config['directory'] ?? $defaults->directory),
+            ConfigurationValues::string("{$key}.file", $config['file'] ?? $defaults->file),
+            ConfigurationValues::enum("{$key}.format", $config['format'] ?? $defaults->format->value, OutputFormat::class),
+        );
     }
 }

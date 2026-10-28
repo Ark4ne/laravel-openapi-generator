@@ -23,6 +23,19 @@ final class Schemas
         Assert::assertSame(self::normalize($expected), self::normalize(json_decode($schema->toJson(), true, flags: JSON_THROW_ON_ERROR)), $message);
     }
 
+    /**
+     * Compares any written object (a document, a part of it) with its expected array form or JSON.
+     *
+     * @param array<array-key, mixed>|string $expected
+     * @param array<array-key, mixed> $actual written with `toArray()`
+     */
+    public static function assertWritten(array|string $expected, array $actual, string $message = ''): void
+    {
+        $expected = is_string($expected) ? json_decode($expected, true, flags: JSON_THROW_ON_ERROR) : $expected;
+
+        Assert::assertSame(self::normalize($expected), self::normalize(json_decode((string) json_encode($actual), true)), $message);
+    }
+
     private static function normalize(mixed $value): mixed
     {
         if (! is_array($value)) {
@@ -33,6 +46,26 @@ final class Schemas
 
         if (! array_is_list($value)) {
             ksort($value);
+        }
+
+        return $value;
+    }
+
+    /**
+     * The value written at a path of keys, null when a key is missing.
+     *
+     * @param array<array-key, mixed> $written
+     */
+    public static function at(array $written, string ...$keys): mixed
+    {
+        $value = $written;
+
+        foreach ($keys as $key) {
+            if (!is_array($value) || !array_key_exists($key, $value)) {
+                return null;
+            }
+
+            $value = $value[$key];
         }
 
         return $value;

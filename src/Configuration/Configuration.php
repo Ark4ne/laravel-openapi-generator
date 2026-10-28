@@ -9,8 +9,8 @@ use Ark4ne\OpenApi\Exceptions\InvalidConfigurationException;
 /**
  * The whole `config/openapi.php`, typed and validated once when it is loaded.
  *
- * Read so far: the documents (see DocumentConfiguration), `sampling`, `date_formats` and `exceptions`; the other keys keep their defaults until
- * the loading of the configuration is completed (E10).
+ * Read so far: the documents (see DocumentConfiguration), `servers`, `output`, `sampling`, `date_formats`, `languages`
+ * and `exceptions`; `middlewares` and `extensions` come with the service provider (E10).
  *
  * Nothing outside the Laravel layer reads `config()`: every component receives this object, or the
  * DocumentConfiguration of the document being generated.
@@ -46,6 +46,14 @@ final readonly class Configuration
             throw InvalidConfigurationException::forKey('documents', 'a map of documents', $entries);
         }
 
+        $servers = [];
+
+        foreach (ConfigurationValues::array('servers', $config['servers'] ?? []) as $index => $server) {
+            $servers[] = ServerConfiguration::fromArray("servers.{$index}", ConfigurationValues::array("servers.{$index}", $server));
+        }
+
+        $output = ConfigurationValues::array('output', $config['output'] ?? []);
+        OutputConfiguration::fromArray('output', $output);
         $documents = [];
 
         foreach ($entries as $name => $entry) {
@@ -53,7 +61,7 @@ final readonly class Configuration
                 throw InvalidConfigurationException::forKey("documents.{$name}", 'an array', $entry);
             }
 
-            $documents[(string) $name] = DocumentConfiguration::fromArray((string) $name, $entry);
+            $documents[(string) $name] = DocumentConfiguration::fromArray((string) $name, $entry, $output, $servers);
         }
 
         $exceptions = $config['exceptions'] ?? [];
@@ -79,6 +87,7 @@ final readonly class Configuration
             $documents,
             SamplingConfiguration::fromArray('sampling', $sampling),
             dateFormats: $dateFormats,
+            languages: ConfigurationValues::strings('languages', $config['languages'] ?? []),
             exceptions: ExceptionsConfiguration::fromArray('exceptions', $exceptions),
         );
     }

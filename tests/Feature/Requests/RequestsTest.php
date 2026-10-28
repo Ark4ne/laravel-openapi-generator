@@ -9,20 +9,19 @@ use Ark4ne\OpenApi\Description\RequestDescription;
 use Ark4ne\OpenApi\Extraction\OperationContextFactory;
 use Ark4ne\OpenApi\Extraction\Requests\RequestExtractors;
 use Ark4ne\OpenApi\Extraction\Strategies\BuiltInQueryStrategy;
+use Ark4ne\OpenApi\Tests\Feature\DocumentScenario;
 use Ark4ne\OpenApi\Tests\Fixtures\Requests\Legacy\LegacyController;
 use Ark4ne\OpenApi\Tests\Support\Schemas;
-use Ark4ne\OpenApi\Tests\TestCase;
 use Ark4ne\OpenApi\Types\TypeResolver;
 use Ark4ne\OpenApiWriter\Objects\Schema;
 use Illuminate\Contracts\Container\Container;
 use PHPUnit\Framework\Attributes\CoversNothing;
 
 /**
- * Requests of the v0.6 test application (`openapi-jsonresource.json`), with the default `all` query mode. The
- * expected documents come with the writing (E8).
+ * Requests of the v0.6 test application (`openapi-jsonresource.json`), with the default `all` query mode.
  */
 #[CoversNothing]
-final class RequestsTest extends TestCase
+final class RequestsTest extends DocumentScenario
 {
     protected function defineRoutes($router): void
     {
@@ -51,6 +50,11 @@ final class RequestsTest extends TestCase
         Schemas::assertSame('{"type":"object","properties":{"name":{"type":"string"},"email":{"type":"string"}},"required":["name","email"]}', $requests['POST /user']->body->contents['application/json'] ?? Schema::create());
         Schemas::assertSame('{"type":"object","properties":{"name":{"type":"string"}}}', $requests['PUT /user/{id}']->body->contents['application/json'] ?? Schema::create());
         self::assertSame(['id'], array_map(static fn(ParameterDescription $parameter): string => $parameter->name, $requests['PUT /user/{id}']->parameters));
+    }
+
+    public function test_the_documents_are_those_expected(): void
+    {
+        $this->assertExpectedDocuments(__DIR__);
     }
 
     /**

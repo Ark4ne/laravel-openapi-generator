@@ -62,6 +62,7 @@ final class Passes
             new Passes\TagGroupPass(),
             new Passes\OperationIdPass(),
             new Passes\ComponentExtractionPass(),
+            new Passes\EquivalentPathsPass(),
             new Passes\PathParametersPass(),
             new Passes\CleanupPass(),
         );
