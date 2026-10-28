@@ -6,6 +6,7 @@ namespace Ark4ne\OpenApi\Discovery;
 
 use Ark4ne\OpenApi\Configuration\RouteFilterConfiguration;
 use Ark4ne\OpenApi\Configuration\RouteMasks;
+use Closure;
 use Illuminate\Routing\RedirectController;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\ViewController;
@@ -28,10 +29,12 @@ final readonly class RouteFilter
     /**
      * Whether the route belongs to the document. `#[Exclude]` is read by the collector, which reflects the action.
      *
-     * @param list<string> $middlewares declared middlewares, groups expanded
-     * @param list<string> $middlewareClasses the same middlewares resolved to their class
+     * Resolving the middlewares may build the controller: `$middlewares` is called only when a middleware mask has to
+     * be checked, after every other criterion.
+     *
+     * @param (Closure(): list<string>)|null $middlewares declared middlewares and their classes
      */
-    public function accepts(Route $route, array $middlewares = [], array $middlewareClasses = []): bool
+    public function accepts(Route $route, ?Closure $middlewares = null): bool
     {
         if ($route->isFallback || $this->isLeftOutController($route)) {
             return false;
@@ -43,13 +46,14 @@ final readonly class RouteFilter
             return false;
         }
 
+        $middlewares ??= static fn(): array => [];
         $include = $this->configuration->include;
 
-        if (! $include->isEmpty() && ! $this->matches($include, $route, $uri, [...$middlewares, ...$middlewareClasses])) {
+        if (! $include->isEmpty() && ! $this->matches($include, $route, $uri, $middlewares)) {
             return false;
         }
 
-        return ! $this->matches($this->configuration->exclude, $route, $uri, [...$middlewares, ...$middlewareClasses]);
+        return ! $this->matches($this->configuration->exclude, $route, $uri, $middlewares);
     }
 
     /**
@@ -59,24 +63,38 @@ final readonly class RouteFilter
      */
     public function methods(Route $route): array
     {
-        $ignored = array_map(strtoupper(...), $this->configuration->ignoredMethods);
         $methods = array_unique(array_map(strtoupper(...), $route->methods()));
 
-        return array_values(array_diff($methods, $ignored));
+        return array_values(array_diff($methods, $this->configuration->ignoredMethods));
     }
 
     /**
-     * @param list<string> $middlewares
+     * A middleware mask matches the middleware with or without its arguments (`auth`, `…\Authenticate`).
+     *
+     * @param Closure(): list<string> $middlewares
      */
-    private function matches(RouteMasks $masks, Route $route, string $uri, array $middlewares): bool
+    private function matches(RouteMasks $masks, Route $route, string $uri, Closure $middlewares): bool
     {
         $name = $route->getName();
         $domain = $route->getDomain();
 
-        return Str::is(array_map(self::uri(...), $masks->uri), $uri)
+        if (Str::is(array_map(self::uri(...), $masks->uri), $uri)
             || ($name !== null && Str::is($masks->name, $name))
-            || ($domain !== null && Str::is($masks->domain, $domain))
-            || array_filter($middlewares, static fn(string $middleware): bool => Str::is($masks->middleware, $middleware)) !== [];
+            || ($domain !== null && Str::is($masks->domain, $domain))) {
+            return true;
+        }
+
+        if ($masks->middleware === []) {
+            return false;
+        }
+
+        foreach ($middlewares() as $middleware) {
+            if (Str::is($masks->middleware, $middleware) || Str::is($masks->middleware, Str::before($middleware, ':'))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function isLeftOutController(Route $route): bool

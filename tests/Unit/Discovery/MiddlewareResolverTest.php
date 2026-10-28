@@ -11,6 +11,7 @@ use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 #[CoversClass(MiddlewareResolver::class)]
 final class MiddlewareResolverTest extends TestCase
@@ -67,7 +68,44 @@ final class MiddlewareResolverTest extends TestCase
         $resolver = new MiddlewareResolver($this->router());
 
         self::assertSame(['auth:sanctum'], $resolver->declared($route));
-        self::assertSame([], $resolver->classes($route));
+        self::assertSame([Authenticate::class . ':sanctum'], $resolver->classes($route));
+    }
+
+    public function test_a_failed_controller_does_not_leave_the_route_without_middleware(): void
+    {
+        $route = $this->router()->get('api/broken/{broken}', [BrokenController::class, 'show'])->middleware('auth:sanctum');
+
+        (new MiddlewareResolver($this->router()))->declared($route);
+
+        self::assertNull($route->computedMiddleware);
+    }
+
+    /**
+     * @return iterable<string, array{string|list<string>, list<string>}>
+     */
+    public static function exclusions(): iterable
+    {
+        yield 'declared name' => ['auth:sanctum', ['throttle:api', SubstituteBindings::class]];
+        yield 'alias' => ['auth', ['throttle:api', SubstituteBindings::class]];
+        yield 'class' => [Authenticate::class, ['throttle:api', SubstituteBindings::class]];
+        yield 'group' => ['documented', ['auth:sanctum']];
+        yield 'class of a group member' => [ThrottleRequests::class, [SubstituteBindings::class, 'auth:sanctum']];
+    }
+
+    /**
+     * @param string|list<string> $excluded
+     * @param list<string> $declared
+     */
+    #[DataProvider('exclusions')]
+    public function test_an_excluded_middleware_is_removed_as_laravel_removes_it(string|array $excluded, array $declared): void
+    {
+        $route = $this->router()->get('api/users', static fn() => null)
+            ->middleware(['documented', 'auth:sanctum'])
+            ->withoutMiddleware($excluded);
+        $resolver = new MiddlewareResolver($this->router());
+
+        self::assertSame($declared, $resolver->declared($route));
+        self::assertCount(count($declared), $resolver->classes($route));
     }
 
     public function test_a_route_without_middleware_has_none(): void

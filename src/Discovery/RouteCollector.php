@@ -25,7 +25,8 @@ use ReflectionMethod;
  *
  * Steps, per route in registration order: filter (`documents.<name>.routes`, `#[Exclude]`), methods (ignored methods
  * removed; `QUERY` and the other methods dropped with a warning before 3.2 in lenient mode, kept for the writer to
- * reject in strict mode), paths (one per combination of optional parameters), parameters. Then `routes.order`.
+ * reject in strict mode), paths (one per combination of optional parameters), parameters. An operation (method and
+ * path) already given by an earlier route is left out with a warning. Then `routes.order`.
  */
 final readonly class RouteCollector
 {
@@ -44,12 +45,13 @@ final readonly class RouteCollector
     {
         $filter = new RouteFilter($context->document->routes);
         $definitions = [];
+        /** @var array<string, string> $discovered label → action that gave it */
+        $discovered = [];
 
         foreach ($this->router->getRoutes()->getRoutes() as $route) {
-            $middlewares = $this->middlewares->declared($route);
-            $middlewareClasses = $this->middlewares->classes($route);
+            $middlewares = fn(): array => [...$this->middlewares->declared($route), ...$this->middlewares->classes($route)];
 
-            if (! $filter->accepts($route, $middlewares, $middlewareClasses) || self::isExcluded($route)) {
+            if (! $filter->accepts($route, $middlewares) || self::isExcluded($route)) {
                 continue;
             }
 
@@ -62,14 +64,29 @@ final readonly class RouteCollector
 
             [$controller, $action] = self::action($route);
             $label = RouteDefinition::labelOf($methods[0], $paths[array_key_last($paths)]);
-            $parameters = $this->parameters->resolve($route, self::names($route->uri()), $context, $label);
-            $domainParameters = $this->parameters->resolve($route, self::names($route->getDomain() ?? ''), $context, $label);
+            $domainNames = self::names($route->getDomain() ?? '');
+            $parameters = $this->parameters->resolve($route, [...self::names($route->uri()), ...$domainNames], $context, $label);
+            $domainParameters = self::only($parameters, $domainNames);
+            $middlewares = $this->middlewares->declared($route);
+            $middlewareClasses = $this->middlewares->classes($route);
 
             foreach ($paths as $path) {
-                $names = self::names($path);
-                $pathParameters = array_values(array_filter($parameters, static fn(ParameterDescription $parameter): bool => in_array($parameter->name, $names, true)));
+                $pathParameters = self::only($parameters, self::names($path));
 
                 foreach ($methods as $method) {
+                    $label = RouteDefinition::labelOf($method, $path);
+
+                    if (isset($discovered[$label])) {
+                        $context->diagnostics->warning(
+                            Stage::Discovery,
+                            "already discovered from {$discovered[$label]}, {$route->getActionName()} left out for this path",
+                            $label,
+                        );
+
+                        continue;
+                    }
+
+                    $discovered[$label] = $route->getActionName();
                     $definitions[] = new RouteDefinition(
                         $route,
                         $method,
@@ -120,6 +137,17 @@ final readonly class RouteCollector
             static fn(string $path): string => '/' . trim((string) preg_replace(self::PARAMETER, '{$1}', $path), '/'),
             $paths,
         );
+    }
+
+    /**
+     * @param list<ParameterDescription> $parameters
+     * @param list<string> $names
+     *
+     * @return list<ParameterDescription>
+     */
+    private static function only(array $parameters, array $names): array
+    {
+        return array_values(array_filter($parameters, static fn(ParameterDescription $parameter): bool => in_array($parameter->name, $names, true)));
     }
 
     /**

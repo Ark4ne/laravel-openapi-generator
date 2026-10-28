@@ -38,6 +38,7 @@ final class PathParameterResolverTest extends TestCase
         yield 'whereUlid' => [static fn(Route $route) => $route->whereUlid('id'), ['type' => 'string', 'pattern' => '^[0-7][0-9a-hjkmnp-tv-zA-HJKMNP-TV-Z]{25}$']];
         yield 'whereIn' => [static fn(Route $route) => $route->whereIn('id', ['draft', 'published']), ['type' => 'string', 'enum' => ['draft', 'published']]];
         yield 'whereIn with an enum' => [static fn(Route $route) => $route->whereIn('id', Status::cases()), ['type' => 'string', 'enum' => ['draft', 'published']]];
+        yield 'whereIn with leading zeros' => [static fn(Route $route) => $route->whereIn('id', ['01', '10']), ['type' => 'string', 'enum' => ['01', '10']]];
         yield 'whereIn with numbers' => [static fn(Route $route) => $route->whereIn('id', [1, 2]), ['type' => 'integer', 'enum' => [1, 2]]];
         yield 'free expression' => [static fn(Route $route) => $route->where('id', '[a-z]{2}-[0-9]+'), ['type' => 'string', 'pattern' => '^[a-z]{2}-[0-9]+$']];
         yield 'free alternation' => [static fn(Route $route) => $route->where('id', 'v[0-9]+|latest'), ['type' => 'string', 'pattern' => '^(?:v[0-9]+|latest)$']];
@@ -73,6 +74,7 @@ final class PathParameterResolverTest extends TestCase
         yield 'custom key with a boolean cast' => ['post', 'posts/{post:featured}', ['type' => 'boolean'], Post::class];
         yield 'custom key with an enum cast' => ['post', 'posts/{post:status}', ['type' => 'string', 'enum' => ['draft', 'published']], Post::class];
         yield 'custom key without cast' => ['user', 'users/{user:email}', ['type' => 'string'], User::class];
+        yield 'unique id that is not the key' => ['order', 'orders/{order:reference}', ['type' => 'string', 'format' => 'uuid'], Order::class];
         yield 'uuid key' => ['order', 'orders/{order}', ['type' => 'string', 'format' => 'uuid'], Order::class];
         yield 'ulid key' => ['ticket', 'tickets/{ticket}', ['type' => 'string', 'pattern' => '^[0-7][0-9a-hjkmnp-tv-zA-HJKMNP-TV-Z]{25}$'], Ticket::class];
         yield 'string backed enum' => ['status', 'posts/{status}', ['type' => 'string', 'enum' => ['draft', 'published']], Status::class];
@@ -130,6 +132,33 @@ final class PathParameterResolverTest extends TestCase
 
         self::assertSchema(['type' => 'integer'], $parameter->schema);
         self::assertSame(Post::class, $parameter->boundTo);
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function digitConstraints(): iterable
+    {
+        yield 'bounded digits' => ['user', '[0-9]{1,6}'];
+        yield 'digits shorthand' => ['user', '\d{4}'];
+        yield 'no leading zero' => ['user', '[1-9][0-9]*'];
+        yield 'int argument' => ['scalar', '[0-9]{1,3}'];
+    }
+
+    #[DataProvider('digitConstraints')]
+    public function test_a_digit_constraint_keeps_an_integer_type(string $action, string $expression): void
+    {
+        $parameter = $action === 'user' ? 'user' : 'page';
+        $route = $this->router()->get("api/x/{{$parameter}}", [BindingController::class, $action])->where($parameter, $expression);
+
+        self::assertSchema(['type' => 'integer'], $this->resolve($route, [$parameter])[0]->schema);
+    }
+
+    public function test_a_digit_constraint_on_a_string_stays_a_pattern(): void
+    {
+        $route = $this->router()->get('api/x/{code}', static fn(string $code) => null)->where('code', '[0-9]{4}');
+
+        self::assertSchema(['type' => 'string', 'pattern' => '^[0-9]{4}$'], $this->resolve($route, ['code'])[0]->schema);
     }
 
     public function test_a_where_constraint_does_not_replace_the_values_of_an_enum(): void

@@ -30,6 +30,8 @@ final class RouteFilterTest extends TestCase
         yield 'domain included' => [new RouteMasks(domain: ['*.example.com']), new RouteMasks(), true];
         yield 'declared middleware included' => [new RouteMasks(middleware: ['auth:*']), new RouteMasks(), true];
         yield 'middleware class included' => [new RouteMasks(middleware: ['Illuminate\Auth\Middleware\Authenticate*']), new RouteMasks(), true];
+        yield 'middleware class without its arguments' => [new RouteMasks(middleware: ['Illuminate\Auth\Middleware\Authenticate']), new RouteMasks(), true];
+        yield 'middleware alias without its arguments' => [new RouteMasks(middleware: ['auth']), new RouteMasks(), true];
         yield 'one matching kind is enough' => [new RouteMasks(uri: ['admin/*'], name: ['api.*']), new RouteMasks(), true];
         yield 'uri excluded' => [new RouteMasks(), new RouteMasks(uri: ['api/users']), false];
         yield 'name excluded' => [new RouteMasks(), new RouteMasks(name: ['api.users.index']), false];
@@ -45,7 +47,25 @@ final class RouteFilterTest extends TestCase
         $route->domain('{account}.example.com');
         $filter = new RouteFilter(new RouteFilterConfiguration(include: $include, exclude: $exclude));
 
-        self::assertSame($accepted, $filter->accepts($route, ['auth:sanctum'], ['Illuminate\Auth\Middleware\Authenticate:sanctum']));
+        self::assertSame($accepted, $filter->accepts($route, static fn(): array => ['auth:sanctum', 'Illuminate\Auth\Middleware\Authenticate:sanctum']));
+    }
+
+    public function test_the_middlewares_are_resolved_only_when_a_middleware_mask_needs_them(): void
+    {
+        $route = $this->router()->get('api/users', [UserController::class, 'index']);
+        $resolved = 0;
+        $middlewares = static function () use (&$resolved): array {
+            $resolved++;
+
+            return ['auth:sanctum'];
+        };
+
+        (new RouteFilter(new RouteFilterConfiguration(include: new RouteMasks(uri: ['api/*']))))->accepts($route, $middlewares);
+        (new RouteFilter(new RouteFilterConfiguration(include: new RouteMasks(uri: ['admin/*'], middleware: ['auth*']))))->accepts($route, $middlewares);
+        (new RouteFilter(new RouteFilterConfiguration(include: new RouteMasks(uri: ['api/*']), exclude: new RouteMasks(middleware: ['auth*']))))->accepts($route, $middlewares);
+        (new RouteFilter(new RouteFilterConfiguration(include: new RouteMasks(), internal: ['api/*'], exclude: new RouteMasks(middleware: ['auth*']))))->accepts($route, $middlewares);
+
+        self::assertSame(2, $resolved);
     }
 
     public function test_a_route_without_name_or_domain_matches_no_name_or_domain_mask(): void

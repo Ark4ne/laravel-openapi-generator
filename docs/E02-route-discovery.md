@@ -45,7 +45,7 @@ et un chemin OpenAPI correct (paramètres, contraintes, domaines).
 - [x] Contraintes : `whereNumber` → `integer`, `whereAlpha` / `whereAlphaNumeric` → `pattern`, `whereUuid` →
       `format: uuid`, `whereUlid` → `pattern`, `whereIn` → `enum`, expression libre → `pattern` ancré
 - [x] Liaison implicite d'un modèle : type de la clé (`getKeyType()`, `getRouteKeyName()`, cast de la colonne de
-      la clé personnalisée, `HasUuids` / `HasUlids`) ; `boundTo` = le modèle
+      la clé personnalisée, `HasUuids` / `HasUlids` pour toute colonne de `uniqueIds()`) ; `boundTo` = le modèle
 - [x] Liaison d'une enum adossée (`BackedEnum`) : `enum` des valeurs, `boundTo` = l'enum (le `$ref` vient de la
       passe des composants, E7)
 - [x] Paramètres de domaine (`{account}.example.com`) : lus et typés à part des paramètres de chemin ; les
@@ -66,7 +66,16 @@ et un chemin OpenAPI correct (paramètres, contraintes, domaines).
 - **Masques** : `include` et `exclude` acceptent une liste de masques d'URI (`['api/*']`, forme de la v0.6) ou une
   map `uri` / `name` / `domain` / `middleware`. Une route correspond dès qu'un masque, de n'importe quel type, la
   reconnaît. `include` vide garde toutes les routes. Un masque de middleware se compare au nom déclaré
-  (`auth:sanctum`) et à la classe résolue.
+  (`auth:sanctum`) et à la classe résolue, avec ou sans leurs arguments (`auth`, `…\Authenticate`). Les middlewares
+  ne sont résolus que si un masque de middleware doit être vérifié, après tous les autres critères : la résolution
+  peut construire le contrôleur.
+- **Exclusions de middlewares** : `withoutMiddleware()` est appliqué comme par le routeur (nom exact, alias,
+  groupe, classe ou classe parente).
+- **Opérations en double** : une méthode et un chemin déjà donnés par une route précédente (`GET users` puis
+  `GET users/{id?}`) sont écartés avec un avertissement ; la première route l'emporte.
+- **Contraintes et types** : un paramètre déjà entier (clé de modèle, argument `int`) contraint à des chiffres
+  (`[0-9]{1,6}`, `\d{4}`, `[1-9][0-9]*`) reste un `integer` ; sinon la contrainte donne un `pattern`. `whereIn`
+  donne un `enum` d'entiers seulement si aucune valeur n'a de zéro de tête (`01` reste une chaîne).
 - **Méthodes avant 3.2** : en mode strict, `QUERY` et les méthodes non standard restent dans la description et le
   writer lève son `UnsupportedFeatureException` à l'écriture, comme pour toute fonctionnalité absente de la version.
   En mode permissif, la découverte les retire avec un avertissement rattaché à la route. Depuis une version mineure de
@@ -78,7 +87,8 @@ et un chemin OpenAPI correct (paramètres, contraintes, domaines).
 - **Comportements de Laravel pris en compte** : `signatureParameters()` renvoie une liste vide, sans erreur, pour
   une méthode de contrôleur inexistante (la découverte le détecte et émet l'avertissement) ; Laravel construit le
   contrôleur pour lire ses middlewares quand il a `getMiddleware()` : s'il échoue, seuls les middlewares de la route
-  sont lus ; les closures ne sont pas acceptées comme middlewares de route.
+  sont lus, et le cache vide que Laravel a posé avant l'échec est effacé (sinon la route s'exécuterait sans
+  middleware) ; les closures ne sont pas acceptées comme middlewares de route.
 - `#[Exclude]` accepte désormais la cible `TARGET_FUNCTION`, pour les closures.
 - `OperationDescription::$method` et `OperationContext::$method` sont typés `HttpMethod|string` : une chaîne est une
   méthode non standard, en majuscules.

@@ -10,4 +10,12 @@ use Illuminate\Database\Eloquent\Model;
 final class Order extends Model
 {
     use HasUuids;
+
+    /**
+     * @return list<string>
+     */
+    public function uniqueIds(): array
+    {
+        return [$this->getKeyName(), 'reference'];
+    }
 }

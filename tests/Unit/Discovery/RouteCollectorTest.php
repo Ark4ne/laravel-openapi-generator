@@ -67,6 +67,27 @@ final class RouteCollectorTest extends TestCase
         self::assertSchema(['type' => 'integer'], $definitions[2]->parameters[1]->schema);
     }
 
+    public function test_an_operation_already_discovered_is_left_out_with_a_warning(): void
+    {
+        $this->router()->get('api/users', [UserController::class, 'index']);
+        $this->router()->get('api/users/{id?}', [UserController::class, 'update']);
+        $context = $this->context();
+
+        self::assertSame(['GET /api/users', 'GET /api/users/{id}'], $this->labels(context: $context));
+        self::assertDiagnostics(['[warning] discovery GET /api/users: already discovered from ' . UserController::class . '@index, ' . UserController::class . '@update left out for this path'], $context);
+    }
+
+    public function test_an_action_that_cannot_be_reflected_is_reported_once(): void
+    {
+        $route = $this->router()->get('api/users/{user}', 'App\Http\Controllers\MissingController@show');
+        $route->domain('{account}.example.com');
+        $context = $this->context();
+
+        $this->collect(context: $context);
+
+        self::assertCount(1, $context->diagnostics);
+    }
+
     public function test_a_custom_binding_key_is_removed_from_the_path(): void
     {
         $this->router()->get('api/users/{user:email}', [BindingController::class, 'user']);

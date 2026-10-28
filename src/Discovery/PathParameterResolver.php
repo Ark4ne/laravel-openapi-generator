@@ -36,6 +36,11 @@ final readonly class PathParameterResolver
 
     private const UUID = '[\da-fA-F]{8}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{12}';
 
+    /**
+     * Digits only: `[0-9]` or `[1-9]` classes, `\d`, digits and quantifiers.
+     */
+    private const DIGITS = '/^(?:\[\d-\d]|\\\\d|[\d{},+*?])+$/';
+
     private const ULID = '[0-7][0-9a-hjkmnp-tv-zA-HJKMNP-TV-Z]{25}';
 
     /**
@@ -70,7 +75,7 @@ final readonly class PathParameterResolver
 
         $where = $route->wheres[$name] ?? null;
 
-        if (is_string($where) && ! self::isEnum($parameter->boundTo)) {
+        if (is_string($where) && ! self::isEnum($parameter->boundTo) && ! self::keepsInteger($parameter, $where)) {
             $parameter = $parameter->schema(self::constraint($where));
         }
 
@@ -155,12 +160,12 @@ final readonly class PathParameterResolver
             return self::cast($cast);
         }
 
-        if ($field !== $model->getKeyName()) {
-            return Schema::string();
-        }
-
         if ($model->usesUniqueIds() && in_array($field, $model->uniqueIds(), true)) {
             return self::uniqueId($model->newUniqueId());
+        }
+
+        if ($field !== $model->getKeyName()) {
+            return Schema::string();
         }
 
         return in_array($model->getKeyType(), ['int', 'integer'], true) ? Schema::integer() : Schema::string();
@@ -201,7 +206,10 @@ final readonly class PathParameterResolver
         if (preg_match(self::LITERALS, $expression) === 1) {
             $values = explode('|', $expression);
 
-            return array_filter($values, ctype_digit(...)) === $values
+            // `01` is not the integer 1: the route would refuse `1`.
+            $integers = array_filter($values, static fn(string $value): bool => (string) (int) $value === $value);
+
+            return $integers === $values
                 ? Schema::integer()->enum(...array_map(intval(...), $values))
                 : Schema::string()->enum(...$values);
         }
@@ -233,6 +241,15 @@ final readonly class PathParameterResolver
         [$class, $method] = Str::parseCallback($controller, '__invoke');
 
         return is_string($class) && is_string($method) && (method_exists($class, $method) || method_exists($class, '__call'));
+    }
+
+    /**
+     * An integer parameter (bound model key, `int` argument) constrained to digits stays an integer: `[0-9]{1,6}`,
+     * `\d{4}`, `[1-9][0-9]*`.
+     */
+    private static function keepsInteger(ParameterDescription $parameter, string $expression): bool
+    {
+        return $parameter->schema->toArray() === ['type' => 'integer'] && preg_match(self::DIGITS, $expression) === 1;
     }
 
     private static function isEnum(?string $class): bool

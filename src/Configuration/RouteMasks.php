@@ -46,7 +46,7 @@ final readonly class RouteMasks
         }
 
         if (array_is_list($config)) {
-            return new self(uri: self::strings($key, $config));
+            return new self(uri: ConfigurationValues::strings($key, $config));
         }
 
         foreach (array_keys($config) as $kind) {
@@ -75,19 +75,6 @@ final readonly class RouteMasks
      */
     private static function masks(string $key, mixed $masks): array
     {
-        return self::strings($key, is_string($masks) ? [$masks] : $masks);
-    }
-
-    /**
-     * @return list<string>
-     */
-    private static function strings(string $key, mixed $values): array
-    {
-        if (! is_array($values) || ! array_is_list($values) || array_filter($values, is_string(...)) !== $values) {
-            throw InvalidConfigurationException::forKey($key, 'a list of strings', $values);
-        }
-
-        /** @var list<string> $values */
-        return $values;
+        return ConfigurationValues::strings($key, is_string($masks) ? [$masks] : $masks);
     }
 }
