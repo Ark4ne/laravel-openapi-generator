@@ -20,6 +20,8 @@ Route::patch('user/{id}/no-request', [Controllers\UserController::class, 'update
 Route::apiResource('comment', Controllers\CommentController::class)->only(['index', 'show']);
 Route::apiResource('post', Controllers\PostController::class)->only(['index', 'show']);
 
+// Route::get('feed/{id}', [Controllers\FeedController::class, 'show']);
+
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('user', Controllers\UserController::class)->only(['destroy']);
     Route::apiResource('comment', Controllers\CommentController::class)->only(['destroy']);
