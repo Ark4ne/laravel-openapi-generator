@@ -20,7 +20,10 @@ use Attribute;
 final readonly class Webhook
 {
     /**
-     * @param string|null $name key of the webhook in the document (`order.created`); the route name by default
+     * @param string|null $name on an action: key of the webhook in the document (`order.created`), the route name
+     *        by default. On a controller: prefix of the keys of its actions (`order` gives `order.created`,
+     *        `order.updated`, the suffix being the action's own name, else the method name), so that two actions
+     *        never share a key.
      */
     public function __construct(
         public ?string $name = null,

@@ -12,7 +12,7 @@ de ses livrables ; le tableau ci-dessous en est calculé automatiquement (`compo
 ## Progression
 
 <!-- progress:start -->
-**Avancement global : `██░░░░░░░░` 21 % (50 / 235 livrables)**
+**Avancement global : `██░░░░░░░░` 20 % (50 / 239 livrables)**
 
 | Épique | Statut | Avancement | Livrables |
 | --- | --- | --- | --- |
@@ -24,11 +24,11 @@ de ses livrables ; le tableau ci-dessous en est calculé automatiquement (`compo
 | [E5 — Échantillonnage et inférence de schémas](E05-sampling.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 19 |
 | [E6 — Réponses](E06-responses.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 20 |
 | [E7 — Passes du pipeline](E07-pipeline-passes.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 23 |
-| [E8 — Écriture du document](E08-document-writing.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 16 |
+| [E8 — Écriture du document](E08-document-writing.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 17 |
 | [E9 — Intégration JSON:API](E09-json-api.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 11 |
 | [E10 — Intégration Laravel et expérience développeur](E10-laravel-dx.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 11 |
 | [E11 — Migration, documentation et version 1.0.0](E11-release.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 12 |
-| [E12 — Webhooks et callbacks](E12-webhooks.md) | En cours | `█░░░░░░░░░` 18 % | 2 / 11 |
+| [E12 — Webhooks et callbacks](E12-webhooks.md) | En cours | `█░░░░░░░░░` 14 % | 2 / 14 |
 <!-- progress:end -->
 
 ## Mettre à jour la progression
@@ -88,6 +88,6 @@ E4 et E5/E6 peuvent avancer en parallèle une fois E3 terminé.
 | 2026-10-28 | Attribut `#[Operation]` conservé (alias d'import documenté) ; extensions enregistrées par la configuration et par les tags du conteneur |
 | 2026-10-28 | Webhooks (3.1+) : `#[Webhook]` sur une action ou un contrôleur uniquement, sans liste ni découverte par dossier ; l'extracteur d'attributs range la route en opération ou en webhook ([E12](E12-webhooks.md)) |
 | 2026-10-28 | Callbacks d'opération (3.0+) : `#[Callback]` répétable, payload partagé avec un webhook ou décrit par une ressource ou un type |
-| 2026-10-28 | `x-webhooks` (avant 3.1) et `x-tagGroups` (avant 3.2) portés par `openapi-writer`, en option désactivée par défaut : demande transmise à la session du writer |
+| 2026-10-28 | `x-webhooks` (avant 3.1) et `x-tagGroups` (avant 3.2) portés par `openapi-writer`, en option désactivée par défaut : livré par le writer (`VendorExtensions`, `09ec7af`), activé par la clé `vendor_extensions` du document |
 | 2026-10-28 | Éléments de la spec ajoutés aux épiques ([spec-coverage.md](spec-coverage.md)), sauf priorité basse (`#[Link]`, exemples nommés, base64) |
 | 2026-10-28 | Tests : PHPUnit, Orchestra Testbench, fixtures JSON validées contre le schéma officiel ; couverture ≥ 90 % des lignes, MSI ≥ 80 % |

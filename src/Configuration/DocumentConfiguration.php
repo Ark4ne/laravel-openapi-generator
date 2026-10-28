@@ -6,6 +6,7 @@ namespace Ark4ne\OpenApi\Configuration;
 
 use Ark4ne\OpenApi\Exceptions\InvalidConfigurationException;
 use Ark4ne\OpenApiWriter\Enums\Strictness;
+use Ark4ne\OpenApiWriter\Enums\VendorExtensions;
 use Ark4ne\OpenApiWriter\Enums\Version;
 
 /**
@@ -15,9 +16,10 @@ final readonly class DocumentConfiguration
 {
     /**
      * @param list<ServerConfiguration> $servers
-     * @param array<string, array<string, mixed>> $securitySchemes scheme name → scheme (`type`, `flows`,
-     *        `openIdConnectUrl`, `deviceAuthorization`, `oauth2MetadataUrl`, `deprecated`…), completing or replacing
-     *        the schemes inferred from the middlewares
+     * @param VendorExtensions $vendorExtensions `redoc` writes `x-webhooks` before 3.1 and `x-tagGroups` before 3.2
+     * @param array<string, array<string, mixed>> $securitySchemes scheme name → Security Scheme Object, with the
+     *        exact OpenAPI field names, in camelCase (`type`, `scheme`, `bearerFormat`, `flows`, `openIdConnectUrl`,
+     *        `oauth2MetadataUrl`, `deprecated`…), completing or replacing the schemes inferred from the middlewares
      * @param array{url: string, description?: string}|null $externalDocs
      * @param string|null $self public URI of the generated document (`$self`, 3.2)
      * @param array<string, mixed> $extensions `x-*` extensions of the document
@@ -27,6 +29,7 @@ final readonly class DocumentConfiguration
         public InfoConfiguration $info,
         public Version $version = Version::V3_1_2,
         public Strictness $strictness = Strictness::Strict,
+        public VendorExtensions $vendorExtensions = VendorExtensions::None,
         public array $servers = [],
         public RouteFilterConfiguration $routes = new RouteFilterConfiguration(),
         public OutputConfiguration $output = new OutputConfiguration(),

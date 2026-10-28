@@ -23,6 +23,13 @@ return [
             'openapi' => '3.1.2',
             'strict' => true,
 
+            /*
+            | Vendor extensions for what an older version cannot express:
+            | `none` (the specification only) or `redoc` (`x-webhooks` before
+            | 3.1, `x-tagGroups` for the tag groups before 3.2).
+            */
+            'vendor_extensions' => 'none',
+
             'info' => [
                 'title' => env('APP_NAME', 'API'),
                 'version' => '1.0.0',
@@ -81,11 +88,13 @@ return [
             | Security schemes completing or replacing those inferred from
             | the middlewares: OAuth2 flows and URLs (Passport), OpenID
             | Connect, and the 3.2 fields (deviceAuthorization flow,
-            | oauth2_metadata_url, deprecated).
+            | oauth2MetadataUrl, deprecated). Each scheme is written as an
+            | OpenAPI Security Scheme Object: its keys are the OpenAPI field
+            | names, in camelCase, unlike the rest of this file.
             |
             | 'passport' => ['type' => 'oauth2', 'flows' => ['authorizationCode' => [
             |     'authorizationUrl' => '/oauth/authorize', 'tokenUrl' => '/oauth/token']]],
-            | 'oidc' => ['type' => 'openIdConnect', 'open_id_connect_url' => 'https://…'],
+            | 'oidc' => ['type' => 'openIdConnect', 'openIdConnectUrl' => 'https://…'],
             */
             'security_schemes' => [],
 

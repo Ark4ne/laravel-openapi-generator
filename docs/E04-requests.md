@@ -22,7 +22,8 @@
       `QueryStrategy` (`style` / `explode` / `deepObject`)
 - [ ] Mode `querystring` de `QueryStrategy` : toute la query décrite comme un seul objet (`in: querystring`, 3.2),
       repli sur le mode `none` avant 3.2
-- [ ] Encodage des corps multipart : `encoding.<champ>.contentType` tiré de `mimes`, `mimetypes`, `File::types()`
+- [ ] Encodage des corps multipart : `encoding.<propriété>.contentType` du seul `multipart/form-data`, tiré de
+      `mimes`, `mimetypes`, `File::types()` ; clé = propriété de premier niveau (`photos.*` → `photos`)
 
 ### Analyse des règles (`src/Extraction/Rules/`)
 

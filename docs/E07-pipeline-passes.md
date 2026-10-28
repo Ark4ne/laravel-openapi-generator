@@ -35,8 +35,8 @@ sécurité, réponses d'erreur, tags et groupes, identifiants uniques, composant
 ### Organisation
 
 - [ ] `TagPass` : tags issus des stratégies, descriptions, ordre stable
-- [ ] `TagGroupPass` : `TagDescription::parent()` depuis la stratégie de groupe ; `x-tagGroups` avant 3.2 écrit par
-      l'option demandée à `openapi-writer` (voir [E12](E12-webhooks.md))
+- [ ] `TagGroupPass` : `TagDescription::parent()` depuis la stratégie de groupe. Avant 3.2, le writer écrit
+      `x-tagGroups` avec `vendor_extensions: redoc` (E8), sinon rejette ou retire `parent` ; aucune conversion ici
 - [ ] `OperationIdPass` : identifiants uniques et déterministes, collisions suffixées et signalées
 
 ### Composants

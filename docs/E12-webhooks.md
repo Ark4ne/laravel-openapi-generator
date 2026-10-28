@@ -30,7 +30,9 @@ public function orderCreated(OrderCreatedPayload $request): Response
 
 - La requête (form request, règles, `#[RequestBody]`, `#[Header]`) décrit ce qui est envoyé ; les réponses, ce
   que le destinataire doit répondre ; `#[Operation]`, le résumé, les tags et l'`operationId`.
-- Le nom vient de l'attribut, sinon du nom de la route ; sans l'un ni l'autre, diagnostic et route ignorée.
+- Le nom vient de l'attribut, sinon du nom de la route ; sans l'un ni l'autre, diagnostic et route ignorée. Sur un
+  contrôleur, le nom de l'attribut est un **préfixe** : `#[Webhook('order')]` donne `order.created`, `order.updated`
+  (suffixe : nom de l'attribut de l'action, sinon nom de la méthode) ; deux actions n'ont jamais la même clé.
 - Le générateur range l'opération dans `DocumentDescription::$webhooks` dès l'extraction : les passes liées aux
   routes (middlewares, sécurité, erreurs 401/403/404/429) ne la voient jamais. Le chemin de la route n'apparaît pas.
 - Une route qui **reçoit** les webhooks d'un tiers (Stripe, GitHub…) reste un chemin ordinaire, sans attribut.
@@ -43,8 +45,10 @@ public function orderCreated(OrderCreatedPayload $request): Response
 public function store(StoreOrderRequest $request): OrderResource
 ```
 
-Le callback décrit sa requête soit en réutilisant un webhook (même payload, mêmes réponses attendues), soit par une
-ressource ou un type PHPDoc et le statut attendu.
+Le callback décrit sa requête par **une seule** source : un webhook réutilisé (même payload, mêmes réponses
+attendues), une ressource ou un type PHPDoc, avec le statut attendu (200 par défaut). Plusieurs sources, ou `status`
+avec `webhook`, lèvent une `InvalidAttributeException`. Répéter l'attribut sous le même nom donne plusieurs méthodes
+ou plusieurs URL d'un même callback (`callbacks.<nom>.<expression>.<méthode>`).
 
 ## Version 3.0 et extensions de fournisseurs
 
@@ -64,15 +68,27 @@ avertissement. Écrire l'extension `x-webhooks` (Redoc) à la place est validé 
 
 - [ ] Lecture de `#[Webhook]` par l'extracteur d'attributs : nom (attribut, puis nom de route), diagnostic sans nom
 - [ ] Rangement par le générateur : `operations` ou `webhooks` selon `OperationDescription::$webhook`
-- [ ] Lecture de `#[Callback]` : URL, méthode, payload (webhook référencé, ressource échantillonnée ou type),
-      réponse attendue ; diagnostic quand le webhook référencé n'existe pas
+- [ ] Préfixe de `#[Webhook]` posé sur un contrôleur
+- [ ] Lecture de `#[Callback]` : URL, méthode, payload (ressource échantillonnée ou type), réponse attendue ;
+      `InvalidAttributeException` sur plusieurs sources ou `status` + `webhook` ; un webhook référencé est seulement
+      nommé (`CallbackDescription::fromWebhook()`)
 
 ### Passes et écriture
 
 - [ ] Noms de webhooks en double signalés ; méthodes d'un même nom regroupées dans un seul Path Item
+- [ ] `CallbackResolutionPass` : résout les webhooks référencés une fois toutes les routes extraites (indépendant de
+      l'ordre des routes), diagnostic quand le webhook n'existe pas
+- [ ] Callbacks d'un même nom regroupés : une expression → un Path Item, plusieurs méthodes ; même nom, expression et
+      méthode en double signalés
 - [ ] Passes transverses appliquées aux webhooks et aux callbacks : tags, `operationId` uniques, composants
 - [ ] `DocumentBuilder` : `OpenApi::webhooks()`, `Operation::callbacks()` ; document sans `paths` accepté en 3.1+
-- [ ] 3.0 : `x-webhooks` (selon la décision ci-dessous), sinon rejet strict / retrait permissif
+- [ ] 3.0 : `x-webhooks` avec `vendor_extensions: redoc`, sinon rejet strict / retrait permissif
+
+## Question ouverte
+
+- Un webhook est une route réelle, donc appelable, et soumise aux filtres `routes.include` / `exclude`. Garder ce
+  modèle et documenter qu'il faut protéger ou désactiver ces routes (recommandé), ou lire `#[Webhook]` sur des
+  méthodes de contrôleurs connus sans route ?
 
 ## Critères de sortie
 
@@ -81,7 +97,15 @@ avertissement. Écrire l'extension `x-webhooks` (Redoc) à la place est validé 
 
 ## Dépendance à openapi-writer
 
-`x-webhooks` et `x-tagGroups` sont demandés à `openapi-writer` (2026-10-28, à la session qui gère le projet) : une
-option de sérialisation, désactivée par défaut, qui écrit ces extensions au lieu de retirer `webhooks` (avant 3.1)
-et `Tag.parent` (avant 3.2). Une fois livrée, le générateur l'active par une clé de configuration du document et
-n'a plus de conversion propre à la version (`TagGroupPass` d'E7 compris).
+Livré par `openapi-writer` (commit `09ec7af`, branche `m7-release`) : enum `VendorExtensions` (`None` par défaut,
+`Redoc`), troisième argument de `Serializer::for()`, de `toJson()` / `toYaml()` / `toArray()` et de
+`Validator::validate()`.
+
+- Avant 3.1, `webhooks` est écrit tel quel sous `x-webhooks` (contenu converti pour la version), diagnostic
+  `Converted`.
+- Avant 3.2, `Tag.parent` est retiré et `x-tagGroups` écrit à la racine : chaque tag rejoint le groupe de son
+  ancêtre le plus haut, un tag sans parent forme son propre groupe (rien n'est masqué par Redoc).
+- Une extension `x-webhooks` / `x-tagGroups` déjà posée par le document l'emporte : la fonctionnalité redevient non
+  prise en charge (exception en strict, retrait en permissif), jamais de fusion silencieuse.
+
+Le générateur passe la clé `vendor_extensions` du document (E8) : il n'a aucune conversion propre à la version.

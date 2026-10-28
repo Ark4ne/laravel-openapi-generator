@@ -12,6 +12,7 @@ Les clés V1 sont en `snake_case` (convention Laravel) ; celles de la v0.6 étai
 | `servers` | `servers` | `variable` devient `variables` (la v0.6 lisait `variables`, ses variables n'étaient jamais écrites) |
 | `versions` | `documents` | La version OpenAPI est désormais `documents.<v>.openapi` |
 | — | `documents.<v>.openapi`, `documents.<v>.strict` | 3.1.2 et strict par défaut (la v0.6 écrivait toujours 3.0.2) |
+| — | `documents.<v>.vendor_extensions` | `redoc` : `x-webhooks` avant 3.1, `x-tagGroups` avant 3.2 (la v0.6 écrivait toujours `x-tagGroups`) |
 | `versions.<v>.servers` | `documents.<v>.servers` | |
 | `versions.<v>.title` | `documents.<v>.info.title` | |
 | `versions.<v>.description` | `documents.<v>.info.description` | |

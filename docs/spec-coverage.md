@@ -31,7 +31,7 @@ périmètre** (rien dans une application Laravel ne le décrit, ou sans intérê
 | `query` (méthode QUERY) | 3.2 | Prévu (E2, E8) | Route déclarant la méthode `QUERY` ; rejet strict / retrait avant 3.2 |
 | `additionalOperations` | 3.2 | Prévu (E2, E8) | Méthodes non standard (`Route::match(['PURGE'], …)`) ; ignorées avec diagnostic avant 3.2 |
 | `Operation.summary`, `description`, `tags`, `operationId`, `deprecated` | 3.0+ | Prévu (E3) | PHPDoc, `#[Operation]`, stratégies |
-| `Operation.externalDocs` | 3.0+ | Prévu (E3, E8) | Argument `externalDocs` de `#[Operation]` et `#[Tag]` |
+| `Operation.externalDocs` | 3.0+ | Prévu (E3, E8) | Argument `externalDocs` de `#[Operation]` (celui de `#[Tag]` va sur le tag) |
 | `Operation.callbacks` | 3.0+ | Prévu (E12) | `#[Callback]` |
 | `Operation.security` | 3.0+ | Prévu (E7) | Middlewares, `#[Security]` |
 | `Operation.servers` | 3.0+ | Prévu (E2, E7) | Routes à domaine |
@@ -47,7 +47,7 @@ périmètre** (rien dans une application Laravel ne le décrit, ou sans intérê
 | `allowEmptyValue`, `allowReserved` | 3.0+ | Hors périmètre | Déconseillés par la spec, aucune source |
 | `Parameter.content` | 3.0+ | Hors périmètre | Couvert par `querystring` en 3.2 |
 | `RequestBody.content`, `required` | 3.0+ | Prévu (E4) | Règles, `#[RequestBody]` |
-| `Encoding` d'un corps `multipart/form-data` (`contentType` d'un fichier) | 3.0+ | Prévu (E4, E8) | Règles `mimes` / `mimetypes` / `File::types()` → `encoding.<champ>.contentType` |
+| `Encoding` d'un corps `multipart/form-data` (`contentType` d'un fichier) | 3.0+ | Prévu (E4, E8) | Règles `mimes` / `mimetypes` / `File::types()` → `encoding.<propriété>.contentType` du seul `multipart/form-data` ; une règle sur `photos.*` donne la propriété `photos` |
 | `prefixEncoding`, `itemEncoding` | 3.2 | Hors périmètre | Corps multipart positionnels : sans équivalent Laravel |
 | `MediaType.itemSchema` (flux) | 3.2 | Prévu (E6) | `eventStream()` ; à étendre à `application/jsonl` si une réponse le déclare |
 | `MediaType.description` | 3.2 | Hors périmètre | |
@@ -98,5 +98,6 @@ périmètre** (rien dans une application Laravel ne le décrit, ou sans intérê
 
 ## Extensions de fournisseurs en 3.0
 
-`x-webhooks` (Redoc) pour les webhooks et `x-tagGroups` (Redoc) pour les groupes de tags donnent un équivalent en 3.0
-et 3.1 de fonctionnalités plus récentes. Demandées à `openapi-writer` comme option d'écriture (voir [E12](E12-webhooks.md)).
+`x-webhooks` (Redoc, avant 3.1) et `x-tagGroups` (Redoc, avant 3.2) sont écrits par `openapi-writer` avec l'option
+`VendorExtensions::Redoc`, que le générateur active par la clé `vendor_extensions` du document (voir
+[E12](E12-webhooks.md)).

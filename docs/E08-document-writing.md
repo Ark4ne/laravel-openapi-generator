@@ -24,6 +24,8 @@ choisie, et rendre compte de sa validité.
 
 - [ ] Version OpenAPI par document (3.0.0 → 3.2.0), 3.1.2 par défaut
 - [ ] Mode strict ou permissif du writer par document ; diagnostics du writer ajoutés aux `Diagnostics`
+- [ ] Extensions de fournisseurs par document (`vendor_extensions` : `none`, `redoc`), passées au writer à l'écriture
+      et à la validation (`VendorExtensions`)
 
 ### Sortie (`src/Output/`)
 
