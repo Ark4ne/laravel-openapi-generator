@@ -1,0 +1,55 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+    - vendor/phpstan/phpstan-phpunit/extension.neon
+    - vendor/phpstan/phpstan-phpunit/rules.neon
+    - vendor/phpstan/phpstan-strict-rules/rules.neon
+    - vendor/phpat/phpat/extension.neon
+    - vendor/spaze/phpstan-disallowed-calls/extension.neon
+
+parameters:
+    level: max
+    paths:
+        - src
+        - tests
+        - bin
+    tmpDir: build/phpstan
+
+    # Facades, global helpers and the container belong to src/Laravel/ (docs/architecture.md §2).
+    disallowedNamespaces:
+        -
+            namespace: 'Illuminate\Support\Facades\*'
+            message: 'facades are reserved to src/Laravel/: inject a Laravel contract instead'
+            allowIn:
+                - src/Laravel/*
+                - tests/*
+    disallowedFunctionCalls:
+        -
+            function:
+                - 'app()'
+                - 'resolve()'
+                - 'config()'
+                - 'request()'
+                - 'response()'
+                - 'env()'
+                - 'trans()'
+                - '__()'
+                - 'storage_path()'
+                - 'base_path()'
+            message: 'global helpers are reserved to src/Laravel/: inject a dependency instead'
+            allowIn:
+                - src/Laravel/*
+                - tests/*
+        -
+            function:
+                - 'dd()'
+                - 'dump()'
+                - 'var_dump()'
+                - 'print_r()'
+                - 'ray()'
+            message: 'debug output must not be committed'
+
+services:
+    -
+        class: Ark4ne\OpenApi\Tests\Architecture\ArchitectureTest
+        tags:
+            - phpat.test

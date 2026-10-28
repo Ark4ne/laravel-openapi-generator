@@ -1,0 +1,179 @@
+name: CI
+
+on:
+  push:
+    branches: [master, 'v*']
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # ark4ne/openapi-writer is not on Packagist yet: composer.json installs it from ../openapi-writer.
+  # Remove the "Fetch openapi-writer" steps and the path repository once it is published (docs/E11-release.md).
+  OPENAPI_WRITER_REPOSITORY: ark4ne/openapi-writer
+  OPENAPI_WRITER_REF: main
+
+jobs:
+  tests:
+    name: Tests (PHP ${{ matrix.php }}, ${{ matrix.dependencies }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.3', '8.4', '8.5']
+        dependencies: ['lowest', 'highest']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch openapi-writer
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.OPENAPI_WRITER_REPOSITORY }}
+          ref: ${{ env.OPENAPI_WRITER_REF }}
+          path: .openapi-writer
+
+      - name: Place openapi-writer next to the package
+        run: mv .openapi-writer ../openapi-writer
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: pdo_sqlite
+          coverage: none
+
+      - uses: ramsey/composer-install@v3
+        with:
+          dependency-versions: ${{ matrix.dependencies }}
+
+      - name: PHPUnit
+        run: vendor/bin/phpunit
+
+  static:
+    name: Static analysis & code style
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch openapi-writer
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.OPENAPI_WRITER_REPOSITORY }}
+          ref: ${{ env.OPENAPI_WRITER_REF }}
+          path: .openapi-writer
+
+      - name: Place openapi-writer next to the package
+        run: mv .openapi-writer ../openapi-writer
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Validate composer.json
+        run: composer validate --strict
+
+      - name: Progress table is up to date
+        run: php bin/progress.php --check
+
+      - uses: ramsey/composer-install@v3
+
+      - name: PHPStan
+        run: vendor/bin/phpstan analyse --memory-limit=1G --no-progress
+
+      - name: Code style
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff
+
+  coverage:
+    name: Coverage (minimum 90%)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch openapi-writer
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.OPENAPI_WRITER_REPOSITORY }}
+          ref: ${{ env.OPENAPI_WRITER_REF }}
+          path: .openapi-writer
+
+      - name: Place openapi-writer next to the package
+        run: mv .openapi-writer ../openapi-writer
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_sqlite
+          coverage: pcov
+
+      - uses: ramsey/composer-install@v3
+
+      - name: PHPUnit with coverage
+        # src/ holds no code until E1: there is nothing to measure yet.
+        run: |
+          if [ -z "$(find src -name '*.php' -print -quit)" ]; then echo 'No code in src/ yet.'; exit 0; fi
+          vendor/bin/phpunit --coverage-clover=build/coverage/clover.xml
+          php bin/coverage-check.php build/coverage/clover.xml 90
+
+  mutation:
+    name: Mutation testing (minimum 80% MSI)
+    runs-on: ubuntu-latest
+    # Blocking on master, informative on other branches.
+    continue-on-error: ${{ github.ref != 'refs/heads/master' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch openapi-writer
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.OPENAPI_WRITER_REPOSITORY }}
+          ref: ${{ env.OPENAPI_WRITER_REF }}
+          path: .openapi-writer
+
+      - name: Place openapi-writer next to the package
+        run: mv .openapi-writer ../openapi-writer
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_sqlite
+          coverage: pcov
+          tools: infection
+
+      - uses: ramsey/composer-install@v3
+
+      - name: Infection
+        run: |
+          if [ -z "$(find src -name '*.php' -print -quit)" ]; then echo 'No code in src/ yet.'; exit 0; fi
+          infection --threads=max --no-progress --show-mutations
+
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch openapi-writer
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.OPENAPI_WRITER_REPOSITORY }}
+          ref: ${{ env.OPENAPI_WRITER_REF }}
+          path: .openapi-writer
+
+      - name: Place openapi-writer next to the package
+        run: mv .openapi-writer ../openapi-writer
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - uses: ramsey/composer-install@v3
+
+      - name: Composer audit
+        run: composer audit

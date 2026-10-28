@@ -1,126 +1,39 @@
-OpenApi - Laravel Documentation Generator
-=========================================
+Laravel OpenAPI Generator
+=========================
 
-A OpenApi documentation generator for Laravel.
+Generates OpenAPI 3.0, 3.1 and 3.2 documents from a Laravel application: routes, controllers, form requests,
+validation rules and API resources.
 
-![example branch parameter](https://github.com/Ark4ne/laravel-openapi-generator/actions/workflows/php.yml/badge.svg)
-[![codecov](https://codecov.io/gh/Ark4ne/laravel-openapi-generator/branch/master/graph/badge.svg?token=F7XBLAGTDP)](https://codecov.io/gh/Ark4ne/laravel-openapi-generator)
+> **Status: V1 rewrite in progress** on the `v1.0` branch. Nothing here is usable yet. For the current release,
+> see the [`v0.6` branch](https://github.com/Ark4ne/laravel-openapi-generator/tree/v0.6).
+> The roadmap and its progress are in [`docs/`](docs/README.md) (written in French).
 
-# Installation
-```shell
-composer require ark4ne/laravel-openapi-generator
-```
+## Requirements
 
-# Usage
-```shell
-php artisan openapi:generate
-```
+- PHP 8.3+
+- Laravel 13
+- `ark4ne/openapi-writer` 1.0, which writes the documents
 
-# Config
-...
+Optional:
 
-## Versions
-The "Versions" section allows you to specify different configurations for each version of your API.
+- `ark4ne/laravel-json-api` ^1.9 to document JSON:API resources
+- `symfony/yaml` to write YAML
+- `opis/json-schema` to validate the generated documents against the official OpenAPI schemas
 
-### `output-file`
-Output-file name.
+## What changes in V1
 
-### `title`
-Document title.
+- `goldspecdigital/oooas` (unmaintained, OpenAPI 3.0 only) is replaced by `ark4ne/openapi-writer`: the OpenAPI
+  version is chosen per document (3.0.x, 3.1.x or 3.2.0, 3.1.2 by default).
+- Routes, requests, rules and responses are read by priority-ordered extractors that applications can extend.
+- PHP attributes replace the `@oa-*` PHPDoc tags.
+- The `versions` configuration key becomes `documents`.
 
-### `description`
-Document description.
+An upgrade guide (`UPGRADE.md`) will ship with 1.0.0.
 
-### `routes`
-Define which routes will be processed. The pattern must be a shell mask.
+## Contributing
 
-```
-'routes' => [
-    'api/*'
-],
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-### `groupBy`
-Document description.
-Used to group API routes.
+## License
 
-#### `by`
-Define a group by according to :
-- controller : The route controller class
-- uri : The route uri
-- name : The route name
-
-#### `regex`
-Define a regex that will retrieve the name of the group.
-
-ex: 
-```
-'groupBy' => [
-    'by' => 'controller',
-    'regex' => '/^App\\\\Http\\\\(\w+)/'
-],
-```
-
-With this, routes will be grouped by controller class name.
-
-### `ignore-verbs`
-HTTP verbs to ignore.
-
-## Parses
-Define all parser used for documentate a specific class.  
-
-For each object, only one parser will be used.  
-For instance :
-```
-class MyResourceCollection extends ResourceCollection {}
-```
-`ResourceCollectionParser` and `JsonResourceParser` are eligible, because
-`MyResourceCollection` extends from `ResourceCollection` which extends from `JsonResource`.
-
-The order of the parsers will define which parser we will use: 1st eligible => parser used.
-
-For `MyResourceCollection` we will therefore use `ResourceCollection`.
-
-### `requests`
-Requests parsers.
-
-### `rules`
-Request rules parsers.
-
-### `responses`
-Responses parsers.
-
-### `middlewares`
-Surcharge global middlewares config.
-
-@see [Middlewares](#middlewares)
-
-## Format
-### `date`
-Defines how date formats will be understood.
-
-## Middlewares
-Defines middlewares transformers.
-
-For each middlewares, you can define a transformer that will be used to transform the request or responses.
-
-```php
-'middlewares' => [
-     'auth:sanctum' => [
-         \Ark4ne\OpenApi\Transformers\Middlewares\ApplyBearerTokenSecurity::class,
-     ],
-     \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class => [
-         \Ark4ne\OpenApi\Transformers\Middlewares\ApplyCsrfSecurity::class,
-     ]
-],
-```
-
-## Connections
-### `use-transaction`
-Defines whether to use transactions on different database connections.
-
-Using transaction will create and save models via factories. The saved
-models will be deleted at the end of the generation via a rollback.
-
-Without transactions, models will be created but not saved, which can
-lead to errors during generation.
+See [LICENSE](LICENSE).

@@ -1,0 +1,85 @@
+# Feuille de route — Laravel OpenAPI Generator V1
+
+Ce dossier suit la refonte du générateur, de la v0.6 à la version 1.0.0. Chaque épique a son document avec la liste
+de ses livrables ; le tableau ci-dessous en est calculé automatiquement (`composer progress`).
+
+**Architecture, concepts et patterns :** [architecture.md](architecture.md) — à lire avant toute contribution.
+**Inventaire de la v0.6 (ce qu'on garde, réécrit ou abandonne) :** [legacy-inventory.md](legacy-inventory.md).
+**Librairie d'écriture :** `ark4ne/openapi-writer` (dossier voisin `../openapi-writer`), qui remplace
+`goldspecdigital/oooas`. Son skill `skills/openapi-writer/` décrit l'API publique.
+
+## Progression
+
+<!-- progress:start -->
+**Avancement global : `█░░░░░░░░░` 10 % (22 / 208 livrables)**
+
+| Épique | Statut | Avancement | Livrables |
+| --- | --- | --- | --- |
+| [E0 — Branche, socle et outillage](E00-bootstrap.md) | En cours | `█████████░` 95 % | 22 / 23 |
+| [E1 — Architecture et contrats](E01-contracts.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 23 |
+| [E2 — Découverte des routes](E02-route-discovery.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 16 |
+| [E3 — Métadonnées d'opération et types](E03-operation-metadata.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 17 |
+| [E4 — Requêtes et règles de validation](E04-requests.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 24 |
+| [E5 — Échantillonnage et inférence de schémas](E05-sampling.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 19 |
+| [E6 — Réponses](E06-responses.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 19 |
+| [E7 — Passes du pipeline](E07-pipeline-passes.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 19 |
+| [E8 — Écriture du document](E08-document-writing.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 14 |
+| [E9 — Intégration JSON:API](E09-json-api.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 11 |
+| [E10 — Intégration Laravel et expérience développeur](E10-laravel-dx.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 11 |
+| [E11 — Migration, documentation et version 1.0.0](E11-release.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 12 |
+<!-- progress:end -->
+
+## Mettre à jour la progression
+
+1. Cocher le livrable dans le document de l'épique (`- [ ]` devient `- [x]`).
+2. Lancer `composer progress` : le tableau ci-dessus est régénéré à partir des cases cochées.
+3. Committer les deux fichiers ensemble. La CI (`php bin/progress.php --check`) échoue si le tableau n'est pas à jour.
+
+Le statut est déduit des cases : aucune cochée = **À faire**, une partie = **En cours**, toutes = **Terminé**.
+
+## Ordre des épiques
+
+Chaque épique suit le même cycle que la librairie d'écriture : **contrat** (signatures et PHPDoc, corps neutres),
+**tests rouges**, puis **implémentation**. Un épique ne commence son implémentation qu'une fois ses tests écrits.
+
+```
+E0 Socle ─► E1 Contrats ─► E2 Routes ─► E3 Opérations ─┬─► E4 Requêtes ───────────────┐
+                                                      └─► E5 Échantillonnage ─► E6 Réponses ─┤
+                                                                                       ▼
+                                          E7 Passes ─► E8 Écriture ─► E9 JSON:API ─► E10 Laravel ─► E11 Release
+```
+
+E4 et E5/E6 peuvent avancer en parallèle une fois E3 terminé.
+
+1. [E0 — Branche, socle et outillage](E00-bootstrap.md)
+2. [E1 — Architecture et contrats](E01-contracts.md)
+3. [E2 — Découverte des routes](E02-route-discovery.md)
+4. [E3 — Métadonnées d'opération et types](E03-operation-metadata.md)
+5. [E4 — Requêtes et règles de validation](E04-requests.md)
+6. [E5 — Échantillonnage et inférence de schémas](E05-sampling.md)
+7. [E6 — Réponses](E06-responses.md)
+8. [E7 — Passes du pipeline](E07-pipeline-passes.md)
+9. [E8 — Écriture du document](E08-document-writing.md)
+10. [E9 — Intégration JSON:API](E09-json-api.md)
+11. [E10 — Intégration Laravel et expérience développeur](E10-laravel-dx.md)
+12. [E11 — Migration, documentation et version 1.0.0](E11-release.md)
+
+## Décisions
+
+| Date | Décision |
+| --- | --- |
+| 2026-10-27 | `goldspecdigital/oooas` remplacé par `ark4ne/openapi-writer`, projet séparé et sans framework |
+| 2026-10-27 | Étude de restructuration validée : Discovery → Metadata → Extraction → Passes → Écriture, `GenerationContext` explicite, registres d'extracteurs et de règles, chaîne d'échantillonnage, JSON:API sous `Integrations/` |
+| 2026-10-28 | Refonte sur la branche `v1.0`, créée depuis `v0.6` ; le code v0.6 sert de référence fonctionnelle, pas de base de code |
+| 2026-10-28 | Mêmes concepts et patterns que `openapi-writer` : classes `final`, objets de valeur immuables, pas de traits, pas d'état statique, contrats en interfaces, `phpat` (voir [architecture.md](architecture.md)) |
+| 2026-10-28 | PHP `^8.3` (8.2 n'a plus que des correctifs de sécurité, jusqu'au 31/12/2026) ; Laravel `^13.0` (Laravel 12 n'a plus de correctifs de bugs depuis le 13/08/2026) ; Laravel 14 ajouté dès sa sortie |
+| 2026-10-28 | `phpstan/phpdoc-parser` remplace `phpdocumentor/reflection-docblock` et `phpdocumentor/type-resolver` (génériques, array shapes, types conditionnels) |
+| 2026-10-28 | `justinrainbow/json-schema` retiré : la validation passe par le `Validator` de `openapi-writer` (`opis/json-schema`) |
+| 2026-10-28 | Version OpenAPI de sortie configurable par document, 3.1.2 par défaut ; mode strict par défaut |
+| 2026-10-28 | Les schémas sont des `Schema` d'`openapi-writer` dès l'extraction : pas de modèle de schéma parallèle (fin de `Documentation\Request\Parameter`) |
+| 2026-10-28 | Métadonnées par attributs PHP ; les balises PHPDoc `@oa-*` sont abandonnées (le résumé et la description restent lus dans la PHPDoc) |
+| 2026-10-28 | Clé de configuration `versions` renommée `documents` (le mot « version » désigne aussi la version OpenAPI) |
+| 2026-10-28 | Validé : Laravel `^13.0` seul et abandon des balises PHPDoc `@oa-*` au profit des attributs |
+| 2026-10-28 | Tout code qui utilise `openapi-writer` s'écrit en suivant son skill (`skills/openapi-writer/`) |
+| 2026-10-28 | Validé : `phpstan/phpdoc-parser` à la place de `phpdocumentor/*`, et clé `documents` à la place de `versions` |
+| 2026-10-28 | Tests : PHPUnit, Orchestra Testbench, fixtures JSON validées contre le schéma officiel ; couverture ≥ 90 % des lignes, MSI ≥ 80 % |

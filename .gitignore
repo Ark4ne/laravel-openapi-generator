@@ -1,4 +1,8 @@
-.idea
-.phpunit.cache
 /vendor/
-composer.lock
+/build/
+/composer.lock
+/.idea/
+/.vscode/
+/.phpunit.cache/
+.DS_Store
+/tests/**/dist/
