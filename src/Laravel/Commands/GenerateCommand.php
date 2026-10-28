@@ -13,6 +13,7 @@ use Ark4ne\OpenApi\Exceptions\GenerationFailedException;
 use Ark4ne\OpenApi\Exceptions\InvalidConfigurationException;
 use Ark4ne\OpenApi\Generation\Generator;
 use Ark4ne\OpenApi\Laravel\DiagnosticsOutput;
+use Ark4ne\OpenApi\Laravel\GeneratorFactory;
 use Ark4ne\OpenApi\Output\DocumentValidator;
 use Ark4ne\OpenApi\Output\DocumentWriter;
 use Illuminate\Console\Command;
@@ -43,7 +44,11 @@ final class GenerateCommand extends Command
         try {
             $configuration = $this->laravel->make(Configuration::class);
             $documents = $this->documents($configuration);
-            $generator = $this->laravel->make(Generator::class);
+            $generator = $this->laravel->make(GeneratorFactory::class)->make($configuration);
+
+            foreach ($documents as $document) {
+                $generator->prepare($configuration, $document);
+            }
         } catch (InvalidConfigurationException $exception) {
             $this->components->error($exception->getMessage());
 
@@ -79,15 +84,16 @@ final class GenerateCommand extends Command
         $label = $locale === null ? $document->name : "{$document->name} ({$locale})";
         $stdout = $this->option('stdout') === true;
         $console = $this->output->getOutput();
-        // With --stdout, the diagnostics go to the error output: the standard output holds the document only.
-        $output = new DiagnosticsOutput($stdout && $console instanceof ConsoleOutputInterface ? $console->getErrorOutput() : $this->output);
+        // With --stdout, everything but the document goes to the error output: the standard output holds it only.
+        $errors = $stdout && $console instanceof ConsoleOutputInterface ? $console->getErrorOutput() : $this->output;
+        $output = new DiagnosticsOutput($errors);
 
         try {
             $generated = $generator->generate($configuration, $document, $locale);
             $contents = $writer->contents($generated->openApi, $generated->context);
             $validator->validate($generated->openApi, $generated->context);
         } catch (GenerationFailedException $exception) {
-            $this->report($label, null, $output, $exception->diagnostics());
+            $this->report($label, null, $stdout ? $errors : null, $output, $exception->diagnostics());
 
             return false;
         }
@@ -95,16 +101,17 @@ final class GenerateCommand extends Command
         $diagnostics = $generated->context->diagnostics;
 
         if ($this->fails($diagnostics)) {
-            $this->report($label, null, $output, $diagnostics);
+            $this->report($label, null, $stdout ? $errors : null, $output, $diagnostics);
 
             return false;
         }
 
         if ($stdout) {
-            $this->output->write($contents, false, OutputInterface::OUTPUT_RAW);
+            // Written even with -q: the document is what the command is called for.
+            $this->output->write($contents, false, OutputInterface::OUTPUT_RAW | OutputInterface::VERBOSITY_QUIET);
             $output->print($diagnostics);
         } else {
-            $this->report($label, $this->option('dry-run') === true ? '<fg=yellow>dry run</>' : $writer->store($contents, $generated->context), $output, $diagnostics);
+            $this->report($label, $this->option('dry-run') === true ? '<fg=yellow>dry run</>' : $writer->store($contents, $generated->context), null, $output, $diagnostics);
         }
 
         return true;
@@ -112,10 +119,16 @@ final class GenerateCommand extends Command
 
     /**
      * @param string|null $result where the document is written, `null` when it is not
+     * @param OutputInterface|null $errors the error output, with `--stdout`
      */
-    private function report(string $label, ?string $result, DiagnosticsOutput $output, Diagnostics $diagnostics): void
+    private function report(string $label, ?string $result, ?OutputInterface $errors, DiagnosticsOutput $output, Diagnostics $diagnostics): void
     {
-        $this->components->twoColumnDetail("<options=bold>{$label}</>", $result ?? '<fg=red;options=bold>FAILED</>');
+        if ($errors === null) {
+            $this->components->twoColumnDetail("<options=bold>{$label}</>", $result ?? '<fg=red;options=bold>FAILED</>');
+        } else {
+            $errors->writeln("<options=bold>{$label}</> <fg=red;options=bold>FAILED</>", OutputInterface::VERBOSITY_QUIET);
+        }
+
         $output->print($diagnostics);
     }
 

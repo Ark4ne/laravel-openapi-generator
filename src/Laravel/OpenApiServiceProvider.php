@@ -7,22 +7,18 @@ namespace Ark4ne\OpenApi\Laravel;
 use Ark4ne\OpenApi\Configuration\Configuration;
 use Ark4ne\OpenApi\Generation\Generator;
 use Ark4ne\OpenApi\Generation\GeneratorExtensions;
-use Ark4ne\OpenApi\Integrations\BuiltInIntegrations;
 use Ark4ne\OpenApi\Integrations\JsonApi\JsonApiIntegration;
 use Ark4ne\OpenApi\Laravel\Commands\GenerateCommand;
 use Ark4ne\OpenApi\Laravel\Commands\InspectCommand;
-use Ark4ne\OpenApi\Sampling\DatabaseSamplingSession;
 use Composer\InstalledVersions;
 use Illuminate\Contracts\Container\Container;
-use Illuminate\Contracts\Translation\Translator;
-use Illuminate\Database\ConnectionResolverInterface;
 use Illuminate\Foundation\Console\AboutCommand;
-use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 
 /**
  * Registers the generator: its configuration (merged with `config/openapi.php`, published with
- * `vendor:publish --tag=openapi-config`), the generator built from it, its commands and its `about` entry.
+ * `vendor:publish --tag=openapi-config`), the generator built from it (GeneratorFactory), its commands and its
+ * `about` entry. The commands read the configuration once and build their generator from it.
  *
  * The configuration is read when a command runs, not when the application boots: an invalid entry fails the
  * command, never the application.
@@ -37,15 +33,7 @@ final class OpenApiServiceProvider extends ServiceProvider
 
         $this->app->bind(Configuration::class, static fn(): Configuration => Configuration::fromArray(self::config()));
         $this->app->bind(GeneratorExtensions::class, static fn(Container $app): GeneratorExtensions => (new ExtensionsResolver($app))->resolve($app->make(Configuration::class)->extensions));
-        $this->app->bind(Generator::class, static function (Container $app): Generator {
-            $configuration = $app->make(Configuration::class);
-            $default = config('database.default');
-            // The default connection: the others may not be reachable where the documents are generated.
-            $session = new DatabaseSamplingSession($app->make(ConnectionResolverInterface::class), is_string($default) ? [$default] : [], $configuration->sampling);
-            $translator = $app->bound(Translator::class) ? $app->make(Translator::class) : null;
-
-            return Generator::make($app->make(Router::class), $app, $session, $translator, BuiltInIntegrations::all($configuration->integrations->jsonApiErrors), $app->make(GeneratorExtensions::class));
-        });
+        $this->app->bind(Generator::class, static fn(Container $app): Generator => $app->make(GeneratorFactory::class)->make($app->make(Configuration::class)));
     }
 
     public function boot(): void
@@ -56,11 +44,15 @@ final class OpenApiServiceProvider extends ServiceProvider
             $this->commands([GenerateCommand::class, InspectCommand::class]);
         }
 
-        AboutCommand::add('OpenAPI Generator', static fn(): array => [
-            'Version' => InstalledVersions::isInstalled('ark4ne/laravel-openapi-generator') ? (string) InstalledVersions::getPrettyVersion('ark4ne/laravel-openapi-generator') : 'dev',
-            'Documents' => implode(', ', array_map(strval(...), array_keys(is_array(self::config()['documents'] ?? null) ? self::config()['documents'] : []))),
-            'JSON:API' => (new JsonApiIntegration())->available() ? '<fg=green;options=bold>ENABLED</>' : 'not installed',
-        ]);
+        AboutCommand::add('OpenAPI Generator', static function (): array {
+            $documents = self::config()['documents'] ?? null;
+
+            return [
+                'Version' => InstalledVersions::isInstalled('ark4ne/laravel-openapi-generator') ? (string) InstalledVersions::getPrettyVersion('ark4ne/laravel-openapi-generator') : 'dev',
+                'Documents' => implode(', ', array_map(strval(...), array_keys(is_array($documents) ? $documents : []))),
+                'JSON:API' => (new JsonApiIntegration())->available() ? '<fg=green;options=bold>ENABLED</>' : 'not installed',
+            ];
+        });
     }
 
     /**

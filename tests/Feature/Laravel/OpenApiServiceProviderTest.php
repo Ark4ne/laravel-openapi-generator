@@ -9,6 +9,7 @@ use Ark4ne\OpenApi\Exceptions\InvalidConfigurationException;
 use Ark4ne\OpenApi\Generation\Generator;
 use Ark4ne\OpenApi\Generation\GeneratorExtensions;
 use Ark4ne\OpenApi\Laravel\ExtensionsResolver;
+use Ark4ne\OpenApi\Laravel\GeneratorFactory;
 use Ark4ne\OpenApi\Laravel\OpenApiServiceProvider;
 use Ark4ne\OpenApi\Tests\Fixtures\Extensions\StampOperationExtractor;
 use Ark4ne\OpenApi\Tests\Fixtures\Extensions\StampPass;
@@ -23,6 +24,7 @@ use PHPUnit\Framework\Attributes\Group;
 
 #[CoversClass(OpenApiServiceProvider::class)]
 #[CoversClass(ExtensionsResolver::class)]
+#[CoversClass(GeneratorFactory::class)]
 final class OpenApiServiceProviderTest extends LaravelTestCase
 {
     public function test_the_configuration_is_merged_and_publishable(): void
@@ -64,6 +66,29 @@ final class OpenApiServiceProviderTest extends LaravelTestCase
         $this->expectExceptionMessage('openapi.extensions.passes: expected classes implementing Ark4ne\OpenApi\Generation\Pass, got "' . UppercaseRuleMapper::class . '"');
 
         $this->app?->make(GeneratorExtensions::class);
+    }
+
+    public function test_a_tagged_service_of_the_wrong_kind_is_rejected_with_its_tag(): void
+    {
+        $this->app?->tag([UppercaseRuleMapper::class], 'openapi.passes');
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('tag openapi.passes: expected services implementing Ark4ne\OpenApi\Generation\Pass, got "' . UppercaseRuleMapper::class . '"');
+
+        $this->app?->make(GeneratorExtensions::class);
+    }
+
+    public function test_the_generator_works_from_the_configuration_it_is_given(): void
+    {
+        $this->config()->set('openapi.documents.v1.routes.include', null);
+        $this->router()->get('api/articles/{article}', [ResponseController::class, 'show']);
+        $configuration = Configuration::fromArray(['documents' => ['v1' => ['info' => ['title' => 'API', 'version' => '1'], 'routes' => ['include' => null]]], 'extensions' => ['passes' => [StampPass::class]]]);
+        $factory = $this->app?->make(GeneratorFactory::class);
+        self::assertInstanceOf(GeneratorFactory::class, $factory);
+
+        $operation = $factory->make($configuration)->generate($configuration, 'v1')->description->operations[0];
+
+        self::assertSame(['pass' => true], $operation->extensions);
     }
 
     #[Group('json-api')]

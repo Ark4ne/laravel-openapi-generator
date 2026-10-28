@@ -10,6 +10,7 @@ use Ark4ne\OpenApi\Description\DocumentDescription;
 use Ark4ne\OpenApi\Exceptions\InvalidConfigurationException;
 use Ark4ne\OpenApi\Extraction\Exceptions\ErrorBodies;
 use Ark4ne\OpenApi\Extraction\Exceptions\LaravelErrorBodies;
+use Illuminate\Contracts\Container\Container;
 
 /**
  * The passes, in their explicit order: exception responses → security → error responses → tags and groups →
@@ -43,15 +44,15 @@ final class Passes
     }
 
     /**
-     * The built-in chain; `middlewares` of the configuration replace the mappers of their middleware, the other passes
-     * run after the built-in ones, before the cleanup.
+     * The built-in chain; `middlewares` of the configuration replace the mappers of their middleware (built through the
+     * container when there is one), the other passes run after the built-in ones, before the cleanup.
      */
-    public static function default(?Configuration $configuration = null, ErrorBodies $errors = new LaravelErrorBodies(), Pass ...$others): self
+    public static function default(?Configuration $configuration = null, ErrorBodies $errors = new LaravelErrorBodies(), ?Container $container = null, Pass ...$others): self
     {
         $mappers = MiddlewareMappers::default($errors);
 
         foreach ($configuration->middlewares ?? [] as $middleware => $classes) {
-            $mappers = $mappers->with($middleware, ...array_map(static fn(string $class): MiddlewareMapper => self::mapper($class), $classes));
+            $mappers = $mappers->with($middleware, ...array_map(static fn(string $class): MiddlewareMapper => self::mapper($middleware, $class, $container), $classes));
         }
 
         return new self(...[
@@ -77,10 +78,14 @@ final class Passes
     /**
      * @throws InvalidConfigurationException
      */
-    private static function mapper(string $class): MiddlewareMapper
+    private static function mapper(string $middleware, string $class, ?Container $container): MiddlewareMapper
     {
-        $mapper = class_exists($class) ? new $class() : null;
+        $mapper = match (true) {
+            $container !== null => $container->make($class),
+            class_exists($class) => new $class(),
+            default => null,
+        };
 
-        return $mapper instanceof MiddlewareMapper ? $mapper : throw InvalidConfigurationException::forKey('middlewares', 'classes implementing ' . MiddlewareMapper::class, $class);
+        return $mapper instanceof MiddlewareMapper ? $mapper : throw InvalidConfigurationException::forKey("middlewares.{$middleware}", 'classes implementing ' . MiddlewareMapper::class, $class);
     }
 }

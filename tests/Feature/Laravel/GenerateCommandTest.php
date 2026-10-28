@@ -6,9 +6,13 @@ namespace Ark4ne\OpenApi\Tests\Feature\Laravel;
 
 use Ark4ne\OpenApi\Laravel\Commands\GenerateCommand;
 use Ark4ne\OpenApi\Laravel\DiagnosticsOutput;
+use Ark4ne\OpenApi\Tests\Fixtures\Extensions\StampedMiddlewareMapper;
+use Ark4ne\OpenApi\Tests\Fixtures\Extensions\UppercaseRuleMapper;
 use Ark4ne\OpenApi\Tests\Fixtures\Responses\ResponseController;
 use Ark4ne\OpenApi\Tests\Fixtures\Types\UntypedController;
+use Ark4ne\OpenApi\Tests\Support\SplitOutput;
 use Illuminate\Contracts\Config\Repository;
+use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\CoversClass;
 
@@ -156,6 +160,61 @@ final class GenerateCommandTest extends LaravelTestCase
         $this->command('openapi:generate', ['--document' => ['v1']])
             ->expectsOutputToContain('$self')
             ->assertExitCode(1);
+    }
+
+    public function test_a_class_of_the_wrong_kind_named_by_the_configuration_is_an_invalid_call(): void
+    {
+        $this->config()->set('openapi.documents.admin.strategies', ['summary' => ['by' => UppercaseRuleMapper::class]]);
+
+        $this->command('openapi:generate')
+            ->expectsOutputToContain('openapi.documents.admin.strategies.summary.by: expected one of')
+            ->assertExitCode(2);
+
+        Storage::disk('docs')->assertMissing('openapi/v1.json');
+    }
+
+    public function test_a_middleware_mapper_of_the_wrong_kind_is_an_invalid_call(): void
+    {
+        $this->config()->set('openapi.middlewares', ['tenant' => [UppercaseRuleMapper::class]]);
+
+        $this->command('openapi:generate')
+            ->expectsOutputToContain('openapi.middlewares.tenant: expected classes implementing')
+            ->assertExitCode(2);
+    }
+
+    public function test_a_middleware_mapper_comes_from_the_container(): void
+    {
+        $this->config()->set('openapi.middlewares', ['tenant' => [StampedMiddlewareMapper::class]]);
+        $this->router()->get('api/tenants', [UntypedController::class, 'ping'])->middleware('tenant');
+
+        $this->command('openapi:generate', ['--document' => ['v1']])->assertExitCode(0);
+
+        self::assertStringContainsString('"x-tenant": "stamped"', (string) Storage::disk('docs')->get('openapi/v1.json'));
+    }
+
+    public function test_with_stdout_the_standard_output_holds_the_document_only(): void
+    {
+        $output = new SplitOutput();
+
+        self::assertSame(0, $this->kernel()->call('openapi:generate', ['--document' => ['v1'], '--stdout' => true, '--quiet' => true], $output));
+        self::assertStringStartsWith('{', $output->standard());
+
+        $this->config()->set('openapi.documents.v1.openapi', '3.0.4');
+        $this->config()->set('openapi.documents.v1.self', 'https://example.com/openapi.json');
+        $failed = new SplitOutput();
+
+        self::assertSame(1, $this->kernel()->call('openapi:generate', ['--document' => ['v1'], '--stdout' => true], $failed));
+        self::assertSame('', $failed->standard());
+        self::assertStringContainsString('FAILED', $failed->error());
+        self::assertStringContainsString('$self', $failed->error());
+    }
+
+    private function kernel(): Kernel
+    {
+        $kernel = $this->app?->make(Kernel::class);
+        self::assertInstanceOf(Kernel::class, $kernel);
+
+        return $kernel;
     }
 
     private function config(): Repository

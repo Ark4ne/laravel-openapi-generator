@@ -25,6 +25,14 @@ final class InvalidConfigurationException extends InvalidArgumentException imple
         return new self(sprintf('--%s: expected %s, got %s', $option, $expected, self::describe($received)));
     }
 
+    /**
+     * `tag openapi.passes: expected services implementing …\Pass, got "App\Rule"`, for a service a package tags.
+     */
+    public static function forTag(string $tag, string $expected, mixed $received): self
+    {
+        return new self(sprintf('tag %s: expected %s, got %s', $tag, $expected, self::describe($received)));
+    }
+
     private static function describe(mixed $value): string
     {
         return match (true) {

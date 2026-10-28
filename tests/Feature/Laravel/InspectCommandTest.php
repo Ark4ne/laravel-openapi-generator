@@ -49,6 +49,27 @@ final class InspectCommandTest extends LaravelTestCase
         $this->command('openapi:inspect', ['route' => '/api/ping'])->expectsOutputToContain('GET /api/ping')->assertExitCode(0);
     }
 
+    public function test_a_named_route_with_an_optional_parameter_shows_both_of_its_paths(): void
+    {
+        $this->router()->get('api/users/{user?}', [UntypedController::class, 'ping'])->name('users');
+
+        $this->command('openapi:inspect', ['route' => 'users'])
+            ->expectsOutputToContain('GET /api/users/{user}')
+            ->expectsOutputToContain('GET /api/users ')
+            ->assertExitCode(0);
+    }
+
+    public function test_the_diagnostics_recorded_before_a_path_was_renamed_are_shown(): void
+    {
+        $this->router()->get('api/items/{item}', [UntypedController::class, 'ping']);
+        $this->router()->put('api/items/{id}', [UntypedController::class, 'ping']);
+
+        $this->command('openapi:inspect', ['route' => 'PUT api/items/{item}'])
+            ->expectsOutputToContain('PUT /api/items/{item}')
+            ->expectsOutputToContain('no return type, declare the responses with #[Response]')
+            ->assertExitCode(0);
+    }
+
     public function test_a_route_out_of_the_document_is_reported(): void
     {
         $this->command('openapi:inspect', ['route' => 'home'])

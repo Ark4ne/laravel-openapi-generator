@@ -11,6 +11,7 @@ use Ark4ne\OpenApi\Description\DocumentDescription;
 use Ark4ne\OpenApi\Discovery\MiddlewareResolver;
 use Ark4ne\OpenApi\Discovery\PathParameterResolver;
 use Ark4ne\OpenApi\Discovery\RouteCollector;
+use Ark4ne\OpenApi\Exceptions\InvalidConfigurationException;
 use Ark4ne\OpenApi\Extraction\Callbacks\DeclaredCallbacks;
 use Ark4ne\OpenApi\Extraction\Exceptions\ErrorBodies;
 use Ark4ne\OpenApi\Extraction\Exceptions\LaravelErrorBodies;
@@ -20,6 +21,7 @@ use Ark4ne\OpenApi\Extraction\Requests\RequestExtractors;
 use Ark4ne\OpenApi\Extraction\Responses\OperationResponses;
 use Ark4ne\OpenApi\Extraction\Rules\RuleMappers;
 use Ark4ne\OpenApi\Extraction\Strategies\BuiltInStrategies;
+use Ark4ne\OpenApi\Extraction\Strategies\QueryStrategy;
 use Ark4ne\OpenApi\Sampling\Samplers;
 use Ark4ne\OpenApi\Sampling\SamplingSession;
 use Ark4ne\OpenApi\Types\TypeResolver;
@@ -84,9 +86,46 @@ final readonly class Generator
         $integrations = array_values(array_filter($this->integrations, static fn(Integration $integration): bool => $integration->available()));
         $errors = self::errorBodies($integrations);
         $description = $this->session->run(fn(): DocumentDescription => $this->describe($context, $integrations, $errors), $context);
-        $description = Passes::default($configuration, $errors, ...$this->extensions->passes)->process($description, $context);
+        $description = Passes::default($configuration, $errors, $this->container, ...$this->extensions->passes)->process($description, $context);
 
         return new GeneratedDocument($this->builder->build($description, $context), $description, $context);
+    }
+
+    /**
+     * Builds what the configuration names for a document (strategy classes, middleware mappers) without generating it,
+     * so that an invalid class is reported before any document is written.
+     *
+     * @throws InvalidConfigurationException
+     */
+    public function prepare(Configuration $configuration, DocumentConfiguration $document): void
+    {
+        $this->operations($document);
+        $this->query($document);
+        Passes::default($configuration, new LaravelErrorBodies(), $this->container);
+    }
+
+    /**
+     * @throws InvalidConfigurationException
+     */
+    private function operations(DocumentConfiguration $document): OperationExtractors
+    {
+        $key = "documents.{$document->name}.strategies";
+
+        return OperationExtractors::default(
+            BuiltInStrategies::summary($document->summary, "{$key}.summary", $this->container),
+            BuiltInStrategies::tags($document->tags, "{$key}.tags", $this->container),
+            BuiltInStrategies::operationId($document->operationId, "{$key}.operation_id", $this->container),
+            $this->translator,
+            BuiltInStrategies::groups($document->groups, "{$key}.groups", $this->container),
+        )->with(...$this->extensions->operationExtractors);
+    }
+
+    /**
+     * @throws InvalidConfigurationException
+     */
+    private function query(DocumentConfiguration $document): QueryStrategy
+    {
+        return BuiltInStrategies::query($document->query, "documents.{$document->name}.strategies.query", $this->container);
     }
 
     /**
@@ -112,18 +151,12 @@ final readonly class Generator
     {
         $configuration = $context->document;
         $factory = new OperationContextFactory($this->types);
-        $operations = OperationExtractors::default(
-            BuiltInStrategies::summary($configuration->summary, container: $this->container),
-            BuiltInStrategies::tags($configuration->tags, container: $this->container),
-            BuiltInStrategies::operationId($configuration->operationId, container: $this->container),
-            $this->translator,
-            BuiltInStrategies::groups($configuration->groups, container: $this->container),
-        )->with(...$this->extensions->operationExtractors);
+        $operations = $this->operations($configuration);
         $formats = array_merge(...array_map(static fn(Integration $integration): array => $integration->resourceFormats(), $integrations));
         $mappers = array_merge(...array_map(static fn(Integration $integration): array => $integration->ruleMappers(), $integrations));
         $samplers = Samplers::default($this->session, $this->types)->with(...$this->extensions->samplers);
         $responses = OperationResponses::default($samplers, $this->types, $formats, $errors, $this->extensions->responseExtractors);
-        $requests = RequestExtractors::default($this->container, BuiltInStrategies::query($configuration->query, container: $this->container), RuleMappers::default()->with(...$mappers, ...$this->extensions->ruleMappers), $this->types, $responses->resources())
+        $requests = RequestExtractors::default($this->container, $this->query($configuration), RuleMappers::default()->with(...$mappers, ...$this->extensions->ruleMappers), $this->types, $responses->resources())
             ->with(...$this->extensions->requestExtractors);
         $callbacks = new DeclaredCallbacks($responses->declared());
         $document = DocumentDescription::create();

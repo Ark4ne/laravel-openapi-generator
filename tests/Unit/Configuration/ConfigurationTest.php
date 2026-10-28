@@ -15,6 +15,7 @@ use Ark4ne\OpenApi\Configuration\RouteOrder;
 use Ark4ne\OpenApi\Configuration\SamplingConfiguration;
 use Ark4ne\OpenApi\Configuration\ServerConfiguration;
 use Ark4ne\OpenApi\Exceptions\InvalidConfigurationException;
+use Ark4ne\OpenApi\Generation\Pass;
 use Ark4ne\OpenApi\Tests\Fixtures\Extensions\StampPass;
 use Ark4ne\OpenApi\Tests\Fixtures\Extensions\TenantMiddlewareMapper;
 use Ark4ne\OpenApi\Tests\Fixtures\Extensions\UppercaseRuleMapper;
@@ -168,6 +169,7 @@ final class ConfigurationTest extends TestCase
         self::assertSame(['tenant' => [TenantMiddlewareMapper::class]], $configuration->middlewares);
         self::assertEquals(new ExtensionsConfiguration(ruleMappers: [UppercaseRuleMapper::class], passes: [StampPass::class]), $configuration->extensions);
         self::assertTrue($configuration->integrations->jsonApiErrors);
+        self::assertSame([Pass::class], Configuration::fromArray(['extensions' => ['passes' => [Pass::class]]])->extensions->passes);
         self::assertFalse(Configuration::fromArray([])->integrations->jsonApiErrors);
     }
 
@@ -178,9 +180,9 @@ final class ConfigurationTest extends TestCase
     {
         yield 'v0.6 key' => [['versions' => []], 'openapi: expected the keys documents, servers, output, sampling, date_formats, middlewares, extensions, integrations, exceptions, languages, got "versions"'];
         yield 'middleware mappers not a list' => [['middlewares' => ['tenant' => TenantMiddlewareMapper::class]], 'openapi.middlewares.tenant: expected a list of classes'];
-        yield 'missing middleware mapper' => [['middlewares' => ['tenant' => ['App\\Missing']]], 'openapi.middlewares.tenant: expected existing classes, got "App\\Missing"'];
+        yield 'missing middleware mapper' => [['middlewares' => ['tenant' => ['App\\Missing']]], 'openapi.middlewares.tenant: expected existing classes or interfaces, got "App\\Missing"'];
         yield 'unknown registry' => [['extensions' => ['parsers' => []]], 'openapi.extensions: expected the keys operation_extractors, request_extractors, rule_mappers, response_extractors, samplers, passes, got "parsers"'];
-        yield 'missing extension' => [['extensions' => ['passes' => ['App\\Missing']]], 'openapi.extensions.passes: expected existing classes, got "App\\Missing"'];
+        yield 'missing extension' => [['extensions' => ['passes' => ['App\\Missing']]], 'openapi.extensions.passes: expected existing classes or interfaces, got "App\\Missing"'];
         yield 'unknown integration' => [['integrations' => ['sanctum' => []]], 'openapi.integrations: expected the keys json_api, got "sanctum"'];
         yield 'json api errors' => [['integrations' => ['json_api' => ['errors' => 'yes']]], 'openapi.integrations.json_api.errors: expected a boolean, got "yes"'];
         yield 'use references' => [['documents' => ['v1' => ['use_references' => 'no']]], 'openapi.documents.v1.use_references: expected a boolean, got "no"'];

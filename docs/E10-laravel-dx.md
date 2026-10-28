@@ -56,6 +56,15 @@ de services, configuration publiable, commandes claires, extensions faciles à b
     conteneur (`ExtensionsResolver`), la couche `Configuration` ne connaissant pas les interfaces des couches à sa
     droite.
 - **Nouvelle clé `integrations.json_api.errors`.** Elle active les erreurs JSON:API de l'E9 (désactivées par défaut).
+- **Résolution par le conteneur.**
+  - `GeneratorFactory` construit le générateur d'une configuration lue une seule fois par commande : session
+    d'échantillonnage, intégrations, extensions.
+  - Les mappers de `middlewares`, les extensions et les stratégies sont tous construits par le conteneur. Une interface
+    liée dans le conteneur est acceptée comme une classe.
+  - Avant de générer, `Generator::prepare()` construit ce que la configuration nomme pour chaque document (classes de
+    stratégie, mappers de middlewares). Une classe du mauvais type donne le code 2 sans qu'aucun document soit écrit.
+  - Un service tagué du mauvais type est signalé par son tag (`tag openapi.passes: …`), pas par une clé de la
+    configuration.
 - **Extensions.** `GeneratorExtensions` (couche `Generation`) porte les instances : les extracteurs et les samplers
   rejoignent leur registre par priorité (`with()`), les mappers de règles remplacent ceux des mêmes règles, les
   passes s'exécutent après les passes intégrées, avant le nettoyage. Les classes de stratégie (`strategies.*.by`) sont
@@ -71,14 +80,20 @@ de services, configuration publiable, commandes claires, extensions faciles à b
   - Sérialisation : le document n'est sérialisé qu'une fois (`DocumentWriter::store()`) pour ne pas dupliquer les
     diagnostics de l'écriture.
   - `--format` change aussi l'extension du fichier (`.json` ↔ `.yaml`).
-  - `--stdout` n'accepte qu'un document et une langue ; ses diagnostics vont sur la sortie d'erreur.
+  - `--stdout` n'accepte qu'un document et une langue. La sortie standard ne reçoit que le document, même avec `-q` ;
+    la ligne d'échec et les diagnostics vont sur la sortie d'erreur.
 - **`openapi:inspect`.**
   - La route est désignée par son nom, résolu par le routeur (la description ne garde que le libellé
     `GET /path`), par son URI, ou par sa méthode et son URI.
+  - Une route nommée à paramètres optionnels vise aussi ses chemins sans eux (`api/users/{user?}` → `/api/users/{user}`
+    et `/api/users`).
   - La commande affiche l'opération après les passes, avec les paramètres partagés de son chemin, et tous ses
-    diagnostics quelle que soit la verbosité.
+    diagnostics quelle que soit la verbosité. Elle retrouve aussi ceux enregistrés sous le libellé d'origine de la
+    route, avant qu'une passe renomme son chemin.
 - **Corrections du cœur découvertes en route.**
-  - Un document sans opération garde des `paths` vides. Sans eux, le document était invalide, en 3.0 comme en 3.1.
+  - Un document sans opération garde des `paths` vides. Sans eux, le document était invalide, en 3.0 comme en 3.1. En
+    3.0, quand il n'a que des webhooks, le writer écrit lui-même ces `paths` à côté des `x-webhooks` (test de
+    régression).
   - `TypeResolver` lit les noms de nœuds de `phpstan/phpdoc-parser` 2.4. Cette version type `NameNode` à côté
     d'`IdentifierTypeNode` ; `composer.lock` n'étant pas versionné, elle est arrivée par une mise à jour.
 - **Mesure.** Un document de 500 routes (ressources, collections paginées, requêtes, exceptions, sécurité) est

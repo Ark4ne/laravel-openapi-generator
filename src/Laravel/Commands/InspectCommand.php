@@ -13,8 +13,8 @@ use Ark4ne\OpenApi\Description\ResponseDescription;
 use Ark4ne\OpenApi\Description\SecurityDescription;
 use Ark4ne\OpenApi\Discovery\RouteDefinition;
 use Ark4ne\OpenApi\Exceptions\InvalidConfigurationException;
-use Ark4ne\OpenApi\Generation\Generator;
 use Ark4ne\OpenApi\Laravel\DiagnosticsOutput;
+use Ark4ne\OpenApi\Laravel\GeneratorFactory;
 use Ark4ne\OpenApiWriter\Enums\HttpMethod;
 use Illuminate\Console\Command;
 use Illuminate\Routing\Router;
@@ -42,7 +42,7 @@ final class InspectCommand extends Command
             $configuration = $this->laravel->make(Configuration::class);
             $name = $this->option('document');
             $document = $configuration->document(is_string($name) ? $name : (string) array_key_first($configuration->documents));
-            $generated = $this->laravel->make(Generator::class)->generate($configuration, $document);
+            $generated = $this->laravel->make(GeneratorFactory::class)->make($configuration)->generate($configuration, $document);
         } catch (InvalidConfigurationException $exception) {
             $this->components->error($exception->getMessage());
 
@@ -63,7 +63,9 @@ final class InspectCommand extends Command
         foreach ($operations as $operation) {
             $label = RouteDefinition::labelOf($operation->method, $operation->path);
             $this->show($operation, $label, $generated->description);
-            (new DiagnosticsOutput($this->output))->print(array_filter($generated->context->diagnostics->all(), static fn(Diagnostic $diagnostic): bool => $diagnostic->route === $label), all: true);
+            // The extraction labels a diagnostic with the route as it was (`route`), before a pass renamed its path.
+            $labels = [$label, $operation->route ?? $label];
+            (new DiagnosticsOutput($this->output))->print(array_filter($generated->context->diagnostics->all(), static fn(Diagnostic $diagnostic): bool => in_array($diagnostic->route, $labels, true)), all: true);
         }
 
         return self::SUCCESS;
@@ -127,7 +129,15 @@ final class InspectCommand extends Command
         $named = $routes->getByName($route);
 
         if ($named !== null) {
-            return array_values(array_map(static fn(string $method): array => [$method, self::path($named->uri())], $named->methods()));
+            $targets = [];
+
+            foreach ($named->methods() as $method) {
+                foreach (self::paths($named->uri()) as $path) {
+                    $targets[] = [$method, $path];
+                }
+            }
+
+            return $targets;
         }
 
         $parts = explode(' ', trim($route), 2);
@@ -149,6 +159,24 @@ final class InspectCommand extends Command
         }
 
         return false;
+    }
+
+    /**
+     * The paths of a route URI: with its optional parameters, then without each trailing one, as the routes are
+     * collected (`api/users/{user?}` → `/api/users/{user}`, `/api/users`).
+     *
+     * @return list<string>
+     */
+    private static function paths(string $uri): array
+    {
+        $paths = [self::path($uri)];
+
+        while (preg_match('#/\{[^}]+\?\}$#', $uri) === 1) {
+            $uri = (string) preg_replace('#/\{[^}]+\?\}$#', '', $uri);
+            $paths[] = self::path($uri);
+        }
+
+        return $paths;
     }
 
     /**

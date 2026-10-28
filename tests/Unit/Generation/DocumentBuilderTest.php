@@ -25,6 +25,7 @@ use Ark4ne\OpenApi\Tests\Support\Schemas;
 use Ark4ne\OpenApi\Tests\TestCase;
 use Ark4ne\OpenApiWriter\Enums\HttpMethod;
 use Ark4ne\OpenApiWriter\Enums\ParameterStyle;
+use Ark4ne\OpenApiWriter\Enums\VendorExtensions;
 use Ark4ne\OpenApiWriter\Enums\Version;
 use Ark4ne\OpenApiWriter\Objects\Schema;
 use Ark4ne\OpenApiWriter\Objects\SecurityScheme;
@@ -164,6 +165,18 @@ final class DocumentBuilderTest extends TestCase
             self::assertArrayHasKey('paths', $written, $version->value);
             self::assertEmpty((array) $written['paths'], $version->value);
         }
+    }
+
+    public function test_a_3_0_document_of_webhooks_only_keeps_empty_paths(): void
+    {
+        $document = new DocumentConfiguration('v1', new InfoConfiguration('API', '1.0.0'), version: Version::V3_0_4, vendorExtensions: VendorExtensions::Redoc);
+        $context = GenerationContext::for(new Configuration(['v1' => $document]), $document);
+        $webhook = OperationDescription::create(HttpMethod::Post, '/hooks/created')->webhook('order.created')->responses(ResponseDescription::create(204)->description('Received'));
+
+        $written = (new DocumentBuilder())->build(DocumentDescription::create()->webhooks($webhook), $context)->toArray(Version::V3_0_4, VendorExtensions::Redoc);
+
+        self::assertArrayHasKey('paths', $written);
+        self::assertArrayHasKey('x-webhooks', $written);
     }
 
     public function test_the_callbacks_are_grouped_by_name_then_by_expression(): void

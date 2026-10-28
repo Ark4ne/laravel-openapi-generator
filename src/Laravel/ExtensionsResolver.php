@@ -64,10 +64,13 @@ final readonly class ExtensionsResolver
     {
         $extensions = [];
 
-        foreach ([...array_map($this->container->make(...), $classes), ...$this->container->tagged(self::TAGS[$key])] as $extension) {
-            $extensions[] = $extension instanceof $interface
-                ? $extension
-                : throw InvalidConfigurationException::forKey("extensions.{$key}", "classes implementing {$interface}", is_object($extension) ? $extension::class : $extension);
+        foreach ($classes as $class) {
+            $extension = $this->container->make($class);
+            $extensions[] = $extension instanceof $interface ? $extension : throw InvalidConfigurationException::forKey("extensions.{$key}", "classes implementing {$interface}", $class);
+        }
+
+        foreach ($this->container->tagged(self::TAGS[$key]) as $extension) {
+            $extensions[] = $extension instanceof $interface ? $extension : throw InvalidConfigurationException::forTag(self::TAGS[$key], "services implementing {$interface}", is_object($extension) ? $extension::class : $extension);
         }
 
         return $extensions;

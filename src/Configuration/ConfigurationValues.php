@@ -91,7 +91,8 @@ final class ConfigurationValues
         $classes = [];
 
         foreach ($values as $value) {
-            $classes[] = is_string($value) && class_exists($value) ? $value : throw InvalidConfigurationException::forKey($key, 'existing classes', $value);
+            // An interface bound in the container is resolved as well as a class.
+            $classes[] = is_string($value) && (class_exists($value) || interface_exists($value)) ? $value : throw InvalidConfigurationException::forKey($key, 'existing classes or interfaces', $value);
         }
 
         return $classes;
