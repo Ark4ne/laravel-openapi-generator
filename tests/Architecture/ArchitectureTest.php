@@ -4,6 +4,22 @@ declare(strict_types=1);
 
 namespace Ark4ne\OpenApi\Tests\Architecture;
 
+use Ark4ne\OpenApi\Context\Diagnostic;
+use Ark4ne\OpenApi\Context\DiagnosticLevel;
+use Ark4ne\OpenApi\Context\Diagnostics;
+use Ark4ne\OpenApi\Context\Stage;
+use Ark4ne\OpenApi\Extraction\Operations\OperationExtractor;
+use Ark4ne\OpenApi\Extraction\Requests\RequestExtractor;
+use Ark4ne\OpenApi\Extraction\Responses\ResponseExtractor;
+use Ark4ne\OpenApi\Extraction\Rules\RuleMapper;
+use Ark4ne\OpenApi\Extraction\Strategies\GroupStrategy;
+use Ark4ne\OpenApi\Extraction\Strategies\OperationIdStrategy;
+use Ark4ne\OpenApi\Extraction\Strategies\QueryStrategy;
+use Ark4ne\OpenApi\Extraction\Strategies\SummaryStrategy;
+use Ark4ne\OpenApi\Extraction\Strategies\TagStrategy;
+use Ark4ne\OpenApi\Generation\MiddlewareMapper;
+use Ark4ne\OpenApi\Generation\Pass;
+use Ark4ne\OpenApi\Sampling\Sampler;
 use PHPat\Selector\ClassNamespace;
 use PHPat\Selector\Selector;
 use PHPat\Test\Builder\Rule as ArchitectureRule;
@@ -64,13 +80,41 @@ final class ArchitectureTest
         }
     }
 
-    public function test_exceptions_depend_on_no_layer_but_support(): ArchitectureRule
+    public function test_exceptions_depend_only_on_support_and_the_diagnostics(): ArchitectureRule
     {
         return PHPat::rule()
             ->classes(self::layer('Exceptions'))
             ->shouldNotDependOn()
             ->classes(...self::layers(...array_slice(self::LAYERS, 1)))
-            ->because('exceptions are usable by every layer.');
+            ->excluding(
+                Selector::classname(Diagnostics::class),
+                Selector::classname(Diagnostic::class),
+                Selector::classname(DiagnosticLevel::class),
+                Selector::classname(Stage::class),
+            )
+            ->because('exceptions are usable by every layer; GenerationFailedException carries the diagnostics.');
+    }
+
+    /**
+     * @return iterable<ArchitectureRule>
+     */
+    public function test_extension_points_are_named_after_their_role(): iterable
+    {
+        $roles = [
+            'Extractor' => [OperationExtractor::class, RequestExtractor::class, ResponseExtractor::class],
+            'RuleMapper' => [RuleMapper::class],
+            'Sampler' => [Sampler::class],
+            'Pass' => [Pass::class],
+            'MiddlewareMapper' => [MiddlewareMapper::class],
+            'Strategy' => [SummaryStrategy::class, TagStrategy::class, GroupStrategy::class, OperationIdStrategy::class, QueryStrategy::class],
+        ];
+
+        foreach ($roles as $suffix => $interfaces) {
+            yield PHPat::rule()
+                ->classes(...array_map(static fn(string $interface) => Selector::implements($interface), $interfaces))
+                ->shouldBeNamed('/' . $suffix . '$/', true)
+                ->because("an implementation is named after what it handles: <Feature>{$suffix}.");
+        }
     }
 
     public function test_classes_are_final(): ArchitectureRule

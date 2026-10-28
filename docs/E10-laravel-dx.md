@@ -13,7 +13,7 @@ de services, configuration publiable, commandes claires, extensions faciles à b
 - [ ] `OpenApiServiceProvider` (découverte automatique) : configuration fusionnée et publiable
       (`vendor:publish --tag=openapi-config`), registres construits depuis la configuration
 - [ ] Extensions de l'application : extracteurs, mappers de règles, samplers, passes, stratégies, déclarés dans
-      `extensions` (et tags du conteneur selon la décision de E1)
+      `extensions`, et par les tags du conteneur (`openapi.response-extractors`…) pour les paquets tiers
 - [ ] Entrée dans `php artisan about`
 
 ### Commandes

@@ -13,6 +13,11 @@ parameters:
         - tests
         - bin
     tmpDir: build/phpstan
+    ignoreErrors:
+        # Contract with neutral bodies (docs/E01-contracts.md): removed once every epic implemented its part.
+        -
+            identifier: return.unusedType
+            path: src/*
 
     # Facades, global helpers and the container belong to src/Laravel/ (docs/architecture.md §2).
     disallowedNamespaces:

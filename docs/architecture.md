@@ -57,8 +57,9 @@ Support ← Types ← Attributes ← Configuration ← Description ← Context �
   documentent (`FormRequest`, `JsonResource`, `Route`…). Seule la couche `Laravel` utilise les façades, les helpers
   globaux (`config()`, `app()`, `request()`…) et le conteneur. Vérifié par `phpat` et
   `spaze/phpstan-disallowed-calls`.
-- **openapi-writer :** `Description`, `Extraction`, `Sampling` et `Generation` utilisent `Schema` (et ses enums) ;
-  seuls `Generation\DocumentBuilder` et `Output` construisent les autres objets du writer (`OpenApi`, `PathItem`,
+- **openapi-writer :** `Description`, `Extraction`, `Sampling` et `Generation` utilisent `Schema`, `SecurityScheme`
+  (feuille autonome, rangée telle quelle dans les composants) et les enums du writer ; seuls
+  `Generation\DocumentBuilder` et `Output` construisent les autres objets du writer (`OpenApi`, `PathItem`,
   `Operation`…). Le writer est la seule façon d'écrire de l'OpenAPI.
 - `Integrations` n'est jamais une dépendance du cœur : une intégration s'enregistre par la configuration ou par
   le fournisseur de services, et son paquet tiers reste en `suggest`.
@@ -73,7 +74,7 @@ décision d'écriture. Patterns : **Value Object immuable**, **Fluent Interface*
 ```php
 final readonly class ParameterDescription extends Description
 {
-    final protected function __construct(
+    protected function __construct(
         public string $name,
         public ParameterLocation $in,
         public Schema $schema,
@@ -99,10 +100,13 @@ Règles :
 1. **Classes `final readonly`**, héritant de la base abstraite `Description`, qui porte
    `copy(mixed ...$changes): static`. Aucune autre classe abstraite dans `Description/`.
 2. **Construction** par constructeurs nommés (`ParameterDescription::path()`, `ResponseDescription::ok()`) ; le
-   constructeur est `final protected`.
+   constructeur est `protected`. Un objet de description n'est jamais construit dans la valeur par défaut d'un
+   paramètre d'une autre classe (le constructeur protégé n'y est pas accessible) : le constructeur nommé le passe.
 3. **Modification** : chaque méthode renvoie une copie (`copy()`) ; l'objet courant ne change jamais.
 4. **Collections** : comme dans le writer, un setter qui remplace (`parameters(...)`) et `add` + le nom exact du
-   champ qui ajoute (`addParameters(...)`), tous deux variadiques et renvoyant une copie.
+   champ qui ajoute (`addParameters(...)`), tous deux variadiques et renvoyant une copie. **Maps** indexées par un
+   nom (types de média, composants) : un setter au pluriel qui remplace tout (`contents(array)`), un setter au
+   singulier qui pose ou remplace une entrée (`content('application/json', $schema)`) et `without*()` qui la retire.
 5. **Schémas** : un champ de schéma est un `Ark4ne\OpenApiWriter\Objects\Schema`, jamais un tableau ni une classe
    maison. Les règles de validation et l'inférence construisent directement ce `Schema`.
 6. **Pas de version OpenAPI dans la description** : elle décrit le modèle de la dernière version (`nullable()`,
@@ -148,14 +152,19 @@ interface ResponseExtractor
 
 | Registre | Entrée | Sortie | Exemples |
 | --- | --- | --- | --- |
-| `OperationExtractors` | `RouteDefinition` | métadonnées d'opération | PHPDoc, `#[Operation]`, `#[Tag]`, `#[Deprecated]` |
-| `RequestExtractors` | type du paramètre de requête | `RequestDescription` | `FormRequest`, `DescribableRequest`, liaisons de modèles |
+| `OperationExtractors` | `OperationContext` | `OperationDescription` enrichie | PHPDoc, `#[Operation]`, `#[Tag]`, stratégies de nommage |
+| `RequestExtractors` | `OperationContext` | `RequestDescription` enrichie | Paramètres de chemin, `FormRequest`, `DescribableRequest`, attributs |
 | `RuleMappers` | une règle de validation | modification d'un `Schema` | `RequiredRule`, `EnumRule`, `PasswordRule`, `FileRule` |
 | `ResponseExtractors` | type de retour de l'action | `ResponseDescription[]` | `JsonResource`, `ResourceCollection`, `JsonResponse`, fichiers, flux |
 
-- Un registre essaie ses extracteurs **par priorité décroissante** ; le premier dont `supports()` répond `true`
-  traite l'entrée. Les priorités sont des constantes publiques documentées, et non l'ordre d'un tableau de
-  configuration (cause principale des erreurs de configuration en v0.6).
+- `OperationContext` porte la route, la méthode HTTP, le chemin OpenAPI, l'action résolue (réflexion) et les types
+  de requête et de retour de l'action.
+- **Deux modes de registre.** Opérations et requêtes **enrichissent** : tous les extracteurs qui répondent `true` à
+  `supports()` s'exécutent par priorité **croissante**, chacun affinant la description du précédent (les attributs,
+  de priorité haute, l'emportent sur la PHPDoc). Réponses et samplers **choisissent** : le premier extracteur qui
+  répond `true`, par priorité **décroissante**, traite l'entrée. Les règles sont indexées par nom ou par classe.
+- La priorité est donnée par `priority(): int`, qui renvoie une constante publique `PRIORITY` documentée, et non
+  par l'ordre d'un tableau de configuration (cause principale des erreurs de configuration en v0.6).
 - L'utilisateur ajoute ou remplace un extracteur par la configuration (`extensions`) ou par un fournisseur de
   services ; un extracteur d'intégration a une priorité supérieure à celle des extracteurs génériques qu'il
   spécialise (`JsonApiResource` avant `JsonResource`).

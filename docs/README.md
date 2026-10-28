@@ -11,12 +11,12 @@ de ses livrables ; le tableau ci-dessous en est calculé automatiquement (`compo
 ## Progression
 
 <!-- progress:start -->
-**Avancement global : `█░░░░░░░░░` 10 % (22 / 208 livrables)**
+**Avancement global : `██░░░░░░░░` 22 % (49 / 222 livrables)**
 
 | Épique | Statut | Avancement | Livrables |
 | --- | --- | --- | --- |
 | [E0 — Branche, socle et outillage](E00-bootstrap.md) | En cours | `█████████░` 95 % | 22 / 23 |
-| [E1 — Architecture et contrats](E01-contracts.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 23 |
+| [E1 — Architecture et contrats](E01-contracts.md) | En cours | `█████████░` 96 % | 24 / 25 |
 | [E2 — Découverte des routes](E02-route-discovery.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 16 |
 | [E3 — Métadonnées d'opération et types](E03-operation-metadata.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 17 |
 | [E4 — Requêtes et règles de validation](E04-requests.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 24 |
@@ -27,6 +27,7 @@ de ses livrables ; le tableau ci-dessous en est calculé automatiquement (`compo
 | [E9 — Intégration JSON:API](E09-json-api.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 11 |
 | [E10 — Intégration Laravel et expérience développeur](E10-laravel-dx.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 11 |
 | [E11 — Migration, documentation et version 1.0.0](E11-release.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 12 |
+| [E12 — Webhooks](E12-webhooks.md) | En cours | `██░░░░░░░░` 25 % | 3 / 12 |
 <!-- progress:end -->
 
 ## Mettre à jour la progression
@@ -46,7 +47,7 @@ Chaque épique suit le même cycle que la librairie d'écriture : **contrat** (s
 E0 Socle ─► E1 Contrats ─► E2 Routes ─► E3 Opérations ─┬─► E4 Requêtes ───────────────┐
                                                       └─► E5 Échantillonnage ─► E6 Réponses ─┤
                                                                                        ▼
-                                          E7 Passes ─► E8 Écriture ─► E9 JSON:API ─► E10 Laravel ─► E11 Release
+                                          E7 Passes ─► E8 Écriture ─► E12 Webhooks ─► E9 JSON:API ─► E10 Laravel ─► E11 Release
 ```
 
 E4 et E5/E6 peuvent avancer en parallèle une fois E3 terminé.
@@ -60,9 +61,10 @@ E4 et E5/E6 peuvent avancer en parallèle une fois E3 terminé.
 7. [E6 — Réponses](E06-responses.md)
 8. [E7 — Passes du pipeline](E07-pipeline-passes.md)
 9. [E8 — Écriture du document](E08-document-writing.md)
-10. [E9 — Intégration JSON:API](E09-json-api.md)
-11. [E10 — Intégration Laravel et expérience développeur](E10-laravel-dx.md)
-12. [E11 — Migration, documentation et version 1.0.0](E11-release.md)
+10. [E12 — Webhooks](E12-webhooks.md) (ajouté après coup, réalisé après E8)
+11. [E9 — Intégration JSON:API](E09-json-api.md)
+12. [E10 — Intégration Laravel et expérience développeur](E10-laravel-dx.md)
+13. [E11 — Migration, documentation et version 1.0.0](E11-release.md)
 
 ## Décisions
 
@@ -82,4 +84,6 @@ E4 et E5/E6 peuvent avancer en parallèle une fois E3 terminé.
 | 2026-10-28 | Validé : Laravel `^13.0` seul et abandon des balises PHPDoc `@oa-*` au profit des attributs |
 | 2026-10-28 | Tout code qui utilise `openapi-writer` s'écrit en suivant son skill (`skills/openapi-writer/`) |
 | 2026-10-28 | Validé : `phpstan/phpdoc-parser` à la place de `phpdocumentor/*`, et clé `documents` à la place de `versions` |
+| 2026-10-28 | Attribut `#[Operation]` conservé (alias d'import documenté) ; extensions enregistrées par la configuration et par les tags du conteneur |
+| 2026-10-28 | Webhooks (3.1+) : `#[Webhook]` sur une classe listée dans `documents.<nom>.webhooks`, ou sur une action déplacée de `paths` vers `webhooks` ; rejet strict / retrait permissif en 3.0 ([E12](E12-webhooks.md)) |
 | 2026-10-28 | Tests : PHPUnit, Orchestra Testbench, fixtures JSON validées contre le schéma officiel ; couverture ≥ 90 % des lignes, MSI ≥ 80 % |
