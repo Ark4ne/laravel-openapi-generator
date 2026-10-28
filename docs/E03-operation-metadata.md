@@ -27,6 +27,9 @@ attributs et sa PHPDoc, et en tirer résumé, description, tags, `operationId`, 
       natif `#[\Deprecated]` (PHP 8.4+) pris en compte
 - [ ] Type de requête : premier paramètre sous-type de `Illuminate\Http\Request` ; autres paramètres de l'action
       (liaisons de modèles, enums, paramètres scalaires de route)
+- [ ] Exceptions déclarées : `@throws` de l'action seulement (unions comprises) → `OperationContext::$throws`,
+      lecture désactivable (clé globale `exceptions.read_throws`) ; ni analyse du code appelé, ni `@throws` de la
+      `FormRequest`
 - [ ] Types de réponse : type de retour natif, puis PHPDoc, puis `#[Response]` ; une union donne une réponse par
       statut (membres de même statut réunis en `oneOf`, voir [spec-coverage.md](spec-coverage.md))
 
@@ -48,7 +51,9 @@ attributs et sa PHPDoc, et en tirer résumé, description, tags, `operationId`, 
 - [ ] Tests unitaires du `TypeResolver` (un cas par forme de type) et de chaque stratégie
 - [ ] Scénario fonctionnel « métadonnées » avec documents attendus
 
-## Questions à clore pendant E3
+## Décision : `@throws` (2026-10-28)
 
-- Faut-il lire `@throws` pour proposer des réponses d'erreur (`ModelNotFoundException` → 404,
-  `AuthorizationException` → 403), ou laisser ce rôle aux passes de E7 ?
+`@throws` est lu sur l'action seulement. Les rejets d'une `FormRequest` sont déjà couverts sans lui : 403 quand
+`authorize()` est redéfinie et 422 quand des règles existent (E7). Un `@throws` sur `authorize()` ou `rules()` est
+rare ; une exception levée ailleurs se déclare sur l'action, ou par `#[Response]`. La correspondance exception →
+réponse est en E6, la fusion avec les réponses d'erreur en E7.

@@ -12,18 +12,18 @@ de ses livrables ; le tableau ci-dessous en est calculé automatiquement (`compo
 ## Progression
 
 <!-- progress:start -->
-**Avancement global : `██░░░░░░░░` 29 % (71 / 243 livrables)**
+**Avancement global : `██░░░░░░░░` 27 % (71 / 255 livrables)**
 
 | Épique | Statut | Avancement | Livrables |
 | --- | --- | --- | --- |
 | [E0 — Branche, socle et outillage](E00-bootstrap.md) | En cours | `█████████░` 95 % | 22 / 23 |
 | [E1 — Architecture et contrats](E01-contracts.md) | Terminé | `██████████` 100 % | 26 / 26 |
 | [E2 — Découverte des routes](E02-route-discovery.md) | Terminé | `██████████` 100 % | 21 / 21 |
-| [E3 — Métadonnées d'opération et types](E03-operation-metadata.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 19 |
+| [E3 — Métadonnées d'opération et types](E03-operation-metadata.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 20 |
 | [E4 — Requêtes et règles de validation](E04-requests.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 26 |
 | [E5 — Échantillonnage et inférence de schémas](E05-sampling.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 19 |
-| [E6 — Réponses](E06-responses.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 20 |
-| [E7 — Passes du pipeline](E07-pipeline-passes.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 23 |
+| [E6 — Réponses](E06-responses.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 30 |
+| [E7 — Passes du pipeline](E07-pipeline-passes.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 24 |
 | [E8 — Écriture du document](E08-document-writing.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 17 |
 | [E9 — Intégration JSON:API](E09-json-api.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 11 |
 | [E10 — Intégration Laravel et expérience développeur](E10-laravel-dx.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 11 |
@@ -94,4 +94,5 @@ E4 et E5/E6 peuvent avancer en parallèle une fois E3 terminé.
 | 2026-10-28 | Webhooks : `#[Webhook]` reste posé sur des routes réelles ; la documentation explique comment les protéger ou les désactiver |
 | 2026-10-28 | `externalDocsDescription` ajouté à `#[Operation]` et `#[Tag]`, à côté de l'URL `externalDocs` |
 | 2026-10-28 | Licence MIT (le fichier `LICENSE` était en GPL-3.0, `composer.json` en MIT) |
+| 2026-10-28 | Exceptions : `@throws` lu sur l'action seulement ; réponse par chaîne (`#[Response]` sur la classe de l'exception → configuration → table de Laravel → classes HTTP de Symfony → échantillonnage de `HttpException`) ; rien d'inventé sans correspondance |
 | 2026-10-28 | Tests : PHPUnit, Orchestra Testbench, fixtures JSON validées contre le schéma officiel ; couverture ≥ 90 % des lignes, MSI ≥ 80 % |

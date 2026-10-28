@@ -30,6 +30,33 @@ retour, de l'exécution des ressources et des attributs `#[Response]`.
       `paginator`, `summary` (3.2), `example`
 - [ ] Correction du comportement v0.6 : `#[Response(description: 'Created')]` seul ne change plus le statut
 
+### Exceptions déclarées (`src/Extraction/Exceptions/`)
+
+Une exception de `@throws` (E3) devient une réponse par une chaîne de correspondances : la première qui la
+reconnaît l'emporte (registre `ExceptionMappers`, priorité décroissante).
+
+- [ ] Contrat : `ExceptionMapper`, `ExceptionMappers`, nommage `*ExceptionMapper` vérifié par `phpat`, cas
+      `ResponseOrigin::Exception`, clé globale `exceptions` (`read_throws`, `map`) ; `#[Response]` accepté sur une
+      **classe d'exception** (`TARGET_CLASS`), où il décrit la réponse que Laravel en fait
+- [ ] `AttributeExceptionMapper` : `#[Response]` de la classe de l'exception ou d'une classe parente (statut,
+      description, ressource ou schéma)
+- [ ] `ConfiguredExceptionMapper` : clé `exceptions.map` (`Classe::class => 402` ou `[status, description,
+      resource]`), pour les exceptions tierces et celles que `bootstrap/app.php` transforme par des closures
+- [ ] `LaravelExceptionMapper` : table de `prepareException()`, sous-classes comprises — `AuthenticationException`
+      401, `AuthorizationException` 403, `ModelNotFoundException` / `RecordsNotFoundException` /
+      `BackedEnumCaseNotFoundException` 404, `TokenMismatchException` 419, `ValidationException` 422,
+      `ThrottleRequestsException` 429
+- [ ] `SymfonyHttpExceptionMapper` : classes HTTP de Symfony à statut fixe (`NotFoundHttpException` 404,
+      `ConflictHttpException` 409, `TooManyRequestsHttpException` 429…)
+- [ ] `HttpExceptionInstanceMapper` : sous-classe de `HttpException` dont le constructeur n'a aucun argument obligatoire,
+      construite pour lire `getStatusCode()` ; échec → mapper suivant
+- [ ] Exception sans correspondance : diagnostic `Info`, aucune réponse (jamais de 500 inventé)
+- [ ] Corps par défaut : erreur JSON de Laravel `{message}` en composant partagé, remplaçable (schéma d'erreur
+      d'E7) ; `ValidationException` → schéma 422 d'E7
+- [ ] Réponses produites avec l'origine `ResponseOrigin::Exception`, fusionnées en E7
+- [ ] Un test unitaire par mapper ; scénario fonctionnel « exceptions » (exception annotée, configurée, de Laravel,
+      de Symfony, `HttpException` maison, inconnue)
+
 ### Polymorphisme
 
 - [ ] Union de ressources pour un même statut (`CatResource|DogResource`) → `oneOf` ; `discriminator` (et `mapping`)

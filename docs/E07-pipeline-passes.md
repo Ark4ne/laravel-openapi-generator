@@ -30,6 +30,9 @@ sécurité, réponses d'erreur, tags et groupes, identifiants uniques, composant
 - [ ] 422 avec le schéma d'erreur de validation de Laravel (`message`, `errors`) quand des règles existent
 - [ ] 401 sur les routes authentifiées, 403 sur `can:` / `Authorize` ou `authorize()` redéfinie
 - [ ] 404 sur les liaisons de modèles, 429 sur `throttle` (en-têtes `X-RateLimit-*`, `Retry-After`)
+- [ ] `ThrownExceptionResponsePass` (avant les autres passes d'erreur) : réponses issues de `@throws` (E6) ; un
+      statut donné par plusieurs sources (exceptions, middlewares, liaisons) → une réponse dont la description cite
+      les causes, schémas différents réunis en `oneOf` ; `#[Response]` de l'action prioritaire
 - [ ] Réponses partagées dans `components.responses` ; schéma d'erreur remplaçable (JSON:API en E9)
 
 ### Organisation
