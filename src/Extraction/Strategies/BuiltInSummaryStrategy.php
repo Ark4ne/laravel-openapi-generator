@@ -24,7 +24,7 @@ final readonly class BuiltInSummaryStrategy implements SummaryStrategy
         $value = match ($this->by) {
             'doc' => $operation->doc?->summary(),
             'uri' => $operation->path,
-            'controller' => $operation->route->controller === null ? null : RouteValues::controller($operation->route->controller) . "Controller@{$operation->route->action}",
+            'controller' => $operation->route->controller === null ? null : RouteValues::basename($operation->route->controller) . "@{$operation->route->action}",
             default => $operation->route->name,
         };
 

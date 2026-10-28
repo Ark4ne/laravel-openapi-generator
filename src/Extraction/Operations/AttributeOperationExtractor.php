@@ -41,15 +41,15 @@ final readonly class AttributeOperationExtractor implements OperationExtractor
 
     public function extract(OperationContext $operation, OperationDescription $description, GenerationContext $context): OperationDescription
     {
-        foreach ($operation->classAttributes(Operation::class) as $attribute) {
+        foreach ($operation->classAttributes(Operation::class, $context) as $attribute) {
             $description = self::defaults($attribute, $description);
         }
 
-        foreach ($operation->actionAttributes(Operation::class) as $attribute) {
+        foreach ($operation->actionAttributes(Operation::class, $context) as $attribute) {
             $description = self::operation($attribute, $description);
         }
 
-        foreach ($operation->attributes(Tag::class) as $tag) {
+        foreach ($operation->attributes(Tag::class, $context) as $tag) {
             $description = $description->addDeclaredTags(self::tag($tag));
 
             if (! in_array($tag->name, $description->tags, true)) {

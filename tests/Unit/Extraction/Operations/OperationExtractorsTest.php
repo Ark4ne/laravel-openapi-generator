@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ark4ne\OpenApi\Tests\Unit\Extraction\Operations;
 
+use Ark4ne\OpenApi\Attributes\Operation;
 use Ark4ne\OpenApi\Description\OperationDescription;
 use Ark4ne\OpenApi\Description\TagDescription;
 use Ark4ne\OpenApi\Extraction\Operations\AttributeOperationExtractor;
@@ -15,6 +16,7 @@ use Ark4ne\OpenApi\Extraction\Strategies\BuiltInOperationIdStrategy;
 use Ark4ne\OpenApi\Extraction\Strategies\BuiltInSummaryStrategy;
 use Ark4ne\OpenApi\Extraction\Strategies\BuiltInTagStrategy;
 use Ark4ne\OpenApi\Tests\Fixtures\Metadata\Controllers\UserController;
+use Ark4ne\OpenApi\Tests\Fixtures\Types\BrokenAttributes;
 use Ark4ne\OpenApi\Tests\TestCase;
 use Illuminate\Contracts\Translation\Translator;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -95,6 +97,20 @@ final class OperationExtractorsTest extends TestCase
             TagDescription::create('admin')->parent('accounts')->summary('Administration')->kind('nav')->externalDocs(['url' => 'https://example.com/admin']),
             $description->declaredTags[1],
         );
+    }
+
+    public function test_an_attribute_that_cannot_be_built_is_ignored_with_a_warning(): void
+    {
+        $this->router()->get('api/broken', [BrokenAttributes::class, 'index']);
+        $context = $this->context();
+        $operation = $this->operation($context);
+
+        $description = (new AttributeOperationExtractor())->extract($operation, $operation->describe(), $context);
+
+        self::assertSame('kept', $description->operationId);
+        self::assertSame(['valid'], $description->tags);
+        self::assertCount(1, $context->diagnostics);
+        self::assertStringStartsWith('[warning] operation GET /api/broken: invalid #[' . Operation::class . '] on ' . BrokenAttributes::class . '::index, attribute ignored: ', (string) $context->diagnostics->all()[0]);
     }
 
     public function test_the_native_deprecated_attribute_deprecates_the_operation(): void

@@ -18,6 +18,7 @@ use Ark4ne\OpenApi\Extraction\Strategies\TagStrategy;
 use Ark4ne\OpenApi\Tests\Fixtures\Metadata\Controllers\Admin\UserController as AdminUserController;
 use Ark4ne\OpenApi\Tests\Fixtures\Metadata\Controllers\UserController;
 use Ark4ne\OpenApi\Tests\Fixtures\Metadata\FixedSummaryStrategy;
+use Ark4ne\OpenApi\Tests\Fixtures\Types\Sibling;
 use Ark4ne\OpenApi\Types\TypeResolver;
 use Ark4ne\OpenApiWriter\Enums\HttpMethod;
 use Illuminate\Routing\Route;
@@ -53,6 +54,15 @@ final class BuiltInStrategiesTest extends TestCase
     public function test_the_summary_strategy_reads_its_source(string $by, ?string $pattern, ?string $expected): void
     {
         self::assertSame($expected, (new BuiltInSummaryStrategy($by, $pattern))->summary(self::operation()));
+    }
+
+    public function test_a_controller_without_the_controller_suffix_keeps_its_name(): void
+    {
+        $operation = self::operation(controller: Sibling::class);
+
+        self::assertSame('Sibling@index', (new BuiltInSummaryStrategy('controller'))->summary($operation));
+        self::assertSame('Sibling.index', (new BuiltInOperationIdStrategy('action'))->operationId($operation));
+        self::assertSame(['Sibling'], (new BuiltInTagStrategy('controller'))->tags($operation));
     }
 
     public function test_a_summary_source_the_route_lacks_gives_none(): void

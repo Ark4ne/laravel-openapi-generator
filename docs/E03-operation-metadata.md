@@ -78,6 +78,15 @@ attributs et sa PHPDoc, et en tirer résumé, description, tags, `operationId`, 
   cas d'enum adossée (`Status::Draft`, `self::KIND_*`) donne ses valeurs ; un template non lié, un type
   conditionnel non tranché ou une signature de callable deviennent `MixedType`, `callable` ou l'union des branches.
   Les ordres d'union natifs suivent PHP (`int|string` est relu `string|int`).
+- **Portées de noms** : la PHPDoc d'une méthode de trait se résout avec les imports du trait (`self` reste la
+  classe) ; une closure prend l'espace de noms de son fichier (PHP 8.4 ne lui en donne plus) ; les imports d'un bloc
+  `namespace A { … }` sont lus ; `@template-covariant`, `@template-contravariant` et les formes `@phpstan-` /
+  `@psalm-` comptent dans l'ordre des templates (paginateurs de Laravel).
+- **Attribut invalide** (argument inconnu ou mal typé) : ignoré avec un avertissement, la génération continue.
+- **Noms de contrôleur** : `controller` (résumé) et `action` (`operationId`) gardent le vrai nom de la classe
+  (`ShowUser@__invoke`) ; seul le tag retire le suffixe `Controller`.
+- **Configuration** : `documents.<v>.routes`, `documents.<v>.strategies` et `exceptions` sont lus par
+  `Configuration::fromArray()` ; le reste du chargement est un livrable d'E10.
 - Les fixtures `tests/Fixtures/Types/` portent volontairement des PHPDoc que PHPStan refuse : elles sont exclues de
   PHPStan et de PHP-CS-Fixer.
 

@@ -57,8 +57,16 @@ final class RouteValues
      */
     public static function controller(string $class): string
     {
-        $basename = substr($class, (int) strrpos('\\' . $class, '\\'));
+        $basename = self::basename($class);
 
         return str_ends_with($basename, 'Controller') && $basename !== 'Controller' ? substr($basename, 0, -10) : $basename;
+    }
+
+    /**
+     * `App\Http\Controllers\UserController` → `UserController`.
+     */
+    public static function basename(string $class): string
+    {
+        return substr($class, (int) strrpos('\\' . $class, '\\'));
     }
 }

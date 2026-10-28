@@ -7,7 +7,8 @@ namespace Ark4ne\OpenApi\Types;
 use PhpToken;
 
 /**
- * Reads the `use` imports of a PHP file, per namespace block. One instance caches the files it read.
+ * Reads the namespaces and the `use` imports of a PHP file, per namespace block (`namespace A;` or
+ * `namespace A { … }`). One instance caches the files it read.
  */
 final class UseStatements
 {
@@ -21,15 +22,31 @@ final class UseStatements
      */
     public function at(string $file, int $line): array
     {
-        $uses = [];
+        return $this->block($file, $line)['uses'];
+    }
+
+    /**
+     * Namespace of the block that contains the given line.
+     */
+    public function namespaceAt(string $file, int $line): string
+    {
+        return $this->block($file, $line)['namespace'];
+    }
+
+    /**
+     * @return array{line: int, namespace: string, uses: array<string, string>}
+     */
+    private function block(string $file, int $line): array
+    {
+        $found = ['line' => 0, 'namespace' => '', 'uses' => []];
 
         foreach ($this->blocks($file) as $block) {
             if ($block['line'] <= $line) {
-                $uses = $block['uses'];
+                $found = $block;
             }
         }
 
-        return $uses;
+        return $found;
     }
 
     /**
@@ -48,6 +65,8 @@ final class UseStatements
         $namespace = '';
         $uses = [];
         $depth = 0;
+        // Depth of the imports: 1 inside `namespace A { … }`.
+        $level = 0;
         $count = count($tokens);
 
         for ($i = 0; $i < $count; $i++) {
@@ -60,10 +79,13 @@ final class UseStatements
             } elseif ($token->is(T_NAMESPACE) && $depth === 0) {
                 $blocks[] = ['line' => $line, 'namespace' => $namespace, 'uses' => $uses];
                 $name = $tokens[$i + 1] ?? null;
+                $named = $name !== null && $name->is([T_NAME_QUALIFIED, T_STRING]);
                 $line = $token->line;
-                $namespace = $name !== null && $name->is([T_NAME_QUALIFIED, T_STRING]) ? $name->text : '';
+                $namespace = $named ? $name->text : '';
                 $uses = [];
-            } elseif ($token->is(T_USE) && $depth === 0) {
+                $next = $tokens[$i + ($named ? 2 : 1)] ?? null;
+                $level = $next !== null && $next->text === '{' ? 1 : 0;
+            } elseif ($token->is(T_USE) && $depth === $level) {
                 $i = self::use($tokens, $i + 1, $uses);
             }
         }

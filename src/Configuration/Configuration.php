@@ -9,6 +9,9 @@ use Ark4ne\OpenApi\Exceptions\InvalidConfigurationException;
 /**
  * The whole `config/openapi.php`, typed and validated once when it is loaded.
  *
+ * Read so far: the documents (see DocumentConfiguration) and `exceptions`; the other keys keep their defaults until
+ * the loading of the configuration is completed (E10).
+ *
  * Nothing outside the Laravel layer reads `config()`: every component receives this object, or the
  * DocumentConfiguration of the document being generated.
  */
@@ -37,7 +40,29 @@ final readonly class Configuration
      */
     public static function fromArray(array $config): self
     {
-        return new self([]);
+        $entries = $config['documents'] ?? [];
+
+        if (! is_array($entries)) {
+            throw InvalidConfigurationException::forKey('documents', 'a map of documents', $entries);
+        }
+
+        $documents = [];
+
+        foreach ($entries as $name => $entry) {
+            if (! is_array($entry)) {
+                throw InvalidConfigurationException::forKey("documents.{$name}", 'an array', $entry);
+            }
+
+            $documents[(string) $name] = DocumentConfiguration::fromArray((string) $name, $entry);
+        }
+
+        $exceptions = $config['exceptions'] ?? [];
+
+        if (! is_array($exceptions)) {
+            throw InvalidConfigurationException::forKey('exceptions', 'an array', $exceptions);
+        }
+
+        return new self($documents, exceptions: ExceptionsConfiguration::fromArray('exceptions', $exceptions));
     }
 
     /**
@@ -45,6 +70,6 @@ final readonly class Configuration
      */
     public function document(string $name): DocumentConfiguration
     {
-        return new DocumentConfiguration($name, new InfoConfiguration('', ''));
+        return $this->documents[$name] ?? throw InvalidConfigurationException::forKey('documents', 'one of ' . implode(', ', array_keys($this->documents)), $name);
     }
 }

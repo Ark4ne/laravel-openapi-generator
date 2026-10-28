@@ -28,7 +28,7 @@ final readonly class BuiltInOperationIdStrategy implements OperationIdStrategy
 
         return match (true) {
             $this->by === 'name' && $route->name !== null => $route->name,
-            $this->by === 'action' && $route->controller !== null => RouteValues::controller($route->controller) . "Controller.{$route->action}",
+            $this->by === 'action' && $route->controller !== null => RouteValues::basename($route->controller) . ".{$route->action}",
             default => self::methodPath($operation),
         };
     }

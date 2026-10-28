@@ -7,6 +7,7 @@ namespace Ark4ne\OpenApi\Tests\Unit\Types;
 use Ark4ne\OpenApi\Tests\Fixtures\Routing\Models\Post;
 use Ark4ne\OpenApi\Tests\Fixtures\Routing\Models\User;
 use Ark4ne\OpenApi\Tests\Fixtures\Types\BaseResource;
+use Ark4ne\OpenApi\Tests\Fixtures\Types\ConcreteCovariantResource;
 use Ark4ne\OpenApi\Tests\Fixtures\Types\Documented;
 use Ark4ne\OpenApi\Tests\Fixtures\Types\Employee;
 use Ark4ne\OpenApi\Tests\Fixtures\Types\InheritedResource;
@@ -14,6 +15,7 @@ use Ark4ne\OpenApi\Tests\Fixtures\Types\PlainResource;
 use Ark4ne\OpenApi\Tests\Fixtures\Types\PostResource;
 use Ark4ne\OpenApi\Tests\Fixtures\Types\Signatures;
 use Ark4ne\OpenApi\Tests\Fixtures\Types\UserResource;
+use Ark4ne\OpenApi\Tests\Fixtures\Types\UsesTrait;
 use Ark4ne\OpenApi\Types\ArrayShapeItem;
 use Ark4ne\OpenApi\Types\ArrayShapeType;
 use Ark4ne\OpenApi\Types\DocBlock;
@@ -29,6 +31,7 @@ use Ark4ne\OpenApi\Types\TypeResolver;
 use Ark4ne\OpenApi\Types\TypeScope;
 use Ark4ne\OpenApi\Types\UnionType;
 use Ark4ne\OpenApi\Types\UseStatements;
+use Closure;
 use Illuminate\Http\Resources\Json\JsonResource;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -189,6 +192,37 @@ final class TypeResolverTest extends TestCase
         $closure = /** @return list<Post> */ static fn(): array => [];
 
         self::assertSame('list<' . self::MODELS . 'Post>', (new TypeResolver())->returnType(new ReflectionFunction($closure))?->toString());
+    }
+
+    public function test_a_method_of_a_trait_resolves_the_imports_of_the_trait(): void
+    {
+        $type = (new TypeResolver())->returnType(new ReflectionMethod(UsesTrait::class, 'posts'));
+
+        self::assertSame('list<' . self::MODELS . 'Post>', $type?->toString());
+    }
+
+    public function test_a_closure_resolves_the_namespace_of_its_file(): void
+    {
+        $closure = require dirname(__DIR__, 2) . '/Fixtures/Types/closures.php';
+        self::assertInstanceOf(Closure::class, $closure);
+
+        self::assertSame(self::TYPES . 'Sibling', (new TypeResolver())->returnType(new ReflectionFunction($closure))?->toString());
+    }
+
+    public function test_the_imports_of_a_braced_namespace_are_read(): void
+    {
+        require_once dirname(__DIR__, 2) . '/Fixtures/Types/braced.php';
+
+        $type = (new TypeResolver())->returnType(new ReflectionMethod('Ark4ne\OpenApi\Tests\Fixtures\Types\Braced\BracedSignatures', 'user'));
+
+        self::assertSame(self::MODELS . 'User', $type?->toString());
+    }
+
+    public function test_the_covariant_templates_keep_their_position(): void
+    {
+        $arguments = (new TypeResolver())->genericArguments(new ReflectionClass(ConcreteCovariantResource::class), JsonResource::class);
+
+        self::assertSame([self::MODELS . 'Post'], array_map(static fn(Type $type): string => $type->toString(), $arguments));
     }
 
     public function test_a_type_can_be_parsed_in_the_scope_of_a_class(): void

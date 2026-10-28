@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Ark4ne\OpenApi\Extraction;
 
+use Ark4ne\OpenApi\Context\GenerationContext;
+use Ark4ne\OpenApi\Context\Stage;
 use Ark4ne\OpenApi\Description\OperationDescription;
 use Ark4ne\OpenApi\Discovery\RouteDefinition;
 use Ark4ne\OpenApi\Types\DocBlock;
@@ -11,9 +13,11 @@ use Ark4ne\OpenApi\Types\NullableType;
 use Ark4ne\OpenApi\Types\Type;
 use Ark4ne\OpenApi\Types\UnionType;
 use Ark4ne\OpenApiWriter\Enums\HttpMethod;
+use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionFunctionAbstract;
 use ReflectionMethod;
+use Throwable;
 
 /**
  * What the extractors know about the operation they describe: its route, its method and its resolved action.
@@ -79,15 +83,17 @@ final readonly class OperationContext
     /**
      * Instances of an attribute: those of the controller class first, then those of the action.
      *
+     * An attribute that cannot be built (unknown or wrong argument) is left out with a warning.
+     *
      * @template T of object
      *
      * @param class-string<T> $attribute
      *
      * @return list<T>
      */
-    public function attributes(string $attribute): array
+    public function attributes(string $attribute, GenerationContext $context): array
     {
-        return [...$this->classAttributes($attribute), ...$this->actionAttributes($attribute)];
+        return [...$this->classAttributes($attribute, $context), ...$this->actionAttributes($attribute, $context)];
     }
 
     /**
@@ -97,9 +103,11 @@ final readonly class OperationContext
      *
      * @return list<T>
      */
-    public function classAttributes(string $attribute): array
+    public function classAttributes(string $attribute, GenerationContext $context): array
     {
-        return array_map(static fn($instance): object => $instance->newInstance(), $this->controller()?->getAttributes($attribute) ?? []);
+        $controller = $this->controller();
+
+        return $controller === null ? [] : $this->instances($controller->getAttributes($attribute), $controller->getName(), $context);
     }
 
     /**
@@ -109,8 +117,40 @@ final readonly class OperationContext
      *
      * @return list<T>
      */
-    public function actionAttributes(string $attribute): array
+    public function actionAttributes(string $attribute, GenerationContext $context): array
     {
-        return array_map(static fn($instance): object => $instance->newInstance(), $this->action?->getAttributes($attribute) ?? []);
+        if ($this->action === null) {
+            return [];
+        }
+
+        $target = $this->action instanceof ReflectionMethod ? "{$this->action->getDeclaringClass()->getName()}::{$this->action->getName()}" : $this->route->label();
+
+        return $this->instances($this->action->getAttributes($attribute), $target, $context);
+    }
+
+    /**
+     * @template T of object
+     *
+     * @param list<ReflectionAttribute<T>> $attributes
+     *
+     * @return list<T>
+     */
+    private function instances(array $attributes, string $target, GenerationContext $context): array
+    {
+        $instances = [];
+
+        foreach ($attributes as $attribute) {
+            try {
+                $instances[] = $attribute->newInstance();
+            } catch (Throwable $error) {
+                $context->diagnostics->warning(
+                    Stage::Operation,
+                    "invalid #[{$attribute->getName()}] on {$target}, attribute ignored: {$error->getMessage()}",
+                    $this->route->label(),
+                );
+            }
+        }
+
+        return $instances;
     }
 }

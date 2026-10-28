@@ -11,6 +11,9 @@ use Ark4ne\OpenApiWriter\Enums\Version;
 
 /**
  * One document to generate (`documents.<name>` of the configuration).
+ *
+ * Read so far: `routes` and `strategies`; the other keys keep their defaults until the loading of the configuration
+ * is completed (E10).
  */
 final readonly class DocumentConfiguration
 {
@@ -54,6 +57,41 @@ final readonly class DocumentConfiguration
      */
     public static function fromArray(string $name, array $config, array $output = [], array $servers = []): self
     {
-        return new self($name, new InfoConfiguration('', ''));
+        $key = "documents.{$name}";
+        $routes = $config['routes'] ?? [];
+        $strategies = $config['strategies'] ?? [];
+
+        if (! is_array($routes)) {
+            throw InvalidConfigurationException::forKey("{$key}.routes", 'an array', $routes);
+        }
+
+        if (! is_array($strategies)) {
+            throw InvalidConfigurationException::forKey("{$key}.strategies", 'an array', $strategies);
+        }
+
+        $groups = $strategies['groups'] ?? null;
+
+        return new self(
+            $name,
+            new InfoConfiguration('', ''),
+            routes: RouteFilterConfiguration::fromArray("{$key}.routes", $routes),
+            summary: self::strategy("{$key}.strategies.summary", $strategies['summary'] ?? [], 'doc'),
+            tags: self::strategy("{$key}.strategies.tags", $strategies['tags'] ?? [], 'controller'),
+            groups: $groups === null ? null : self::strategy("{$key}.strategies.groups", $groups, 'controller'),
+            operationId: self::strategy("{$key}.strategies.operation_id", $strategies['operation_id'] ?? [], 'name'),
+            query: self::strategy("{$key}.strategies.query", $strategies['query'] ?? [], 'all'),
+        );
+    }
+
+    /**
+     * @throws InvalidConfigurationException
+     */
+    private static function strategy(string $key, mixed $config, string $default): StrategyConfiguration
+    {
+        if (! is_array($config)) {
+            throw InvalidConfigurationException::forKey($key, 'an array with a `by` key', $config);
+        }
+
+        return StrategyConfiguration::fromArray($key, $config, $default);
     }
 }

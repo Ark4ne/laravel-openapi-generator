@@ -19,7 +19,9 @@ final class OperationExtractors
 
     public function __construct(OperationExtractor ...$extractors)
     {
-        $this->extractors = array_values($extractors);
+        $extractors = array_values($extractors);
+        usort($extractors, static fn(OperationExtractor $a, OperationExtractor $b): int => $a->priority() <=> $b->priority());
+        $this->extractors = $extractors;
     }
 
     /**
@@ -27,10 +29,7 @@ final class OperationExtractors
      */
     public function all(): array
     {
-        $extractors = $this->extractors;
-        usort($extractors, static fn(OperationExtractor $a, OperationExtractor $b): int => $a->priority() <=> $b->priority());
-
-        return $extractors;
+        return $this->extractors;
     }
 
     /**
@@ -38,7 +37,7 @@ final class OperationExtractors
      */
     public function extract(OperationContext $operation, OperationDescription $description, GenerationContext $context): OperationDescription
     {
-        foreach ($this->all() as $extractor) {
+        foreach ($this->extractors as $extractor) {
             if ($extractor->supports($operation)) {
                 $description = $extractor->extract($operation, $description, $context);
             }

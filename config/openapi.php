@@ -229,15 +229,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Languages
-    |--------------------------------------------------------------------------
-    |
-    | One document per locale; summaries, descriptions and tags may be
-    | translation keys. Empty: one document in the application locale.
-    |
-    */
-    /*
-    |--------------------------------------------------------------------------
     | Exceptions
     |--------------------------------------------------------------------------
     |
@@ -248,11 +239,21 @@ return [
     |
     | PaymentRequiredException::class => 402,
     | SeatTakenException::class => ['status' => 409, 'description' => 'Seat taken'],
+    |
     */
     'exceptions' => [
         'read_throws' => true,
         'map' => [],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Languages
+    |--------------------------------------------------------------------------
+    |
+    | One document per locale; summaries, descriptions and tags may be
+    | translation keys. Empty: one document in the application locale.
+    |
+    */
     'languages' => [],
 ];

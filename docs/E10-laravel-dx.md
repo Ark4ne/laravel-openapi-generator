@@ -26,6 +26,9 @@ de services, configuration publiable, commandes claires, extensions faciles à b
 
 ### Configuration
 
+- [ ] Chargement complet de `config/openapi.php` : `Configuration::fromArray()` et `DocumentConfiguration::fromArray()`
+      lisent toutes les clés (info, serveurs, version, mode strict, sortie, échantillonnage, middlewares, extensions,
+      langues…) ; aujourd'hui seuls `documents.<v>.routes`, `documents.<v>.strategies` et `exceptions` sont lus
 - [ ] Erreurs de configuration explicites au chargement (clé, valeur attendue, valeur reçue)
 - [ ] Chaque clé documentée dans `config/openapi.php` et dans le README
 

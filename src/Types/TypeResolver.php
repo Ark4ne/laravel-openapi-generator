@@ -13,6 +13,7 @@ use PHPStan\PhpDocParser\Ast\ConstExpr\ConstExprStringNode;
 use PHPStan\PhpDocParser\Ast\ConstExpr\ConstExprTrueNode;
 use PHPStan\PhpDocParser\Ast\ConstExpr\ConstFetchNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocNode;
+use PHPStan\PhpDocParser\Ast\PhpDoc\TemplateTagValueNode;
 use PHPStan\PhpDocParser\Ast\Type\ArrayShapeItemNode;
 use PHPStan\PhpDocParser\Ast\Type\ArrayShapeNode;
 use PHPStan\PhpDocParser\Ast\Type\ArrayTypeNode;
@@ -59,6 +60,8 @@ use UnitEnum;
  */
 final class TypeResolver
 {
+    private const TEMPLATE_TAG = '/^@(?:phpstan-|psalm-)?template(?:-covariant|-contravariant)?$/';
+
     private readonly Lexer $lexer;
 
     private readonly TypeParser $types;
@@ -404,7 +407,7 @@ final class TypeResolver
     {
         $templates = [];
 
-        foreach ($this->docBlock($class)->node->getTemplateTagValues() as $position => $template) {
+        foreach (self::templates($this->docBlock($class)->node) as $position => $template) {
             $templates[$template->name] = $arguments[$position] ?? ($template->bound === null ? new MixedType() : $this->fromNode($template->bound, $this->classScope($class)));
         }
 
@@ -431,20 +434,52 @@ final class TypeResolver
     private function functionScope(ReflectionFunctionAbstract $function): TypeScope
     {
         if ($function instanceof ReflectionMethod) {
-            $scope = $this->classScope($function->getDeclaringClass());
+            $class = $function->getDeclaringClass();
+            $trait = self::declaringTrait($class, $function);
+            $scope = $this->classScope($class);
+
+            if ($trait !== null) {
+                // The PHPDoc of a trait method is written with the imports of the trait; `self` is the class.
+                $traitScope = $this->classScope($trait);
+                $scope = new TypeScope($traitScope->namespace, $traitScope->uses, $scope->self, $scope->parent, $scope->templates);
+            }
         } else {
             $file = $function->getFileName();
+            $line = (int) $function->getStartLine();
             $class = $function instanceof ReflectionFunction ? $function->getClosureScopeClass() : null;
             $parent = $class?->getParentClass();
             $scope = new TypeScope(
-                $function->getNamespaceName(),
-                $file === false ? [] : $this->uses->at($file, (int) $function->getStartLine()),
+                // A closure has no namespace of its own from PHP 8.4 (`{closure:file:line}`): read its file's.
+                $file === false ? $function->getNamespaceName() : $this->uses->namespaceAt($file, $line),
+                $file === false ? [] : $this->uses->at($file, $line),
                 $class?->getName(),
                 $parent instanceof ReflectionClass ? $parent->getName() : null,
             );
         }
 
         return $scope->withTemplates($this->unbound($function, $scope));
+    }
+
+    /**
+     * The trait, used by the class or by one of its traits, that declares the method.
+     *
+     * @param ReflectionClass<covariant object> $class
+     *
+     * @return ReflectionClass<covariant object>|null
+     */
+    private static function declaringTrait(ReflectionClass $class, ReflectionMethod $method): ?ReflectionClass
+    {
+        if ($method->getFileName() === $class->getFileName()) {
+            return null;
+        }
+
+        foreach ($class->getTraits() as $trait) {
+            if ($trait->hasMethod($method->getName()) && $trait->getMethod($method->getName())->getFileName() === $method->getFileName()) {
+                return self::declaringTrait($trait, $method) ?? $trait;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -462,8 +497,27 @@ final class TypeResolver
 
         $templates = [];
 
-        foreach ($this->docBlock($reflector)->node->getTemplateTagValues() as $template) {
+        foreach (self::templates($this->docBlock($reflector)->node) as $template) {
             $templates[$template->name] = $template->bound === null ? new MixedType() : $this->fromNode($template->bound, $scope);
+        }
+
+        return $templates;
+    }
+
+    /**
+     * `@template`, `@template-covariant`, `@template-contravariant` and their `@phpstan-` / `@psalm-` forms, in
+     * declaration order: their position is the position of the type argument they receive.
+     *
+     * @return list<TemplateTagValueNode>
+     */
+    private static function templates(PhpDocNode $node): array
+    {
+        $templates = [];
+
+        foreach ($node->getTags() as $tag) {
+            if ($tag->value instanceof TemplateTagValueNode && preg_match(self::TEMPLATE_TAG, $tag->name) === 1) {
+                $templates[] = $tag->value;
+            }
         }
 
         return $templates;

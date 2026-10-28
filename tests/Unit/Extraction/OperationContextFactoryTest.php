@@ -67,7 +67,7 @@ final class OperationContextFactoryTest extends TestCase
         self::assertNull($operation->controller());
         self::assertSame('Ping the API.', $operation->doc?->summary());
         self::assertSame('string', $operation->returnType?->toString());
-        self::assertSame([], $operation->attributes(Operation::class));
+        self::assertSame([], $operation->attributes(Operation::class, $this->context()));
     }
 
     public function test_a_missing_action_gives_an_empty_context_and_a_warning(): void
@@ -87,7 +87,7 @@ final class OperationContextFactoryTest extends TestCase
     {
         $this->router()->post('api/users', [UserController::class, 'store']);
 
-        $tags = array_map(static fn(Tag $tag): string => $tag->name, $this->operation()->attributes(Tag::class));
+        $tags = array_map(static fn(Tag $tag): string => $tag->name, $this->operation()->attributes(Tag::class, $this->context()));
 
         self::assertSame(['users', 'admin'], $tags);
     }
