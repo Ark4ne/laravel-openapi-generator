@@ -40,8 +40,8 @@ attributs et sa PHPDoc, et en tirer résumé, description, tags, `operationId`, 
 
 ### Documentation externe et tags
 
-- [ ] `#[Operation(externalDocs:)]` → `Operation.externalDocs`
-- [ ] `#[Tag]` : `description`, `parent`, `summary` et `kind` (3.2), `externalDocs`
+- [ ] `#[Operation(externalDocs:, externalDocsDescription:)]` → `Operation.externalDocs` (`url`, `description`)
+- [ ] `#[Tag]` : `description`, `parent`, `summary` et `kind` (3.2), `externalDocs` et `externalDocsDescription`
 
 ## Critères de sortie
 

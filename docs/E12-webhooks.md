@@ -84,11 +84,14 @@ avertissement. Écrire l'extension `x-webhooks` (Redoc) à la place est validé 
 - [ ] `DocumentBuilder` : `OpenApi::webhooks()`, `Operation::callbacks()` ; document sans `paths` accepté en 3.1+
 - [ ] 3.0 : `x-webhooks` avec `vendor_extensions: redoc`, sinon rejet strict / retrait permissif
 
-## Question ouverte
+## Décision : un webhook reste une route
 
-- Un webhook est une route réelle, donc appelable, et soumise aux filtres `routes.include` / `exclude`. Garder ce
-  modèle et documenter qu'il faut protéger ou désactiver ces routes (recommandé), ou lire `#[Webhook]` sur des
-  méthodes de contrôleurs connus sans route ?
+Un webhook est une route réelle, donc appelable, et soumise aux filtres `routes.include` / `exclude`. Ce modèle est
+gardé (validé le 2026-10-28) : pas de lecture de `#[Webhook]` sur des contrôleurs sans route. La documentation
+explique comment protéger ou désactiver ces routes (middleware qui refuse les appels, route enregistrée seulement
+pendant la génération ou en local).
+
+- [ ] Documentation : protéger ou désactiver les routes de webhooks (README et guide, E11)
 
 ## Critères de sortie
 

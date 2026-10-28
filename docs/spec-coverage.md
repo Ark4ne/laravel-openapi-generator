@@ -31,7 +31,7 @@ périmètre** (rien dans une application Laravel ne le décrit, ou sans intérê
 | `query` (méthode QUERY) | 3.2 | Prévu (E2, E8) | Route déclarant la méthode `QUERY` ; rejet strict / retrait avant 3.2 |
 | `additionalOperations` | 3.2 | Prévu (E2, E8) | Méthodes non standard (`Route::match(['PURGE'], …)`) ; ignorées avec diagnostic avant 3.2 |
 | `Operation.summary`, `description`, `tags`, `operationId`, `deprecated` | 3.0+ | Prévu (E3) | PHPDoc, `#[Operation]`, stratégies |
-| `Operation.externalDocs` | 3.0+ | Prévu (E3, E8) | Argument `externalDocs` de `#[Operation]` (celui de `#[Tag]` va sur le tag) |
+| `Operation.externalDocs` | 3.0+ | Prévu (E3, E8) | Arguments `externalDocs` et `externalDocsDescription` de `#[Operation]` (ceux de `#[Tag]` vont sur le tag) |
 | `Operation.callbacks` | 3.0+ | Prévu (E12) | `#[Callback]` |
 | `Operation.security` | 3.0+ | Prévu (E7) | Middlewares, `#[Security]` |
 | `Operation.servers` | 3.0+ | Prévu (E2, E7) | Routes à domaine |
@@ -94,7 +94,7 @@ périmètre** (rien dans une application Laravel ne le décrit, ou sans intérê
 | `name`, `description` | 3.0+ | Prévu (E3, E7) | Stratégies, `#[Tag]` |
 | `parent` | 3.2 | Prévu (E7) | Stratégie de groupe, `#[Tag(parent:)]` ; `x-tagGroups` avant 3.2 |
 | `summary`, `kind` | 3.2 | Prévu (E3, E8) | Arguments de `#[Tag]` |
-| `externalDocs` | 3.0+ | Prévu (E3, E8) | Argument de `#[Tag]` |
+| `externalDocs` | 3.0+ | Prévu (E3, E8) | Arguments `externalDocs` et `externalDocsDescription` de `#[Tag]` |
 
 ## Extensions de fournisseurs en 3.0
 

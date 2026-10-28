@@ -18,6 +18,7 @@ final readonly class Operation
     /**
      * @param list<string> $tags replace the tags given by the tag strategy
      * @param string|null $externalDocs URL of the external documentation
+     * @param string|null $externalDocsDescription its description (CommonMark); ignored without `externalDocs`
      */
     public function __construct(
         public ?string $summary = null,
@@ -26,5 +27,6 @@ final readonly class Operation
         public array $tags = [],
         public ?bool $deprecated = null,
         public ?string $externalDocs = null,
+        public ?string $externalDocsDescription = null,
     ) {}
 }

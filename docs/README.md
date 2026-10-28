@@ -12,7 +12,7 @@ de ses livrables ; le tableau ci-dessous en est calculé automatiquement (`compo
 ## Progression
 
 <!-- progress:start -->
-**Avancement global : `██░░░░░░░░` 29 % (71 / 242 livrables)**
+**Avancement global : `██░░░░░░░░` 29 % (71 / 243 livrables)**
 
 | Épique | Statut | Avancement | Livrables |
 | --- | --- | --- | --- |
@@ -28,7 +28,7 @@ de ses livrables ; le tableau ci-dessous en est calculé automatiquement (`compo
 | [E9 — Intégration JSON:API](E09-json-api.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 11 |
 | [E10 — Intégration Laravel et expérience développeur](E10-laravel-dx.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 11 |
 | [E11 — Migration, documentation et version 1.0.0](E11-release.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 12 |
-| [E12 — Webhooks et callbacks](E12-webhooks.md) | En cours | `█░░░░░░░░░` 14 % | 2 / 14 |
+| [E12 — Webhooks et callbacks](E12-webhooks.md) | En cours | `█░░░░░░░░░` 13 % | 2 / 15 |
 <!-- progress:end -->
 
 ## Mettre à jour la progression
@@ -91,4 +91,6 @@ E4 et E5/E6 peuvent avancer en parallèle une fois E3 terminé.
 | 2026-10-28 | `x-webhooks` (avant 3.1) et `x-tagGroups` (avant 3.2) portés par `openapi-writer`, en option désactivée par défaut : livré par le writer (`VendorExtensions`, `09ec7af`), activé par la clé `vendor_extensions` du document |
 | 2026-10-28 | Éléments de la spec ajoutés aux épiques ([spec-coverage.md](spec-coverage.md)), sauf priorité basse (`#[Link]`, exemples nommés, base64) |
 | 2026-10-28 | Découverte (E2) : une `RouteDefinition` par méthode et par chemin ; masques `include` / `exclude` par URI, nom, domaine ou middleware ; `QUERY` et méthodes non standard retirées avant 3.2 en permissif, laissées au writer en strict |
+| 2026-10-28 | Webhooks : `#[Webhook]` reste posé sur des routes réelles ; la documentation explique comment les protéger ou les désactiver |
+| 2026-10-28 | `externalDocsDescription` ajouté à `#[Operation]` et `#[Tag]`, à côté de l'URL `externalDocs` |
 | 2026-10-28 | Tests : PHPUnit, Orchestra Testbench, fixtures JSON validées contre le schéma officiel ; couverture ≥ 90 % des lignes, MSI ≥ 80 % |

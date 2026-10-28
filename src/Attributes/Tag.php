@@ -17,6 +17,7 @@ final readonly class Tag
 {
     /**
      * @param string|null $externalDocs URL of the external documentation
+     * @param string|null $externalDocsDescription its description (CommonMark); ignored without `externalDocs`
      */
     public function __construct(
         public string $name,
@@ -25,5 +26,6 @@ final readonly class Tag
         public ?string $summary = null,
         public ?string $kind = null,
         public ?string $externalDocs = null,
+        public ?string $externalDocsDescription = null,
     ) {}
 }
