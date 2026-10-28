@@ -96,4 +96,5 @@ E4 et E5/E6 peuvent avancer en parallèle une fois E3 terminé.
 | 2026-10-28 | Licence MIT (le fichier `LICENSE` était en GPL-3.0, `composer.json` en MIT) |
 | 2026-10-28 | Exceptions : `@throws` lu sur l'action seulement ; réponse par chaîne (`#[Response]` sur la classe de l'exception → configuration → table de Laravel → classes HTTP de Symfony → échantillonnage de `HttpException`) ; rien d'inventé sans correspondance |
 | 2026-10-28 | Métadonnées (E3) : `#[Operation]` sur un contrôleur donne des valeurs par défaut (sauf `tags` et `deprecated: true`) ; la PHPDoc l'emporte sur le type natif ; textes traduisibles par le contrat `Translator` |
+| 2026-10-28 | Actions héritées : attributs fusionnés le long des contrôleurs (jusqu'au contrôleur de la route) et des redéfinitions de la méthode, l'enfant l'emportant ; PHPDoc héritée sans commentaire ou avec `{@inheritDoc}` |
 | 2026-10-28 | Tests : PHPUnit, Orchestra Testbench, fixtures JSON validées contre le schéma officiel ; couverture ≥ 90 % des lignes, MSI ≥ 80 % |

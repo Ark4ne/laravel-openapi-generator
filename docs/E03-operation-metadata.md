@@ -82,6 +82,12 @@ attributs et sa PHPDoc, et en tirer résumé, description, tags, `operationId`, 
   classe) ; une closure prend l'espace de noms de son fichier (PHP 8.4 ne lui en donne plus) ; les imports d'un bloc
   `namespace A { … }` sont lus ; `@template-covariant`, `@template-contravariant` et les formes `@phpstan-` /
   `@psalm-` comptent dans l'ordre des templates (paginateurs de Laravel).
+- **Actions héritées et redéfinies** : PHP n'hérite pas des attributs, le générateur les fusionne. Les attributs
+  de classe sont lus du plus haut parent jusqu'au **contrôleur de la route** ; ceux de méthode, de la déclaration
+  d'origine jusqu'à la redéfinition appelée. Un champ de `#[Operation]` donné par l'enfant l'emporte, les `#[Tag]`
+  s'additionnent ; la chaîne des classes donne les valeurs par défaut, celle des méthodes l'emporte. Une méthode
+  redéfinie sans PHPDoc, ou avec seulement `{@inheritDoc}`, prend celle de la méthode qu'elle redéfinit (résumé,
+  description, `@return`, `@param`, `@throws`).
 - **Attribut invalide** (argument inconnu ou mal typé) : ignoré avec un avertissement, la génération continue.
 - **Noms de contrôleur** : `controller` (résumé) et `action` (`operationId`) gardent le vrai nom de la classe
   (`ShowUser@__invoke`) ; seul le tag retire le suffixe `Controller`.

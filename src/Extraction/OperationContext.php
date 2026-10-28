@@ -55,13 +55,63 @@ final readonly class OperationContext
     }
 
     /**
-     * The controller of a controller action.
+     * The controller of the route, which may inherit its action from a parent.
      *
      * @return ReflectionClass<object>|null
      */
     public function controller(): ?ReflectionClass
     {
+        $controller = $this->route->controller;
+
+        if ($controller !== null && class_exists($controller)) {
+            return new ReflectionClass($controller);
+        }
+
         return $this->action instanceof ReflectionMethod ? $this->action->getDeclaringClass() : null;
+    }
+
+    /**
+     * The controller and its parents, from the highest parent down to the controller.
+     *
+     * @return list<ReflectionClass<object>>
+     */
+    public function controllers(): array
+    {
+        $classes = [];
+
+        $class = $this->controller();
+
+        while ($class instanceof ReflectionClass) {
+            array_unshift($classes, $class);
+            $parent = $class->getParentClass();
+            $class = $parent === false ? null : $parent;
+        }
+
+        return $classes;
+    }
+
+    /**
+     * Each declaration of the action along the controllers, from the highest parent down to the redefinition
+     * the route calls; the closure alone for a closure.
+     *
+     * @return list<ReflectionFunctionAbstract>
+     */
+    public function actions(): array
+    {
+        if (! $this->action instanceof ReflectionMethod) {
+            return $this->action === null ? [] : [$this->action];
+        }
+
+        $name = $this->action->getName();
+        $actions = [];
+
+        foreach ($this->controllers() as $class) {
+            if ($class->hasMethod($name) && $class->getMethod($name)->getDeclaringClass()->getName() === $class->getName()) {
+                $actions[] = $class->getMethod($name);
+            }
+        }
+
+        return $actions === [] ? [$this->action] : $actions;
     }
 
     /**
@@ -81,7 +131,8 @@ final readonly class OperationContext
     }
 
     /**
-     * Instances of an attribute: those of the controller class first, then those of the action.
+     * Instances of an attribute: those of the controllers first, then those of the declarations of the action, each
+     * from the highest parent down (the last instance is the child's).
      *
      * An attribute that cannot be built (unknown or wrong argument) is left out with a warning.
      *
@@ -105,9 +156,13 @@ final readonly class OperationContext
      */
     public function classAttributes(string $attribute, GenerationContext $context): array
     {
-        $controller = $this->controller();
+        $instances = [];
 
-        return $controller === null ? [] : $this->instances($controller->getAttributes($attribute), $controller->getName(), $context);
+        foreach ($this->controllers() as $class) {
+            array_push($instances, ...$this->instances($class->getAttributes($attribute), $class->getName(), $context));
+        }
+
+        return $instances;
     }
 
     /**
@@ -119,13 +174,14 @@ final readonly class OperationContext
      */
     public function actionAttributes(string $attribute, GenerationContext $context): array
     {
-        if ($this->action === null) {
-            return [];
+        $instances = [];
+
+        foreach ($this->actions() as $action) {
+            $target = $action instanceof ReflectionMethod ? "{$action->getDeclaringClass()->getName()}::{$action->getName()}" : $this->route->label();
+            array_push($instances, ...$this->instances($action->getAttributes($attribute), $target, $context));
         }
 
-        $target = $this->action instanceof ReflectionMethod ? "{$this->action->getDeclaringClass()->getName()}::{$this->action->getName()}" : $this->route->label();
-
-        return $this->instances($this->action->getAttributes($attribute), $target, $context);
+        return $instances;
     }
 
     /**

@@ -40,7 +40,7 @@ final readonly class OperationContextFactory
             $route->method,
             $route->path,
             $action,
-            $this->types->docBlock($action),
+            $this->types->docBlock($this->types->documented($action)),
             $this->requestType($action),
             $this->types->returnType($action),
             $context->configuration->exceptions->readThrows ? $this->types->throws($action) : [],

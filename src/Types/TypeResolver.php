@@ -108,14 +108,39 @@ final class TypeResolver
     }
 
     /**
-     * `@return`, else the native return type; `null` when neither is declared.
+     * The declaration whose PHPDoc documents a method: the method itself, or, when it has no PHPDoc or only
+     * `{@inheritDoc}`, the method it overrides or implements, recursively.
+     */
+    public function documented(ReflectionFunctionAbstract $function): ReflectionFunctionAbstract
+    {
+        while ($function instanceof ReflectionMethod && self::inheritsDoc($function)) {
+            try {
+                $function = $function->getPrototype();
+            } catch (Throwable) {
+                $parent = $function->getDeclaringClass()->getParentClass();
+
+                if ($parent === false || ! $parent->hasMethod($function->getName())) {
+                    break;
+                }
+
+                $function = $parent->getMethod($function->getName());
+            }
+        }
+
+        return $function;
+    }
+
+    /**
+     * `@return` (inherited with the PHPDoc, see documented()), else the native return type; `null` when neither
+     * is declared.
      */
     public function returnType(ReflectionFunctionAbstract $function): ?Type
     {
-        $tag = $this->docBlock($function)->node->getReturnTagValues()[0] ?? null;
+        $documented = $this->documented($function);
+        $tag = $this->docBlock($documented)->node->getReturnTagValues()[0] ?? null;
 
         if ($tag !== null) {
-            return $this->fromNode($tag->type, $this->functionScope($function));
+            return $this->fromNode($tag->type, $this->functionScope($documented));
         }
 
         return $this->fromNative($function->getReturnType(), $this->functionScope($function));
@@ -127,15 +152,15 @@ final class TypeResolver
     public function parameterType(ReflectionParameter $parameter): ?Type
     {
         $function = $parameter->getDeclaringFunction();
-        $scope = $this->functionScope($function);
+        $documented = $this->documented($function);
 
-        foreach ($this->docBlock($function)->node->getParamTagValues() as $tag) {
+        foreach ($this->docBlock($documented)->node->getParamTagValues() as $tag) {
             if ($tag->parameterName === '$' . $parameter->getName()) {
-                return $this->fromNode($tag->type, $scope);
+                return $this->fromNode($tag->type, $this->functionScope($documented));
             }
         }
 
-        return $this->fromNative($parameter->getType(), $scope);
+        return $this->fromNative($parameter->getType(), $this->functionScope($function));
     }
 
     /**
@@ -156,6 +181,7 @@ final class TypeResolver
      */
     public function throws(ReflectionFunctionAbstract $function): array
     {
+        $function = $this->documented($function);
         $scope = $this->functionScope($function);
         $types = [];
 
@@ -502,6 +528,20 @@ final class TypeResolver
         }
 
         return $templates;
+    }
+
+    private static function inheritsDoc(ReflectionMethod $method): bool
+    {
+        $comment = $method->getDocComment();
+
+        if ($comment === false) {
+            return true;
+        }
+
+        // The text between `/**` and `*/`, without the leading `*` of each line.
+        $text = trim((string) preg_replace('/^\s*\*/m', '', substr($comment, 3, -2)));
+
+        return $text === '' || preg_match('/^\{?@inheritdoc}?$/i', $text) === 1;
     }
 
     /**

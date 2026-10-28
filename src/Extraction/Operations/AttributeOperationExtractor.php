@@ -14,6 +14,8 @@ use Ark4ne\OpenApi\Extraction\OperationContext;
 /**
  * `#[Operation]`, `#[Tag]` and PHP's `#[\Deprecated]`.
  *
+ * - The attributes of an inherited or redefined action are merged along the controllers and along the declarations
+ *   of the method, from the highest parent down: a field given by the child wins, `#[Tag]` add up.
  * - `#[Operation]` on the action overrides the PHPDoc and the naming strategies. On the controller class it gives
  *   defaults: it fills only what the action, its PHPDoc and the strategies left empty, except `tags` and
  *   `deprecated: true`, which apply to every action.
@@ -41,8 +43,10 @@ final readonly class AttributeOperationExtractor implements OperationExtractor
 
     public function extract(OperationContext $operation, OperationDescription $description, GenerationContext $context): OperationDescription
     {
-        foreach ($operation->classAttributes(Operation::class, $context) as $attribute) {
-            $description = self::defaults($attribute, $description);
+        $defaults = array_reduce($operation->classAttributes(Operation::class, $context), self::merge(...));
+
+        if ($defaults !== null) {
+            $description = self::defaults($defaults, $description);
         }
 
         foreach ($operation->actionAttributes(Operation::class, $context) as $attribute) {
@@ -79,6 +83,28 @@ final readonly class AttributeOperationExtractor implements OperationExtractor
         $externalDocs = self::externalDocs($attribute->externalDocs, $attribute->externalDocsDescription);
 
         return $externalDocs === null ? $description : $description->externalDocs($externalDocs);
+    }
+
+    /**
+     * Two `#[Operation]` of a parent and of its child: each field given by the child wins.
+     */
+    private static function merge(?Operation $parent, Operation $child): Operation
+    {
+        if ($parent === null) {
+            return $child;
+        }
+
+        $externalDocs = $child->externalDocs === null ? $parent : $child;
+
+        return new Operation(
+            $child->summary ?? $parent->summary,
+            $child->description ?? $parent->description,
+            $child->operationId ?? $parent->operationId,
+            $child->tags === [] ? $parent->tags : $child->tags,
+            $child->deprecated ?? $parent->deprecated,
+            $externalDocs->externalDocs,
+            $externalDocs->externalDocsDescription,
+        );
     }
 
     private static function defaults(Operation $attribute, OperationDescription $description): OperationDescription
