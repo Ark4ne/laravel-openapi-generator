@@ -11,8 +11,12 @@ choisie, et rendre compte de sa validité.
 ### `DocumentBuilder` (`src/Generation/`)
 
 - [ ] `Info` : `title`, `version`, `description`, `summary`, `termsOfService`, `contact`, `license`
-- [ ] Serveurs et variables (corrige la v0.6, qui lisait `variables` alors que la configuration écrit `variable`)
-- [ ] Chemins, opérations, paramètres, corps, réponses, en-têtes
+- [ ] Serveurs et variables (corrige la v0.6, qui lisait `variables` alors que la configuration écrit `variable`),
+      `Server.name` (3.2)
+- [ ] `$self` (3.2) et `externalDocs` du document
+- [ ] Chemins, opérations (méthode `query` et `additionalOperations` en 3.2), paramètres, corps et leurs encodages,
+      réponses (`summary` en 3.2), en-têtes
+- [ ] Tags : `summary`, `kind` (3.2), `externalDocs` ; `externalDocs` des opérations
 - [ ] Composants, tags, sécurité, `externalDocs`, extensions `x-*` de la configuration
 - [ ] Aucune décision métier : test qui vérifie qu'une description complète se traduit champ pour champ
 

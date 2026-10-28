@@ -38,6 +38,13 @@ return [
             ],
 
             /*
+            | Public URI of the generated document (`$self`, written from 3.2)
+            | and its external documentation.
+            */
+            'self' => null,
+            'external_docs' => null, // ['url' => 'https://…', 'description' => '…']
+
+            /*
             | Servers of the document; the global `servers` when empty.
             */
             'servers' => [],
@@ -71,21 +78,22 @@ return [
             ],
 
             /*
+            | Security schemes completing or replacing those inferred from
+            | the middlewares: OAuth2 flows and URLs (Passport), OpenID
+            | Connect, and the 3.2 fields (deviceAuthorization flow,
+            | oauth2_metadata_url, deprecated).
+            |
+            | 'passport' => ['type' => 'oauth2', 'flows' => ['authorizationCode' => [
+            |     'authorizationUrl' => '/oauth/authorize', 'tokenUrl' => '/oauth/token']]],
+            | 'oidc' => ['type' => 'openIdConnect', 'open_id_connect_url' => 'https://…'],
+            */
+            'security_schemes' => [],
+
+            /*
             | Resources and enums as `components.schemas` referenced by `$ref`
             | (true), or written inline (false).
             */
             'use_references' => true,
-
-            /*
-            | Webhooks: requests the application sends to its consumers
-            | (OpenAPI 3.1+). Classes carrying #[Webhook] (events,
-            | notifications…), described without route. Actions carrying
-            | #[Webhook] are moved from `paths` to `webhooks` automatically.
-            | In 3.0, a strict document fails, a lenient one drops them.
-            */
-            'webhooks' => [
-                // App\Events\OrderCreated::class,
-            ],
 
             /*
             | Overrides of the global `output`.
@@ -115,6 +123,7 @@ return [
         [
             'url' => env('APP_URL', 'http://localhost'),
             'description' => env('APP_NAME'),
+            'name' => null, // written from 3.2
             'variables' => [],
         ],
     ],

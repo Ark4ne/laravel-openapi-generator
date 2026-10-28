@@ -5,29 +5,30 @@ de ses livrables ; le tableau ci-dessous en est calculé automatiquement (`compo
 
 **Architecture, concepts et patterns :** [architecture.md](architecture.md) — à lire avant toute contribution.
 **Inventaire de la v0.6 (ce qu'on garde, réécrit ou abandonne) :** [legacy-inventory.md](legacy-inventory.md).
+**Couverture de la spécification OpenAPI (ce qui est prévu, proposé, hors périmètre) :** [spec-coverage.md](spec-coverage.md).
 **Librairie d'écriture :** `ark4ne/openapi-writer` (dossier voisin `../openapi-writer`), qui remplace
 `goldspecdigital/oooas`. Son skill `skills/openapi-writer/` décrit l'API publique.
 
 ## Progression
 
 <!-- progress:start -->
-**Avancement global : `██░░░░░░░░` 22 % (49 / 222 livrables)**
+**Avancement global : `██░░░░░░░░` 21 % (50 / 235 livrables)**
 
 | Épique | Statut | Avancement | Livrables |
 | --- | --- | --- | --- |
 | [E0 — Branche, socle et outillage](E00-bootstrap.md) | En cours | `█████████░` 95 % | 22 / 23 |
-| [E1 — Architecture et contrats](E01-contracts.md) | En cours | `█████████░` 96 % | 24 / 25 |
-| [E2 — Découverte des routes](E02-route-discovery.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 16 |
-| [E3 — Métadonnées d'opération et types](E03-operation-metadata.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 17 |
-| [E4 — Requêtes et règles de validation](E04-requests.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 24 |
+| [E1 — Architecture et contrats](E01-contracts.md) | Terminé | `██████████` 100 % | 26 / 26 |
+| [E2 — Découverte des routes](E02-route-discovery.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 18 |
+| [E3 — Métadonnées d'opération et types](E03-operation-metadata.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 19 |
+| [E4 — Requêtes et règles de validation](E04-requests.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 26 |
 | [E5 — Échantillonnage et inférence de schémas](E05-sampling.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 19 |
-| [E6 — Réponses](E06-responses.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 19 |
-| [E7 — Passes du pipeline](E07-pipeline-passes.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 19 |
-| [E8 — Écriture du document](E08-document-writing.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 14 |
+| [E6 — Réponses](E06-responses.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 20 |
+| [E7 — Passes du pipeline](E07-pipeline-passes.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 23 |
+| [E8 — Écriture du document](E08-document-writing.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 16 |
 | [E9 — Intégration JSON:API](E09-json-api.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 11 |
 | [E10 — Intégration Laravel et expérience développeur](E10-laravel-dx.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 11 |
 | [E11 — Migration, documentation et version 1.0.0](E11-release.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 12 |
-| [E12 — Webhooks](E12-webhooks.md) | En cours | `██░░░░░░░░` 25 % | 3 / 12 |
+| [E12 — Webhooks et callbacks](E12-webhooks.md) | En cours | `█░░░░░░░░░` 18 % | 2 / 11 |
 <!-- progress:end -->
 
 ## Mettre à jour la progression
@@ -61,7 +62,7 @@ E4 et E5/E6 peuvent avancer en parallèle une fois E3 terminé.
 7. [E6 — Réponses](E06-responses.md)
 8. [E7 — Passes du pipeline](E07-pipeline-passes.md)
 9. [E8 — Écriture du document](E08-document-writing.md)
-10. [E12 — Webhooks](E12-webhooks.md) (ajouté après coup, réalisé après E8)
+10. [E12 — Webhooks et callbacks](E12-webhooks.md) (ajouté après coup, réalisé après E8)
 11. [E9 — Intégration JSON:API](E09-json-api.md)
 12. [E10 — Intégration Laravel et expérience développeur](E10-laravel-dx.md)
 13. [E11 — Migration, documentation et version 1.0.0](E11-release.md)
@@ -85,5 +86,8 @@ E4 et E5/E6 peuvent avancer en parallèle une fois E3 terminé.
 | 2026-10-28 | Tout code qui utilise `openapi-writer` s'écrit en suivant son skill (`skills/openapi-writer/`) |
 | 2026-10-28 | Validé : `phpstan/phpdoc-parser` à la place de `phpdocumentor/*`, et clé `documents` à la place de `versions` |
 | 2026-10-28 | Attribut `#[Operation]` conservé (alias d'import documenté) ; extensions enregistrées par la configuration et par les tags du conteneur |
-| 2026-10-28 | Webhooks (3.1+) : `#[Webhook]` sur une classe listée dans `documents.<nom>.webhooks`, ou sur une action déplacée de `paths` vers `webhooks` ; rejet strict / retrait permissif en 3.0 ([E12](E12-webhooks.md)) |
+| 2026-10-28 | Webhooks (3.1+) : `#[Webhook]` sur une action ou un contrôleur uniquement, sans liste ni découverte par dossier ; l'extracteur d'attributs range la route en opération ou en webhook ([E12](E12-webhooks.md)) |
+| 2026-10-28 | Callbacks d'opération (3.0+) : `#[Callback]` répétable, payload partagé avec un webhook ou décrit par une ressource ou un type |
+| 2026-10-28 | `x-webhooks` (avant 3.1) et `x-tagGroups` (avant 3.2) portés par `openapi-writer`, en option désactivée par défaut : demande transmise à la session du writer |
+| 2026-10-28 | Éléments de la spec ajoutés aux épiques ([spec-coverage.md](spec-coverage.md)), sauf priorité basse (`#[Link]`, exemples nommés, base64) |
 | 2026-10-28 | Tests : PHPUnit, Orchestra Testbench, fixtures JSON validées contre le schéma officiel ; couverture ≥ 90 % des lignes, MSI ≥ 80 % |

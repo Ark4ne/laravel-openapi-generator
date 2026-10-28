@@ -50,7 +50,10 @@ suivants.
 - [x] `#[Response]` répétable (status, description, resource ou schéma, type de média, en-têtes, paginateur)
 - [x] `#[PathParameter]`, `#[QueryParameter]`, `#[Header]`, `#[RequestBody]`, `#[Security]`
 - [x] `#[ResourceFactory]`, `#[SchemaName]` (remplace `#[Id]`)
-- [x] `#[Webhook]` et sa définition (détail dans [E12](E12-webhooks.md))
+- [x] Éléments retenus de [spec-coverage.md](spec-coverage.md) : `#[Cookie]`, `externalDocs` (`#[Operation]`, `#[Tag]`,
+      document), `summary` / `kind` de `#[Tag]`, `summary` de `#[Response]`, `Server.name`, `$self`, schémas de
+      sécurité configurables, encodages multipart (`BodyDescription::encoding()`)
+- [x] `#[Webhook]` et `#[Callback]`, `CallbackDescription` (détail dans [E12](E12-webhooks.md))
 - [x] Contrats tirés des épiques suivants pour typer les signatures : `Types\Type` (E3), `Discovery\RouteDefinition` (E2),
       `Extraction\OperationContext`, `Sampling\SampleRequest`
 
@@ -62,7 +65,7 @@ suivants.
 ## Critères de sortie
 
 - [x] PHPStan niveau max vert, tests d'architecture verts
-- [ ] API relue et validée (PR approuvée)
+- [x] API relue et validée (revue avec l’utilisateur le 2026-10-28)
 
 ## Notes de réalisation
 

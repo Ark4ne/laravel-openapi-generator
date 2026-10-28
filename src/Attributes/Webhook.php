@@ -7,13 +7,12 @@ namespace Ark4ne\OpenApi\Attributes;
 use Attribute;
 
 /**
- * Declares a webhook: a request the application sends to its consumers (`webhooks` of the document, 3.1+).
+ * Marks an action, or every action of a controller, as a webhook: a request the application sends to its
+ * consumers. The operation is written under `webhooks.<name>` (3.1+) instead of `paths`.
  *
- * - On a class listed in `documents.<name>.webhooks` (event, notification, job…): the webhook is described without
- *   any route. The payload is a resource class or a PHPDoc type; `#[Response]` on the class gives the responses
- *   expected from the receiver (200 by default).
- * - On a controller action: the operation is written under `webhooks.<name>` instead of `paths`. Its request
- *   (form request, rules, `#[RequestBody]`) is the payload, its responses are those expected from the receiver.
+ * Everything else is read as for any operation: the request (form request, rules, `#[RequestBody]`, `#[Header]`)
+ * describes the payload sent, the responses describe what the receiver must answer, `#[Operation]` gives the
+ * summary, the tags and the operationId.
  *
  * A route that receives webhooks from a third party (Stripe, GitHub…) is a regular path: it needs no attribute.
  */
@@ -21,23 +20,9 @@ use Attribute;
 final readonly class Webhook
 {
     /**
-     * @param string $name key of the webhook in the document (`order.created`)
-     * @param string $method HTTP method of the request sent
-     * @param class-string|null $resource resource describing the payload
-     * @param string|null $type PHPDoc type describing the payload, exclusive with `resource`
-     * @param array<string, string> $headers headers sent with the payload (signature…) → PHPDoc type of their value
-     * @param list<string> $tags
+     * @param string|null $name key of the webhook in the document (`order.created`); the route name by default
      */
     public function __construct(
-        public string $name,
-        public string $method = 'POST',
-        public ?string $summary = null,
-        public ?string $description = null,
-        public ?string $resource = null,
-        public ?string $type = null,
-        public ?string $mediaType = null,
-        public array $headers = [],
-        public array $tags = [],
-        public ?string $operationId = null,
+        public ?string $name = null,
     ) {}
 }

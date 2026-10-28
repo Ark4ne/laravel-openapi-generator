@@ -14,7 +14,7 @@ final readonly class DocumentDescription extends Description
 {
     /**
      * @param list<OperationDescription> $operations
-     * @param list<OperationDescription> $webhooks requests the application sends, keyed by their `webhook` name
+     * @param list<OperationDescription> $webhooks operations carrying a `webhook` name: requests the application sends
      * @param list<TagDescription> $tags
      * @param array<string, Schema> $schemas component name → schema
      * @param array<string, ResponseDescription> $responses component name → shared response

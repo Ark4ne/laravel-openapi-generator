@@ -19,6 +19,10 @@ sécurité, réponses d'erreur, tags et groupes, identifiants uniques, composant
           `auth.basic`
     - [ ] `ValidateCsrfToken` (nom Laravel 11+ de `VerifyCsrfToken`)
     - [ ] `signed` (paramètres `signature` et `expires`)
+- [ ] Scopes : middlewares `scopes:` / `scope:` de Passport (descriptions de `Passport::tokensCan()`)
+- [ ] Abilities Sanctum (`abilities:` / `ability:`) → scopes du bearer en 3.1+, mentionnées dans la description avant
+- [ ] Schémas de sécurité de la configuration (`security_schemes`) : flux OAuth2 et URLs, `openIdConnect`, champs
+      3.2 (`deviceAuthorization`, `oauth2MetadataUrl`, `deprecated`), fusionnés avec les schémas inférés
 - [ ] Schémas de sécurité rassemblés dans `components.securitySchemes`, sécurité globale en option
 
 ### Réponses d'erreur
@@ -31,7 +35,8 @@ sécurité, réponses d'erreur, tags et groupes, identifiants uniques, composant
 ### Organisation
 
 - [ ] `TagPass` : tags issus des stratégies, descriptions, ordre stable
-- [ ] `TagGroupPass` : `Tag.parent` et `kind` en 3.2, extension `x-tagGroups` avant (comme la v0.6)
+- [ ] `TagGroupPass` : `TagDescription::parent()` depuis la stratégie de groupe ; `x-tagGroups` avant 3.2 écrit par
+      l'option demandée à `openapi-writer` (voir [E12](E12-webhooks.md))
 - [ ] `OperationIdPass` : identifiants uniques et déterministes, collisions suffixées et signalées
 
 ### Composants
@@ -43,6 +48,7 @@ sécurité, réponses d'erreur, tags et groupes, identifiants uniques, composant
 ### Finalisation
 
 - [ ] Serveurs globaux et par document, serveurs d'opération pour les routes à domaine
+- [ ] `PathParametersPass` : paramètres de chemin communs à toutes les méthodes d'un chemin remontés au Path Item
 - [ ] Nettoyage : collections vides retirées, ordre des chemins stable
 
 ## Critères de sortie

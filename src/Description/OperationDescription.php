@@ -18,6 +18,8 @@ final readonly class OperationDescription extends Description
      * @param list<string> $tags
      * @param list<ResponseDescription> $responses
      * @param list<SecurityDescription>|null $security `null` inherits the document security
+     * @param array{url: string, description?: string}|null $externalDocs
+     * @param list<CallbackDescription> $callbacks
      * @param list<string> $servers server URLs of the operation (domain routes)
      * @param array<string, mixed> $extensions `x-*` extensions
      */
@@ -32,8 +34,10 @@ final readonly class OperationDescription extends Description
         public ?string $description = null,
         public array $tags = [],
         public bool $deprecated = false,
+        public ?array $externalDocs = null,
         public array $responses = [],
         public ?array $security = null,
+        public array $callbacks = [],
         public array $servers = [],
         public array $extensions = [],
         public ?string $webhook = null,
@@ -89,6 +93,14 @@ final readonly class OperationDescription extends Description
         return $this->copy(deprecated: $deprecated);
     }
 
+    /**
+     * @param array{url: string, description?: string}|null $externalDocs
+     */
+    public function externalDocs(?array $externalDocs): static
+    {
+        return $this->copy(externalDocs: $externalDocs);
+    }
+
     public function request(RequestDescription $request): static
     {
         return $this->copy(request: $request);
@@ -122,6 +134,16 @@ final readonly class OperationDescription extends Description
         return $this->copy(security: null);
     }
 
+    public function callbacks(CallbackDescription ...$callbacks): static
+    {
+        return $this->copy(callbacks: array_values($callbacks));
+    }
+
+    public function addCallbacks(CallbackDescription ...$callbacks): static
+    {
+        return $this->copy(callbacks: [...$this->callbacks, ...array_values($callbacks)]);
+    }
+
     public function servers(string ...$servers): static
     {
         return $this->copy(servers: array_values($servers));
@@ -134,6 +156,8 @@ final readonly class OperationDescription extends Description
 
     /**
      * Writes the operation under `webhooks.<name>` instead of `paths` (3.1+): a request the application sends.
+     * Set by the operation extractor that reads `#[Webhook]`; the generator then files the operation in
+     * `DocumentDescription::$webhooks`, so that the passes tied to routes (middlewares) never see it.
      */
     public function webhook(?string $name): static
     {

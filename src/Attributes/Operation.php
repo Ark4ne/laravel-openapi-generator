@@ -17,6 +17,7 @@ final readonly class Operation
 {
     /**
      * @param list<string> $tags replace the tags given by the tag strategy
+     * @param string|null $externalDocs URL of the external documentation
      */
     public function __construct(
         public ?string $summary = null,
@@ -24,5 +25,6 @@ final readonly class Operation
         public ?string $operationId = null,
         public array $tags = [],
         public ?bool $deprecated = null,
+        public ?string $externalDocs = null,
     ) {}
 }

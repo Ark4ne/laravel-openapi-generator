@@ -22,6 +22,8 @@ et un chemin OpenAPI correct (paramètres, contraintes, domaines).
 
 - [ ] Inclusion et exclusion par masque sur l'URI, par nom de route, par domaine, par middleware
 - [ ] Méthodes ignorées (`HEAD` par défaut) ; `any()` et `match()` dépliés en une opération par méthode
+- [ ] Méthode `QUERY` : opération `query` (3.2) ; rejet strict / retrait permissif avant
+- [ ] Méthodes non standard (`Route::match(['PURGE'], …)`) : `additionalOperations` (3.2) ; diagnostic et retrait avant
 - [ ] `#[Exclude]` sur un contrôleur ou une méthode
 
 ### Chemins et paramètres de chemin

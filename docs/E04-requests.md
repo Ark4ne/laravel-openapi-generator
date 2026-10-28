@@ -14,12 +14,15 @@
       de méthode, paramètres de route liés à des échantillons quand `rules()` en dépend
 - [ ] `DescribableRequestExtractor` : nouvelle API fluide de description manuelle (en-têtes, query, corps par type
       de média, sécurité), qui accepte des `Schema` du writer
-- [ ] `AttributeRequestExtractor` : `#[QueryParameter]`, `#[Header]`, `#[RequestBody]` sur l'action ou la requête
+- [ ] `AttributeRequestExtractor` : `#[QueryParameter]`, `#[Header]`, `#[Cookie]`, `#[RequestBody]` sur l'action ou la requête
 - [ ] Emplacement : méthodes sans corps (`GET`, `HEAD`, `DELETE`) → query ; sinon corps
 - [ ] Type de média du corps : `application/json` par défaut, `multipart/form-data` dès qu'une règle de fichier est
       présente, configurable
 - [ ] Sérialisation des query imbriquées (`filter.*.name`) : modes `all`, `last`, `none` de la v0.6 conservés, en
-      `QuerySerialization` (`style` / `explode` / `deepObject`)
+      `QueryStrategy` (`style` / `explode` / `deepObject`)
+- [ ] Mode `querystring` de `QueryStrategy` : toute la query décrite comme un seul objet (`in: querystring`, 3.2),
+      repli sur le mode `none` avant 3.2
+- [ ] Encodage des corps multipart : `encoding.<champ>.contentType` tiré de `mimes`, `mimetypes`, `File::types()`
 
 ### Analyse des règles (`src/Extraction/Rules/`)
 

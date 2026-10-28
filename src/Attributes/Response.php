@@ -11,15 +11,14 @@ use Attribute;
  *
  * For its status, it takes precedence over what the generator infers. The body is given by a resource class or by
  * a PHPDoc type (`array{id: int, name: string}`, `list<UserResource>`), never both.
- *
- * On a `#[Webhook]` class, it declares a response expected from the receiver of the webhook.
  */
-#[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
+#[Attribute(Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
 final readonly class Response
 {
     /**
      * @param int|'default' $status
      * @param string|null $description defaults to the HTTP status phrase
+     * @param string|null $summary short summary, written from 3.2 only
      * @param class-string|null $resource JsonResource, ResourceCollection or any class the extractors know
      * @param string|null $type PHPDoc type of the body
      * @param array<string, string> $headers header name → PHPDoc type of its value
@@ -33,5 +32,6 @@ final readonly class Response
         public ?string $mediaType = null,
         public array $headers = [],
         public ?string $paginator = null,
+        public ?string $summary = null,
     ) {}
 }

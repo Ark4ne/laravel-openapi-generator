@@ -20,6 +20,7 @@ final readonly class ResponseDescription extends Description
      */
     protected function __construct(
         public int|string $status,
+        public ?string $summary = null,
         public ?string $description = null,
         public array $headers = [],
         public array $contents = [],
@@ -57,6 +58,14 @@ final readonly class ResponseDescription extends Description
     public function status(int|string $status): static
     {
         return $this->copy(status: $status);
+    }
+
+    /**
+     * Written from 3.2 only.
+     */
+    public function summary(?string $summary): static
+    {
+        return $this->copy(summary: $summary);
     }
 
     public function description(?string $description): static

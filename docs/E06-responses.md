@@ -27,8 +27,13 @@ retour, de l'exécution des ressources et des attributs `#[Response]`.
 
 - [ ] Répétable : un attribut par statut ; prioritaire sur l'inférence pour son statut
 - [ ] `status`, `description` (phrase HTTP par défaut), `resource` ou `schema`, `mediaType`, `headers`,
-      `paginator`, `example`
+      `paginator`, `summary` (3.2), `example`
 - [ ] Correction du comportement v0.6 : `#[Response(description: 'Created')]` seul ne change plus le statut
+
+### Polymorphisme
+
+- [ ] Union de ressources pour un même statut (`CatResource|DogResource`) → `oneOf` ; `discriminator` (et `mapping`)
+      quand une propriété commune porte une valeur constante différente par membre (`type`)
 
 ### En-têtes et composants
 

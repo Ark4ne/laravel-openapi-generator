@@ -10,11 +10,13 @@ final readonly class ServerConfiguration
 {
     /**
      * @param array<string, array{default: string, enum?: list<string>, description?: string}> $variables
+     * @param string|null $name written from 3.2 only
      */
     public function __construct(
         public string $url,
         public ?string $description = null,
         public array $variables = [],
+        public ?string $name = null,
     ) {}
 
     /**

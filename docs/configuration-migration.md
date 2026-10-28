@@ -35,4 +35,3 @@ Les clés V1 sont en `snake_case` (convention Laravel) ; celles de la v0.6 étai
 | — | `sampling.collection_size`, `sampling.seed`, `sampling.examples` | |
 | `languages` | `languages` | |
 | — | `extensions.operation_extractors`, `samplers`, `passes` | Nouveaux points d'extension |
-| — | `documents.<v>.webhooks` | Classes portant `#[Webhook]` (OpenAPI 3.1+) |

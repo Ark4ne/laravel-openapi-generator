@@ -27,7 +27,8 @@ attributs et sa PHPDoc, et en tirer résumé, description, tags, `operationId`, 
       natif `#[\Deprecated]` (PHP 8.4+) pris en compte
 - [ ] Type de requête : premier paramètre sous-type de `Illuminate\Http\Request` ; autres paramètres de l'action
       (liaisons de modèles, enums, paramètres scalaires de route)
-- [ ] Types de réponse : type de retour natif, puis PHPDoc, puis `#[Response]` ; une union donne plusieurs réponses
+- [ ] Types de réponse : type de retour natif, puis PHPDoc, puis `#[Response]` ; une union donne une réponse par
+      statut (membres de même statut réunis en `oneOf`, voir [spec-coverage.md](spec-coverage.md))
 
 ### Stratégies de nommage
 
@@ -36,6 +37,11 @@ attributs et sa PHPDoc, et en tirer résumé, description, tags, `operationId`, 
 - [ ] `GroupStrategy` : groupes de tags (remplace `group-by`)
 - [ ] `OperationIdStrategy` : nom de route, `Contrôleur.méthode`, méthode + chemin ; unicité garantie par une passe (E7)
 - [ ] Clés de traduction acceptées dans les résumés, descriptions et tags
+
+### Documentation externe et tags
+
+- [ ] `#[Operation(externalDocs:)]` → `Operation.externalDocs`
+- [ ] `#[Tag]` : `description`, `parent`, `summary` et `kind` (3.2), `externalDocs`
 
 ## Critères de sortie
 

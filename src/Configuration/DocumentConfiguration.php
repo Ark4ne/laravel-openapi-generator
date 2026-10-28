@@ -15,7 +15,11 @@ final readonly class DocumentConfiguration
 {
     /**
      * @param list<ServerConfiguration> $servers
-     * @param list<class-string> $webhooks classes carrying `#[Webhook]`, described without route
+     * @param array<string, array<string, mixed>> $securitySchemes scheme name → scheme (`type`, `flows`,
+     *        `openIdConnectUrl`, `deviceAuthorization`, `oauth2MetadataUrl`, `deprecated`…), completing or replacing
+     *        the schemes inferred from the middlewares
+     * @param array{url: string, description?: string}|null $externalDocs
+     * @param string|null $self public URI of the generated document (`$self`, 3.2)
      * @param array<string, mixed> $extensions `x-*` extensions of the document
      */
     public function __construct(
@@ -32,7 +36,9 @@ final readonly class DocumentConfiguration
         public StrategyConfiguration $operationId = new StrategyConfiguration('name'),
         public StrategyConfiguration $query = new StrategyConfiguration('all'),
         public bool $useReferences = true,
-        public array $webhooks = [],
+        public array $securitySchemes = [],
+        public ?array $externalDocs = null,
+        public ?string $self = null,
         public array $extensions = [],
     ) {}
 
