@@ -7,7 +7,9 @@ namespace Ark4ne\OpenApi\Extraction\Operations;
 use Ark4ne\OpenApi\Attributes\Operation;
 use Ark4ne\OpenApi\Attributes\Security;
 use Ark4ne\OpenApi\Attributes\Tag;
+use Ark4ne\OpenApi\Attributes\Webhook;
 use Ark4ne\OpenApi\Context\GenerationContext;
+use Ark4ne\OpenApi\Context\Stage;
 use Ark4ne\OpenApi\Description\OperationDescription;
 use Ark4ne\OpenApi\Description\SecurityDescription;
 use Ark4ne\OpenApi\Description\TagDescription;
@@ -24,6 +26,10 @@ use Ark4ne\OpenApi\Extraction\OperationContext;
  * - `#[Operation(tags: […])]` replaces the tags of the strategy; each `#[Tag]` adds its tag, with its details.
  * - `#[Operation(deprecated: false)]` on the action cancels a `@deprecated`.
  * - `#[Security]`: each attribute is an alternative requirement; those of the action replace those of the class.
+ * - `#[Webhook]` names the webhook: the name of the action's attribute, else the route name; on the controller, a
+ *   prefix completed by the name of the action's attribute, else by the method name. Without a name, a warning:
+ *   the generator leaves the route out. Its name is its operationId, unless `#[Operation(operationId:)]` gives one:
+ *   the naming strategies read the route, which is not what is called.
  */
 final readonly class AttributeOperationExtractor implements OperationExtractor
 {
@@ -75,7 +81,34 @@ final readonly class AttributeOperationExtractor implements OperationExtractor
             $description = $description->deprecated();
         }
 
-        return $description;
+        return self::webhook($operation, $description, $context);
+    }
+
+    private static function webhook(OperationContext $operation, OperationDescription $description, GenerationContext $context): OperationDescription
+    {
+        $prefix = array_reverse($operation->classAttributes(Webhook::class, $context))[0] ?? null;
+        $action = array_reverse($operation->actionAttributes(Webhook::class, $context))[0] ?? null;
+
+        if ($prefix === null && $action === null) {
+            return $description;
+        }
+
+        $operationId = null;
+
+        foreach ($operation->attributes(Operation::class, $context) as $attribute) {
+            $operationId = $attribute->operationId ?? $operationId;
+        }
+
+        $name = match (true) {
+            $prefix?->name !== null => "{$prefix->name}." . ($action->name ?? $operation->action?->getName()),
+            default => $action->name ?? $operation->route->name,
+        };
+
+        if ($name === null) {
+            $context->diagnostics->warning(Stage::Operation, '#[Webhook] without name on a route without name, route left out', $operation->route->label());
+        }
+
+        return $description->webhook($name)->operationId($operationId ?? $name ?? $description->operationId);
     }
 
     private static function operation(Operation $attribute, OperationDescription $description): OperationDescription

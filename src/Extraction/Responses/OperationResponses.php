@@ -51,6 +51,14 @@ final readonly class OperationResponses
     }
 
     /**
+     * The `#[Response]` reader, shared with the callbacks (`#[Callback(resource:, type:)]`).
+     */
+    public function declared(): DeclaredResponses
+    {
+        return $this->declared;
+    }
+
+    /**
      * The resources this object describes, shared with the request bodies (`#[RequestBody(resource:)]`).
      */
     public function resources(): ResourceSchemas

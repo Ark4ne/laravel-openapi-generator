@@ -10,6 +10,7 @@ use Ark4ne\OpenApi\Configuration\InfoConfiguration;
 use Ark4ne\OpenApi\Configuration\ServerConfiguration;
 use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Description\BodyDescription;
+use Ark4ne\OpenApi\Description\CallbackDescription;
 use Ark4ne\OpenApi\Description\DocumentDescription;
 use Ark4ne\OpenApi\Description\HeaderDescription;
 use Ark4ne\OpenApi\Description\OperationDescription;
@@ -138,13 +139,38 @@ final class DocumentBuilderTest extends TestCase
         ], $written);
     }
 
-    public function test_a_webhook_is_written_under_its_name(): void
+    public function test_the_methods_of_a_webhook_are_written_in_one_path_item_under_its_name(): void
     {
-        $document = DocumentDescription::create()->webhooks(OperationDescription::create(HttpMethod::Post, 'order.created')->webhook('order.created')->responses(ResponseDescription::create(204)->description('Received')));
+        $received = ResponseDescription::create(204)->description('Received');
+        $document = DocumentDescription::create()->webhooks(
+            OperationDescription::create(HttpMethod::Post, '/hooks/created')->webhook('order.created')->responses($received),
+            OperationDescription::create(HttpMethod::Put, '/hooks/created')->webhook('order.created')->responses($received),
+        );
 
         $written = (new DocumentBuilder())->build($document, $this->writing())->toArray(Version::V3_2_0);
 
-        Schemas::assertWritten(['post' => ['responses' => ['204' => ['description' => 'Received']]]], (array) Schemas::at($written, 'webhooks', 'order.created'));
+        Schemas::assertWritten(['post' => ['responses' => ['204' => ['description' => 'Received']]], 'put' => ['responses' => ['204' => ['description' => 'Received']]]], (array) Schemas::at($written, 'webhooks', 'order.created'));
+        self::assertArrayNotHasKey('paths', $written);
+    }
+
+    public function test_the_callbacks_are_grouped_by_name_then_by_expression(): void
+    {
+        $sent = static fn(HttpMethod $method, string $expression): OperationDescription => OperationDescription::create($method, $expression)->responses(ResponseDescription::ok()->description('OK'));
+        $operation = OperationDescription::create(HttpMethod::Post, '/orders')->responses(ResponseDescription::create(201)->description('Created'))->callbacks(
+            CallbackDescription::create('shipped', '{$request.body#/url}', $sent(HttpMethod::Post, '{$request.body#/url}')),
+            CallbackDescription::create('shipped', '{$request.body#/url}', $sent(HttpMethod::Put, '{$request.body#/url}')),
+            CallbackDescription::create('shipped', '{$request.query.notify}', $sent(HttpMethod::Post, '{$request.query.notify}')),
+            CallbackDescription::create('paid', '{$request.body#/url}', $sent(HttpMethod::Post, '{$request.body#/url}')),
+            CallbackDescription::fromWebhook('unresolved', '{$request.body#/url}', 'order.created'),
+        );
+
+        $written = (new DocumentBuilder())->build(DocumentDescription::create()->operations($operation), $this->writing())->toArray(Version::V3_2_0);
+        $ok = ['responses' => ['200' => ['description' => 'OK']]];
+
+        Schemas::assertWritten([
+            'shipped' => ['{$request.body#/url}' => ['post' => $ok, 'put' => $ok], '{$request.query.notify}' => ['post' => $ok]],
+            'paid' => ['{$request.body#/url}' => ['post' => $ok]],
+        ], (array) Schemas::at($written, 'paths', '/orders', 'post', 'callbacks'));
     }
 
     private function writing(): GenerationContext

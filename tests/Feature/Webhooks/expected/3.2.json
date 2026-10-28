@@ -1,0 +1,383 @@
+{
+    "openapi": "3.2.0",
+    "info": {
+        "title": "Scenario",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/orders": {
+            "put": {
+                "tags": [
+                    "Order"
+                ],
+                "operationId": "orders.update",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Order"
+                ],
+                "operationId": "orders.store",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "callbacks": {
+                    "orderCreated": {
+                        "{$request.body#/callbackUrl}": {
+                            "post": {
+                                "tags": [
+                                    "Webhooks"
+                                ],
+                                "summary": "An order was created",
+                                "parameters": [
+                                    {
+                                        "name": "X-Signature",
+                                        "in": "header",
+                                        "required": true,
+                                        "schema": {
+                                            "type": "string"
+                                        }
+                                    }
+                                ],
+                                "requestBody": {
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "type": "object",
+                                                "required": [
+                                                    "id",
+                                                    "total"
+                                                ],
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "total": {
+                                                        "type": "number"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "required": true
+                                },
+                                "responses": {
+                                    "200": {
+                                        "description": "OK"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "orderShipped": {
+                        "{$request.body#/callbackUrl}": {
+                            "put": {
+                                "requestBody": {
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "type": "object",
+                                                "required": [
+                                                    "id"
+                                                ],
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    }
+                                                },
+                                                "additionalProperties": false
+                                            }
+                                        }
+                                    },
+                                    "required": true
+                                },
+                                "responses": {
+                                    "204": {
+                                        "description": "No Content"
+                                    }
+                                }
+                            },
+                            "post": {
+                                "description": "The order was shipped",
+                                "requestBody": {
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "type": "object",
+                                                "required": [
+                                                    "id",
+                                                    "carrier"
+                                                ],
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "carrier": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "additionalProperties": false
+                                            }
+                                        }
+                                    },
+                                    "required": true
+                                },
+                                "responses": {
+                                    "200": {
+                                        "description": "OK"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "article": {
+                        "{$request.query.notify}": {
+                            "post": {
+                                "requestBody": {
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "type": "object",
+                                                "required": [
+                                                    "data",
+                                                    "meta"
+                                                ],
+                                                "properties": {
+                                                    "data": {
+                                                        "$ref": "#/components/schemas/Article"
+                                                    },
+                                                    "meta": {
+                                                        "type": "object",
+                                                        "required": [
+                                                            "version"
+                                                        ],
+                                                        "properties": {
+                                                            "version": {
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "required": true
+                                },
+                                "responses": {
+                                    "200": {
+                                        "description": "OK"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "webhooks": {
+        "order.created": {
+            "post": {
+                "tags": [
+                    "Webhooks"
+                ],
+                "summary": "An order was created",
+                "operationId": "orderCreated",
+                "parameters": [
+                    {
+                        "name": "X-Signature",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "id",
+                                    "total"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "type": "integer"
+                                    },
+                                    "total": {
+                                        "type": "number"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "order.cancelled": {
+            "post": {
+                "tags": [
+                    "OrderWebhooks"
+                ],
+                "operationId": "order.cancelled",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "id",
+                                    "total"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "type": "integer"
+                                    },
+                                    "total": {
+                                        "type": "number"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "payment.failed": {
+            "post": {
+                "tags": [
+                    "PaymentWebhooks"
+                ],
+                "summary": "A payment failed.",
+                "operationId": "payment.failed",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "id",
+                                    "total"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "type": "integer"
+                                    },
+                                    "total": {
+                                        "type": "number"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "payment.refunded": {
+            "post": {
+                "tags": [
+                    "PaymentWebhooks"
+                ],
+                "operationId": "payment.refunded",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "received"
+                                    ],
+                                    "properties": {
+                                        "received": {
+                                            "type": "boolean"
+                                        }
+                                    },
+                                    "additionalProperties": false
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Article": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "title"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "author": {
+                        "$ref": "#/components/schemas/Author"
+                    }
+                }
+            },
+            "Author": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "name"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Order"
+        },
+        {
+            "name": "Webhooks"
+        },
+        {
+            "name": "OrderWebhooks"
+        },
+        {
+            "name": "PaymentWebhooks"
+        }
+    ]
+}

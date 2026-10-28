@@ -9,6 +9,7 @@ use Ark4ne\OpenApi\Exceptions\InvalidConfigurationException;
 use Ark4ne\OpenApi\Generation\Middlewares\BasicAuthMiddlewareMapper;
 use Ark4ne\OpenApi\Generation\Passes;
 use Ark4ne\OpenApi\Generation\Passes\AuthorizationResponsePass;
+use Ark4ne\OpenApi\Generation\Passes\CallbackResolutionPass;
 use Ark4ne\OpenApi\Generation\Passes\CleanupPass;
 use Ark4ne\OpenApi\Generation\Passes\ComponentExtractionPass;
 use Ark4ne\OpenApi\Generation\Passes\EquivalentPathsPass;
@@ -21,6 +22,7 @@ use Ark4ne\OpenApi\Generation\Passes\TagPass;
 use Ark4ne\OpenApi\Generation\Passes\ThrottleResponsePass;
 use Ark4ne\OpenApi\Generation\Passes\ThrownExceptionResponsePass;
 use Ark4ne\OpenApi\Generation\Passes\ValidationErrorResponsePass;
+use Ark4ne\OpenApi\Generation\Passes\WebhookPass;
 use Ark4ne\OpenApi\Tests\Support\Descriptions;
 use Ark4ne\OpenApi\Tests\TestCase;
 use Ark4ne\OpenApiWriter\Enums\HttpMethod;
@@ -33,6 +35,8 @@ final class PassesTest extends TestCase
     public function test_the_default_chain_runs_in_its_order(): void
     {
         self::assertSame([
+            WebhookPass::class,
+            CallbackResolutionPass::class,
             ThrownExceptionResponsePass::class,
             MiddlewareSecurityPass::class,
             AuthorizationResponsePass::class,

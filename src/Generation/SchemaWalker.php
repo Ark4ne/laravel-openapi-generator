@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Ark4ne\OpenApi\Generation;
 
 use Ark4ne\OpenApi\Description\BodyDescription;
+use Ark4ne\OpenApi\Description\CallbackDescription;
 use Ark4ne\OpenApi\Description\DocumentDescription;
 use Ark4ne\OpenApi\Description\HeaderDescription;
 use Ark4ne\OpenApi\Description\OperationDescription;
@@ -98,7 +99,8 @@ final class SchemaWalker
 
         return $operation
             ->request($request)
-            ->responses(...array_map(static fn(ResponseDescription $response): ResponseDescription => self::response($response, $map), $operation->responses));
+            ->responses(...array_map(static fn(ResponseDescription $response): ResponseDescription => self::response($response, $map), $operation->responses))
+            ->callbacks(...array_map(static fn(CallbackDescription $callback): CallbackDescription => $callback->operation === null ? $callback : $callback->operation(self::operation($callback->operation, $map)), $operation->callbacks));
     }
 
     /**

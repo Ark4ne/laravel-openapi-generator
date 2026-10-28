@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ark4ne\OpenApi\Generation;
 
+use Ark4ne\OpenApi\Attributes\Webhook;
 use Ark4ne\OpenApi\Configuration\Configuration;
 use Ark4ne\OpenApi\Configuration\DocumentConfiguration;
 use Ark4ne\OpenApi\Context\GenerationContext;
@@ -11,6 +12,7 @@ use Ark4ne\OpenApi\Description\DocumentDescription;
 use Ark4ne\OpenApi\Discovery\MiddlewareResolver;
 use Ark4ne\OpenApi\Discovery\PathParameterResolver;
 use Ark4ne\OpenApi\Discovery\RouteCollector;
+use Ark4ne\OpenApi\Extraction\Callbacks\DeclaredCallbacks;
 use Ark4ne\OpenApi\Extraction\OperationContextFactory;
 use Ark4ne\OpenApi\Extraction\Operations\OperationExtractors;
 use Ark4ne\OpenApi\Extraction\Requests\RequestExtractors;
@@ -84,6 +86,7 @@ final readonly class Generator
         );
         $responses = OperationResponses::default(Samplers::default($this->session, $this->types), $this->types);
         $requests = RequestExtractors::default($this->container, BuiltInStrategies::query($configuration->query), types: $this->types, resources: $responses->resources());
+        $callbacks = new DeclaredCallbacks($responses->declared());
         $document = DocumentDescription::create();
 
         foreach ($this->routes->collect($context) as $route) {
@@ -91,8 +94,15 @@ final readonly class Generator
             $description = $operations->extract($operation, $operation->describe(), $context);
             $description = $description
                 ->request($requests->extract($operation, $description->request, $context))
-                ->responses(...$responses->describe($operation, $context));
-            $document = $document->addOperations($description);
+                ->responses(...$responses->describe($operation, $context))
+                ->callbacks(...$callbacks->describe($operation, $context));
+
+            // A webhook is filed apart from the start: the passes tied to the routes never see it.
+            $document = match (true) {
+                $description->webhook !== null => $document->addWebhooks($description),
+                $operation->attributes(Webhook::class, $context) !== [] => $document,
+                default => $document->addOperations($description),
+            };
         }
 
         return $document;

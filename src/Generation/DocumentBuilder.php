@@ -8,6 +8,7 @@ use Ark4ne\OpenApi\Configuration\InfoConfiguration;
 use Ark4ne\OpenApi\Configuration\ServerConfiguration;
 use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Description\BodyDescription;
+use Ark4ne\OpenApi\Description\CallbackDescription;
 use Ark4ne\OpenApi\Description\DocumentDescription;
 use Ark4ne\OpenApi\Description\HeaderDescription;
 use Ark4ne\OpenApi\Description\OperationDescription;
@@ -19,6 +20,7 @@ use Ark4ne\OpenApi\Description\TagDescription;
 use Ark4ne\OpenApiWriter\Contracts\ResponseContract;
 use Ark4ne\OpenApiWriter\Enums\HttpMethod;
 use Ark4ne\OpenApiWriter\Enums\ParameterLocation;
+use Ark4ne\OpenApiWriter\Objects\Callback;
 use Ark4ne\OpenApiWriter\Objects\Components;
 use Ark4ne\OpenApiWriter\Objects\Contact;
 use Ark4ne\OpenApiWriter\Objects\Encoding;
@@ -57,7 +59,7 @@ final readonly class DocumentBuilder
         // A setter called without argument writes an empty collection: each one is called only with items.
         $openApi = self::with($openApi, $openApi->servers(...), array_map(self::documentServer(...), $configuration->servers));
         $openApi = self::with($openApi, $openApi->paths(...), $this->paths($document));
-        $openApi = self::with($openApi, $openApi->webhooks(...), array_map(fn(OperationDescription $webhook): PathItem => PathItem::create($webhook->webhook ?? $webhook->path)->operations($this->operation($webhook)), $document->webhooks));
+        $openApi = self::with($openApi, $openApi->webhooks(...), $this->pathItems($document->webhooks, static fn(OperationDescription $webhook): string => $webhook->webhook ?? $webhook->path));
         $openApi = self::with($openApi, $openApi->tags(...), array_map(self::tag(...), $document->tags));
         $openApi = self::with($openApi, $openApi->security(...), array_map(self::security(...), $document->security));
 
@@ -82,21 +84,58 @@ final readonly class DocumentBuilder
      */
     private function paths(DocumentDescription $document): array
     {
-        /** @var array<string, list<OperationDescription>> $paths */
-        $paths = [];
+        return array_map(
+            static fn(PathItem $item): PathItem => self::with($item, $item->parameters(...), array_map(self::parameter(...), $document->pathParameters[(string) $item->objectId] ?? [])),
+            $this->pathItems($document->operations, static fn(OperationDescription $operation): string => $operation->path),
+        );
+    }
 
-        foreach ($document->operations as $operation) {
-            $paths[$operation->path][] = $operation;
-        }
-
+    /**
+     * @param list<OperationDescription> $operations
+     * @param Closure(OperationDescription): string $key path, webhook name or runtime expression
+     *
+     * @return list<PathItem> one per key, in the order of their first operation
+     */
+    private function pathItems(array $operations, Closure $key): array
+    {
+        /** @var array<string, list<OperationDescription>> $items */
         $items = [];
 
-        foreach ($paths as $path => $operations) {
-            $item = PathItem::create($path)->operations(...array_map($this->operation(...), $operations));
-            $items[] = self::with($item, $item->parameters(...), array_map(self::parameter(...), $document->pathParameters[$path] ?? []));
+        foreach ($operations as $operation) {
+            $items[$key($operation)][] = $operation;
         }
 
-        return $items;
+        return array_map(
+            fn(string $key, array $operations): PathItem => PathItem::create($key)->operations(...array_map($this->operation(...), $operations)),
+            array_keys($items),
+            array_values($items),
+        );
+    }
+
+    /**
+     * @param list<CallbackDescription> $callbacks
+     *
+     * @return list<Callback> one per name, holding a Path Item per expression
+     */
+    private function callbacks(array $callbacks): array
+    {
+        /** @var array<string, list<OperationDescription>> $byName */
+        $byName = [];
+
+        foreach ($callbacks as $callback) {
+            if ($callback->operation !== null) {
+                $byName[$callback->name][] = $callback->operation->path($callback->expression);
+            }
+        }
+
+        $written = [];
+
+        foreach ($byName as $name => $operations) {
+            $callback = Callback::create($name);
+            $written[] = $callback->pathItems(...$this->pathItems($operations, static fn(OperationDescription $operation): string => $operation->path));
+        }
+
+        return $written;
     }
 
     private function operation(OperationDescription $description): Operation
@@ -118,6 +157,7 @@ final readonly class DocumentBuilder
         $operation = self::with($operation, $operation->parameters(...), array_map(self::parameter(...), $description->request->parameters));
         $operation = self::with($operation, $operation->responses(...), array_map(fn(ResponseDescription $response): ResponseContract => $this->response($response), $description->responses));
         $operation = self::with($operation, $operation->servers(...), array_map(self::operationServer(...), $description->servers));
+        $operation = self::with($operation, $operation->callbacks(...), $this->callbacks($description->callbacks));
 
         if ($description->deprecated) {
             $operation = $operation->deprecated();

@@ -66,23 +66,23 @@ avertissement. Écrire l'extension `x-webhooks` (Redoc) à la place est validé 
 
 ### Extraction
 
-- [ ] Lecture de `#[Webhook]` par l'extracteur d'attributs : nom (attribut, puis nom de route), diagnostic sans nom
-- [ ] Rangement par le générateur : `operations` ou `webhooks` selon `OperationDescription::$webhook`
-- [ ] Préfixe de `#[Webhook]` posé sur un contrôleur
-- [ ] Lecture de `#[Callback]` : URL, méthode, payload (ressource échantillonnée ou type), réponse attendue ;
+- [x] Lecture de `#[Webhook]` par l'extracteur d'attributs : nom (attribut, puis nom de route), diagnostic sans nom
+- [x] Rangement par le générateur : `operations` ou `webhooks` selon `OperationDescription::$webhook`
+- [x] Préfixe de `#[Webhook]` posé sur un contrôleur
+- [x] Lecture de `#[Callback]` : URL, méthode, payload (ressource échantillonnée ou type), réponse attendue ;
       `InvalidAttributeException` sur plusieurs sources ou `status` + `webhook` ; un webhook référencé est seulement
       nommé (`CallbackDescription::fromWebhook()`)
 
 ### Passes et écriture
 
-- [ ] Noms de webhooks en double signalés ; méthodes d'un même nom regroupées dans un seul Path Item
-- [ ] `CallbackResolutionPass` : résout les webhooks référencés une fois toutes les routes extraites (indépendant de
+- [x] Noms de webhooks en double signalés ; méthodes d'un même nom regroupées dans un seul Path Item
+- [x] `CallbackResolutionPass` : résout les webhooks référencés une fois toutes les routes extraites (indépendant de
       l'ordre des routes), diagnostic quand le webhook n'existe pas
-- [ ] Callbacks d'un même nom regroupés : une expression → un Path Item, plusieurs méthodes ; même nom, expression et
+- [x] Callbacks d'un même nom regroupés : une expression → un Path Item, plusieurs méthodes ; même nom, expression et
       méthode en double signalés
-- [ ] Passes transverses appliquées aux webhooks et aux callbacks : tags, `operationId` uniques, composants
-- [ ] `DocumentBuilder` : `OpenApi::webhooks()`, `Operation::callbacks()` ; document sans `paths` accepté en 3.1+
-- [ ] 3.0 : `x-webhooks` avec `vendor_extensions: redoc`, sinon rejet strict / retrait permissif
+- [x] Passes transverses appliquées aux webhooks et aux callbacks : tags, `operationId` uniques, composants
+- [x] `DocumentBuilder` : `OpenApi::webhooks()`, `Operation::callbacks()` ; document sans `paths` accepté en 3.1+
+- [x] 3.0 : `x-webhooks` avec `vendor_extensions: redoc`, sinon rejet strict / retrait permissif
 
 ## Décision : un webhook reste une route
 
@@ -95,8 +95,28 @@ pendant la génération ou en local).
 
 ## Critères de sortie
 
-- [ ] Tests unitaires de l'extraction des deux attributs et du rangement
-- [ ] Scénario fonctionnel « webhooks et callbacks » : documents attendus en 3.0, 3.1 et 3.2
+- [x] Tests unitaires de l'extraction des deux attributs et du rangement
+- [x] Scénario fonctionnel « webhooks et callbacks » : documents attendus en 3.0, 3.1 et 3.2
+
+## Notes de réalisation
+
+- **Nom et `operationId`** : `AttributeOperationExtractor` nomme le webhook ; son nom sert d'`operationId`, sauf
+  `#[Operation(operationId:)]` (les stratégies de nommage lisent la route, qui n'est pas ce qui est appelé). Sans nom,
+  avertissement : le générateur ignore la route.
+- **`WebhookPass`** (première passe) : paramètres de chemin et serveurs de la route retirés ; même nom et même méthode
+  en double → avertissement, première opération gardée. `DocumentBuilder` écrit les méthodes d'un nom dans un seul
+  Path Item, et un document sans `paths`.
+- **Callbacks** : `DeclaredCallbacks` (`src/Extraction/Callbacks/`) lit `#[Callback]` ; le corps vient de
+  `DeclaredResponses::body()` (ressource avec son enveloppe, ou type PHPDoc), obligatoire, `application/json` par
+  défaut ; réponse attendue 200 par défaut avec sa phrase HTTP.
+- **Attribut invalide** : `#[Callback]` lève `InvalidAttributeException` dans son constructeur ; sa lecture
+  (`OperationContext`) la change en avertissement qui nomme la cible, l'attribut est ignoré.
+- **`CallbackResolutionPass`** (deuxième passe) : un callback qui réutilise un webhook prend **toutes ses méthodes**
+  (la `method` de l'attribut est alors sans effet), sans `operationId` (unique dans le document) ; webhook absent →
+  avertissement, callback retiré ; nom, expression et méthode en double → avertissement, premier gardé.
+- **Passes transverses** : `TagPass`, `OperationIdPass`, `CleanupPass` traitaient déjà `webhooks` ; `SchemaWalker`
+  parcourt aussi les callbacks, donc `ComponentExtractionPass` en extrait les schémas.
+- La documentation de la protection des routes de webhooks reste à écrire avec le README (E11).
 
 ## Dépendance à openapi-writer
 

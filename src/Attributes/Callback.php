@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ark4ne\OpenApi\Attributes;
 
+use Ark4ne\OpenApi\Exceptions\InvalidAttributeException;
 use Attribute;
 
 /**
@@ -26,7 +27,10 @@ final readonly class Callback
      * @param string|null $webhook name of a webhook whose request and responses the callback reuses
      * @param class-string|null $resource resource describing the payload
      * @param string|null $type PHPDoc type describing the payload
+     * @param string $method HTTP method of the request; with `webhook`, those of the webhook apply
      * @param int|null $status response expected from the receiver, 200 by default; not with `webhook`
+     *
+     * @throws InvalidAttributeException
      */
     public function __construct(
         public string $name,
@@ -38,5 +42,13 @@ final readonly class Callback
         public ?string $mediaType = null,
         public ?string $description = null,
         public ?int $status = null,
-    ) {}
+    ) {
+        if (count(array_filter([$webhook, $resource, $type], static fn(?string $source): bool => $source !== null)) > 1) {
+            throw InvalidAttributeException::because('webhook, resource and type are mutually exclusive');
+        }
+
+        if ($webhook !== null && $status !== null) {
+            throw InvalidAttributeException::because('the responses of the webhook apply, status cannot be given with webhook');
+        }
+    }
 }

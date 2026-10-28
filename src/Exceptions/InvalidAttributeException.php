@@ -16,6 +16,16 @@ final class InvalidAttributeException extends InvalidArgumentException implement
      */
     public static function on(string $attribute, string $target, string $message): self
     {
-        return new self();
+        $name = substr((string) strrchr('\\' . $attribute, '\\'), 1);
+
+        return new self("#[{$name}] on {$target}: {$message}");
+    }
+
+    /**
+     * Thrown by the attribute itself, which does not know its target: reading it adds the target.
+     */
+    public static function because(string $message): self
+    {
+        return new self($message);
     }
 }

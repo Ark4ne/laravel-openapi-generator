@@ -52,6 +52,8 @@ final class Passes
         }
 
         return new self(
+            new Passes\WebhookPass(),
+            new Passes\CallbackResolutionPass(),
             new Passes\ThrownExceptionResponsePass(),
             new Passes\MiddlewareSecurityPass($mappers),
             new Passes\AuthorizationResponsePass($errors),

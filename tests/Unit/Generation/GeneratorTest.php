@@ -5,11 +5,15 @@ declare(strict_types=1);
 namespace Ark4ne\OpenApi\Tests\Unit\Generation;
 
 use Ark4ne\OpenApi\Configuration\Configuration;
+use Ark4ne\OpenApi\Description\OperationDescription;
 use Ark4ne\OpenApi\Generation\GeneratedDocument;
 use Ark4ne\OpenApi\Generation\Generator;
 use Ark4ne\OpenApi\Tests\Feature\DocumentScenario;
 use Ark4ne\OpenApi\Tests\Fixtures\Metadata\Controllers\UserController;
 use Ark4ne\OpenApi\Tests\Fixtures\Responses\ResponseController;
+use Ark4ne\OpenApi\Tests\Fixtures\Webhooks\OrderController;
+use Ark4ne\OpenApi\Tests\Fixtures\Webhooks\OrderWebhooks;
+use Ark4ne\OpenApi\Tests\Fixtures\Webhooks\PaymentWebhooks;
 use Ark4ne\OpenApi\Tests\Support\Schemas;
 use Ark4ne\OpenApiWriter\Enums\Version;
 use Illuminate\Contracts\Translation\Translator;
@@ -58,6 +62,19 @@ final class GeneratorTest extends DocumentScenario
         $generated = $this->generator()->all($configuration);
 
         self::assertSame(['v1 en', 'v1 fr', 'v2 en', 'v2 fr'], array_map(static fn(GeneratedDocument $document): string => "{$document->context->document->name} {$document->context->locale}", $generated));
+    }
+
+    public function test_a_webhook_is_filed_apart_and_a_webhook_without_name_is_left_out(): void
+    {
+        $this->router()->post('hooks/orders/created', [OrderWebhooks::class, 'created']);
+        $this->router()->post('hooks/payments/failed', [PaymentWebhooks::class, 'failed']);
+        $this->router()->post('api/orders', [OrderController::class, 'store']);
+
+        $description = $this->generator()->generate($this->configuration(), 'v1')->description;
+
+        self::assertSame(['/api/orders'], array_map(static fn(OperationDescription $o): string => $o->path, $description->operations));
+        self::assertSame(['order.created'], array_map(static fn(OperationDescription $o): ?string => $o->webhook, $description->webhooks));
+        self::assertCount(4, $description->operations[0]->callbacks);
     }
 
     private function configuration(): Configuration

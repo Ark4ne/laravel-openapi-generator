@@ -70,7 +70,9 @@ final readonly class DeclaredResponses
             ->description($attribute->description ?? self::phrase($attribute->status))
             ->summary($attribute->summary)
             ->origin(ResponseOrigin::Declared);
-        $body = $this->body($attribute, $scope, $context);
+        $body = $attribute->paginator !== null && $attribute->resource !== null && is_subclass_of($attribute->resource, JsonResource::class)
+            ? $this->collections->paginated($attribute->resource, $attribute->paginator, $context)
+            : $this->body($attribute->resource, $attribute->type, $scope, $context);
 
         if ($body !== null) {
             $body = $attribute->example === null ? $body : $body->example($attribute->example);
@@ -86,17 +88,16 @@ final readonly class DeclaredResponses
     }
 
     /**
+     * The body given by a resource, as Laravel writes it, or by a PHPDoc type read in the scope of its declaration.
+     *
      * @param ReflectionFunctionAbstract|ReflectionClass<covariant object> $scope
      */
-    private function body(Response $attribute, ReflectionFunctionAbstract|ReflectionClass $scope, GenerationContext $context): ?Schema
+    public function body(?string $resource, ?string $type, ReflectionFunctionAbstract|ReflectionClass $scope, GenerationContext $context): ?Schema
     {
-        $resource = $attribute->resource;
-
         return match (true) {
-            $resource !== null && $attribute->paginator !== null && is_subclass_of($resource, JsonResource::class) => $this->collections->paginated($resource, $attribute->paginator, $context),
             $resource !== null && is_subclass_of($resource, ResourceCollection::class) => $this->collections->collection($resource, $context),
             $resource !== null && is_subclass_of($resource, JsonResource::class) => $this->resources->envelope($resource, $this->resources->schema($resource, $context), $context),
-            $attribute->type !== null => TypeSchemas::of($this->types->parse($attribute->type, $scope)),
+            $type !== null => TypeSchemas::of($this->types->parse($type, $scope)),
             default => null,
         };
     }
