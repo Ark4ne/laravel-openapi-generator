@@ -8,10 +8,12 @@ use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Description\ResponseDescription;
 use Ark4ne\OpenApi\Extraction\OperationContext;
 use Ark4ne\OpenApi\Types\GenericType;
+use Ark4ne\OpenApi\Types\NamedType;
 use Ark4ne\OpenApi\Types\Type;
+use Ark4ne\OpenApiWriter\Objects\Schema;
 
 /**
- * A paginator returned as it is (`LengthAwarePaginator<int, User>`): the shape of its `toArray()`.
+ * A paginator returned as it is (`LengthAwarePaginator<int, User>`, or its contract): the shape of its `toArray()`.
  */
 final readonly class PaginatorExtractor implements ResponseExtractor
 {
@@ -28,16 +30,17 @@ final readonly class PaginatorExtractor implements ResponseExtractor
 
     public function supports(Type $type, OperationContext $operation): bool
     {
-        return $type instanceof GenericType && Paginations::supports($type->name);
+        return ($type instanceof GenericType || $type instanceof NamedType) && Paginations::supports($type->name);
     }
 
     public function extract(Type $type, OperationContext $operation, GenerationContext $context): array
     {
-        if (! $type instanceof GenericType) {
+        if (! $type instanceof GenericType && ! $type instanceof NamedType) {
             return [];
         }
 
-        $items = $this->values->of($type->arguments[array_key_last($type->arguments)], $context);
+        // Without type arguments, the items have no known shape.
+        $items = $type instanceof GenericType ? $this->values->of($type->arguments[array_key_last($type->arguments)], $context) : Schema::create();
 
         return [ResponseDescription::ok()->description('OK')->content('application/json', Paginations::raw($type->name, $items))];
     }

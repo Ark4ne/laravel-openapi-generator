@@ -120,5 +120,18 @@ reconnaît l'emporte (registre `ExceptionMappers`, priorité décroissante).
   puisse citer les causes ; `Error` et `ValidationError` sont des composants partagés.
 - **Flux d'événements** : `eventStream()` renvoie un `StreamedResponse`, indiscernable d'un flux binaire par son
   type : il se déclare par `#[Response(mediaType: 'text/event-stream', type: …)]`.
-- `#[Response]` accepte `example` et la cible `TARGET_CLASS` (exceptions).
+- `#[Response]` accepte `example` et la cible `TARGET_CLASS` (exceptions) ; sur une exception il est lu comme sur
+  une action (ressource, type, en-têtes, résumé), le corps d'erreur faute de corps.
+- **Une seule façon de décrire une ressource** : `ResourceSchemas`, y compris pour une ressource imbriquée (l'inféreur
+  d'E5 lui délègue par l'interface `Sampling\ResourceDescriber`). Ce qui est appris (composants décrits,
+  échantillons, valeurs) est tenu par contexte : chaque document a ses composants.
+- **Enveloppe** : la règle de `ResourceResponse::wrap()` — données sous `$wrap` sauf si elles contiennent déjà cette
+  clé, sous `data` sans enveloppe mais avec `with()` / `additional()`.
+- **Discriminateur** : seule une valeur identique dans deux échantillons de la même ressource compte (`type: cat`),
+  jamais une valeur de Faker.
+- **`#[Response]` répétés** : du parent vers l'enfant, un corps remplace celui d'une déclaration parente et s'ajoute
+  (`oneOf`) à celui de la même déclaration ; sans corps, seuls description, résumé et en-têtes changent.
+- **Exceptions** : `exceptions.map` retient la classe la plus proche ; seul `ValidationException` reçoit le corps
+  `ValidationError`, tout autre 422 le corps `Error`.
+- Un paginateur sans arguments de type (ou son contrat) garde la forme de pagination, éléments sans forme.
 

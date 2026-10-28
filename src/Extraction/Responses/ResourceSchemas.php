@@ -9,6 +9,7 @@ use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Context\Stage;
 use Ark4ne\OpenApi\Sampling\ComponentNames;
 use Ark4ne\OpenApi\Sampling\RelationLoader;
+use Ark4ne\OpenApi\Sampling\ResourceDescriber;
 use Ark4ne\OpenApi\Sampling\ResourceModels;
 use Ark4ne\OpenApi\Sampling\SampleRequest;
 use Ark4ne\OpenApi\Sampling\Samplers;
@@ -17,31 +18,58 @@ use Ark4ne\OpenApiWriter\Objects\Schema;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Http\Resources\Json\ResourceCollection;
 use ReflectionClass;
 use ReflectionProperty;
 use Throwable;
+use WeakMap;
 
 /**
- * The schema of a resource, from a sample of what it receives.
+ * The schema of a resource, from samples of what it receives; the only way a resource is described, returned or
+ * nested in another (the SchemaInferrer delegates to it).
  *
- * `toArray()` runs twice: on the sample, then on the sample with its relations loaded (RelationLoader). A key of both
- * runs is required; a key of the second only (`whenLoaded()`) is optional, but described. The resource is a
- * component (`#[SchemaName]`, or its name without `Resource`), referenced by `$ref` unless `use_references` is off.
+ * - `toArray()` runs on a sample, then on the sample with its relations loaded (RelationLoader): a key of both runs is
+ *   required, a key of the second only (`whenLoaded()`) optional, but described. A failing second run keeps the first.
+ * - A second sample tells the values that do not change from one sample to the other (`type: cat`): the discriminators.
+ * - The resource is a component (`#[SchemaName]`, or its name without `Resource`), referenced by `$ref` unless
+ *   `use_references` is off. What is learnt is kept per generation context: each document gets its components.
  */
-final class ResourceSchemas
+final class ResourceSchemas implements ResourceDescriber
 {
-    /** @var array<string, array<string, mixed>> component → top-level property → sampled scalar value */
-    private array $values = [];
+    private readonly SchemaInferrer $inferrer;
 
-    /** @var array<class-string, true> resources whose schema was computed */
-    private array $described = [];
+    /** @var WeakMap<GenerationContext, array{described: array<string, true>, values: array<string, array<string, mixed>>, samples: array<string, list<mixed>>}> */
+    private WeakMap $states;
 
     public function __construct(
         private readonly ResourceModels $models,
         private readonly Samplers $samplers,
-        private readonly SchemaInferrer $inferrer,
+        SchemaInferrer $inferrer,
         private readonly RelationLoader $relations,
-    ) {}
+    ) {
+        $this->inferrer = $inferrer->withResources($this);
+        $this->states = new WeakMap();
+    }
+
+    /**
+     * The inferrer that describes nested resources through this object.
+     */
+    public function inferrer(): SchemaInferrer
+    {
+        return $this->inferrer;
+    }
+
+    public function describe(JsonResource $resource, GenerationContext $context): Schema
+    {
+        if (! $resource instanceof ResourceCollection) {
+            return $this->schema($resource::class, $context);
+        }
+
+        // Declared `string`, `$collects` is null when a collection relies on the naming convention.
+        $collected = (new ReflectionProperty($resource, 'collects'))->getValue($resource) ?? $this->models->collected($resource::class);
+
+        return Schema::array()->items(is_string($collected) && is_subclass_of($collected, JsonResource::class) ? $this->schema($collected, $context) : Schema::create());
+    }
 
     /**
      * @param class-string<JsonResource> $resource
@@ -49,107 +77,50 @@ final class ResourceSchemas
     public function schema(string $resource, GenerationContext $context): Schema
     {
         $name = $context->components->nameOf($resource) ?? $context->components->register($resource, ComponentNames::of($resource), Schema::object());
+        $state = $this->state($context);
 
-        if (! isset($this->described[$resource])) {
+        if (! isset($state['described'][$resource])) {
             // Marked first: a resource nested in itself is then a reference.
-            $this->described[$resource] = true;
-            $context->components->register($resource, $name, $this->describe($resource, $name, $context));
+            $state['described'][$resource] = true;
+            $this->states[$context] = $state;
+            $context->components->register($resource, $name, $this->run($resource, $name, $context));
         }
 
         return $context->document->useReferences ? Schema::ref($name) : $context->components->get($name) ?? Schema::object();
     }
 
     /**
-     * The response body of a resource: its schema under `$wrap` (`data`), with `with()` and `$additional`.
+     * The response body of a resource, as `ResourceResponse::wrap()` builds it: the data under `$wrap` unless they
+     * already hold that key, under `data` when there is no wrapper but additional information; then `with()` and
+     * `$additional`.
      *
      * @param class-string<JsonResource> $resource
      */
     public function envelope(string $resource, Schema $inner, GenerationContext $context): Schema
     {
         $wrap = (new ReflectionProperty($resource, 'wrap'))->getValue();
-        $properties = is_string($wrap) && $wrap !== '' ? [$wrap => $inner] : [];
-        $instance = $this->instance($resource, $this->sample($resource, $context));
+        $wrap = is_string($wrap) && $wrap !== '' ? $wrap : null;
+        $extras = $this->extras($resource, $context);
+        $data = self::resolved($inner, $context);
+        $holdsWrapper = $wrap !== null && isset($data->properties[$wrap]);
 
-        if ($instance !== null) {
-            try {
-                foreach ([...$instance->with(Request::create('/')), ...$instance->additional] as $key => $value) {
-                    $properties[(string) $key] = $this->inferrer->infer($value, $context);
-                }
-            } catch (Throwable) {
-                // with() that fails adds nothing.
-            }
+        if ($extras === []) {
+            return $wrap === null || $holdsWrapper ? $inner : Paginations::object([$wrap => $inner]);
         }
 
-        return $properties === [] ? $inner : Paginations::object($properties);
+        if ($holdsWrapper) {
+            return ResourceSchemas::union($data, Paginations::object($extras));
+        }
+
+        return Paginations::object([$wrap ?? 'data' => $inner, ...$extras]);
     }
 
     /**
-     * The value a component's property took in its sample, for the discriminators.
+     * A value of a component's property that did not change from one sample to the other.
      */
-    public function value(string $component, string $property): mixed
+    public function value(string $component, string $property, GenerationContext $context): mixed
     {
-        return $this->values[$component][$property] ?? null;
-    }
-
-    /**
-     * @param class-string<JsonResource> $resource
-     */
-    private function describe(string $resource, string $name, GenerationContext $context): Schema
-    {
-        $sample = $this->sample($resource, $context);
-        $request = Request::create('/');
-
-        try {
-            $plain = $this->instance($resource, $sample)?->toArray($request) ?? [];
-            $schema = $this->inferrer->infer($plain, $context);
-            $this->values[$name] = [];
-
-            foreach (is_array($plain) ? $plain : [] as $key => $value) {
-                if (is_scalar($value)) {
-                    $this->values[$name][(string) $key] = $value;
-                }
-            }
-
-            if ($sample instanceof Model) {
-                $loaded = $this->instance($resource, $this->relations->load($sample, $context))?->toArray($request) ?? [];
-                $schema = self::union($schema, $this->inferrer->infer($loaded, $context));
-            }
-
-            return $schema;
-        } catch (Throwable $error) {
-            $context->diagnostics->warning(Stage::Response, "cannot run {$resource}::toArray(): {$error->getMessage()}");
-
-            return Schema::object();
-        }
-    }
-
-    /**
-     * A sample of what the resource receives: its model, or what its #[ResourceFactory] builds; `null` otherwise.
-     *
-     * @param class-string<JsonResource> $resource
-     */
-    private function sample(string $resource, GenerationContext $context): mixed
-    {
-        $model = $this->models->model($resource);
-        $factory = (new ReflectionClass($resource))->getAttributes(ResourceFactory::class) !== [];
-
-        if ($model === null && ! $factory) {
-            return null;
-        }
-
-        return $this->samplers->sample(new SampleRequest($model ?? $resource, $resource), $context)[0] ?? null;
-    }
-
-    /**
-     * @param class-string<JsonResource> $resource
-     */
-    private function instance(string $resource, mixed $sample): ?JsonResource
-    {
-        try {
-            return new $resource($sample);
-        } catch (Throwable) {
-            return null;
-        }
+        return $this->state($context)['values'][$component][$property] ?? null;
     }
 
     /**
@@ -167,5 +138,144 @@ final class ResourceSchemas
         $schema = Schema::object()->properties(...array_values($properties));
 
         return $required === [] ? $schema : $schema->required(...$required);
+    }
+
+    /**
+     * @param class-string<JsonResource> $resource
+     */
+    private function run(string $resource, string $name, GenerationContext $context): Schema
+    {
+        $samples = $this->samples($resource, $context);
+        $request = Request::create('/');
+
+        try {
+            $plain = $this->instance($resource, $samples[0] ?? null)?->toArray($request) ?? [];
+            $schema = $this->inferrer->infer($plain, $context);
+        } catch (Throwable $error) {
+            $context->diagnostics->warning(Stage::Response, "cannot run {$resource}::toArray(): {$error->getMessage()}");
+
+            return Schema::object();
+        }
+
+        $this->remember($resource, $name, is_array($plain) ? $plain : [], $samples[1] ?? null, $context);
+
+        if (! ($samples[0] ?? null) instanceof Model) {
+            return $schema;
+        }
+
+        try {
+            $loaded = $this->instance($resource, $this->relations->load($samples[0], $context))?->toArray($request) ?? [];
+
+            return self::union($schema, $this->inferrer->infer($loaded, $context));
+        } catch (Throwable $error) {
+            $context->diagnostics->warning(Stage::Response, "cannot run {$resource}::toArray() with the relations of its model, described without them: {$error->getMessage()}");
+
+            return $schema;
+        }
+    }
+
+    /**
+     * Keeps the scalar values of the first sample that the second sample gives too.
+     *
+     * @param class-string<JsonResource> $resource
+     * @param array<array-key, mixed> $plain
+     */
+    private function remember(string $resource, string $name, array $plain, mixed $other, GenerationContext $context): void
+    {
+        try {
+            $second = $this->instance($resource, $other)?->toArray(Request::create('/'));
+        } catch (Throwable) {
+            $second = null;
+        }
+
+        $values = [];
+
+        foreach ($plain as $key => $value) {
+            if (is_scalar($value) && (! is_array($second) || ($second[$key] ?? null) === $value)) {
+                $values[(string) $key] = $value;
+            }
+        }
+
+        $state = $this->state($context);
+        $state['values'][$name] = $values;
+        $this->states[$context] = $state;
+    }
+
+    /**
+     * `with()` and `$additional` of a sampled instance.
+     *
+     * @param class-string<JsonResource> $resource
+     *
+     * @return array<string, Schema>
+     */
+    private function extras(string $resource, GenerationContext $context): array
+    {
+        $instance = $this->instance($resource, $this->samples($resource, $context)[0] ?? null);
+        $extras = [];
+
+        try {
+            foreach ($instance === null ? [] : [...$instance->with(Request::create('/')), ...$instance->additional] as $key => $value) {
+                $extras[(string) $key] = $this->inferrer->infer($value, $context);
+            }
+        } catch (Throwable) {
+            // with() that fails adds nothing.
+        }
+
+        return $extras;
+    }
+
+    /**
+     * Two samples of what the resource receives (its model, or what its #[ResourceFactory] builds), sampled once per
+     * context; none when there is nothing to sample.
+     *
+     * @param class-string<JsonResource> $resource
+     *
+     * @return list<mixed>
+     */
+    private function samples(string $resource, GenerationContext $context): array
+    {
+        $state = $this->state($context);
+
+        if (isset($state['samples'][$resource])) {
+            return $state['samples'][$resource];
+        }
+
+        $model = $this->models->model($resource);
+        $factory = (new ReflectionClass($resource))->getAttributes(ResourceFactory::class) !== [];
+        $samples = $model === null && ! $factory ? [] : $this->samplers->sample(new SampleRequest($model ?? $resource, $resource, 2), $context) ?? [];
+        $state['samples'][$resource] = $samples;
+        $this->states[$context] = $state;
+
+        return $samples;
+    }
+
+    /**
+     * @param class-string<JsonResource> $resource
+     */
+    private function instance(string $resource, mixed $sample): ?JsonResource
+    {
+        try {
+            return new $resource($sample);
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * The schema a reference points to.
+     */
+    private static function resolved(Schema $schema, GenerationContext $context): Schema
+    {
+        $ref = $schema->ref;
+
+        return is_string($ref) ? $context->components->get(substr($ref, (int) strrpos($ref, '/') + 1)) ?? $schema : $schema;
+    }
+
+    /**
+     * @return array{described: array<string, true>, values: array<string, array<string, mixed>>, samples: array<string, list<mixed>>}
+     */
+    private function state(GenerationContext $context): array
+    {
+        return $this->states[$context] ?? ['described' => [], 'values' => [], 'samples' => []];
     }
 }

@@ -9,8 +9,8 @@ use Ark4ne\OpenApi\Description\ResponseDescription;
 
 /**
  * `exceptions.map` of the configuration (`Exception::class => 402`, or `['status' => 402, 'description' => …]`), the
- * exception or a parent class: for the exceptions an application cannot annotate, and those `bootstrap/app.php`
- * renders through closures.
+ * exception or its closest parent class: for the exceptions an application cannot annotate, and those
+ * `bootstrap/app.php` renders through closures.
  */
 final readonly class ConfiguredExceptionMapper implements ExceptionMapper
 {
@@ -38,23 +38,24 @@ final readonly class ConfiguredExceptionMapper implements ExceptionMapper
      */
     private static function entry(string $exception, GenerationContext $context): ?array
     {
+        $found = null;
+        $closest = null;
+
+        // The most specific class wins, whatever the order of the configuration.
         foreach ($context->configuration->exceptions->map as $class => $response) {
-            if (! is_a($exception, $class, true)) {
+            if (! is_a($exception, $class, true) || ($closest !== null && ! is_subclass_of($class, $closest))) {
                 continue;
             }
 
-            if (is_int($response)) {
-                return [$response, null];
-            }
-
-            $status = $response['status'] ?? null;
-            $description = $response['description'] ?? null;
+            $status = is_int($response) ? $response : ($response['status'] ?? null);
+            $description = is_array($response) ? $response['description'] ?? null : null;
 
             if (is_int($status)) {
-                return [$status, is_string($description) ? $description : null];
+                $found = [$status, is_string($description) ? $description : null];
+                $closest = $class;
             }
         }
 
-        return null;
+        return $found;
     }
 }

@@ -13,6 +13,7 @@ use Ark4ne\OpenApi\Description\ResponseOrigin;
 use Ark4ne\OpenApi\Extraction\OperationContextFactory;
 use Ark4ne\OpenApi\Extraction\Responses\OperationResponses;
 use Ark4ne\OpenApi\Sampling\Samplers;
+use Ark4ne\OpenApi\Tests\Fixtures\Responses\ChildResponseController;
 use Ark4ne\OpenApi\Tests\Fixtures\Responses\Exceptions\PaymentRequiredException;
 use Ark4ne\OpenApi\Tests\Fixtures\Responses\Exceptions\UnknownException;
 use Ark4ne\OpenApi\Tests\Fixtures\Responses\ResponseController;
@@ -234,6 +235,97 @@ final class OperationResponsesTest extends SamplingTestCase
         self::assertDiagnostics(['[info] response GET /api/throwing: no response known for ' . UnknownException::class], $this->ctx());
         Schemas::assertSame('{"type":"object","properties":{"message":{"type":"string"}},"required":["message"]}', $this->componentSchema('Error'));
         Schemas::assertSame('{"type":"object","properties":{"message":{"type":"string"},"errors":{"type":"object","additionalProperties":{"type":"array","items":{"type":"string"}}}},"required":["message","errors"]}', $this->componentSchema('ValidationError'));
+    }
+
+    public function test_a_second_document_gets_the_whole_schema_of_a_resource(): void
+    {
+        $this->router()->get('api/articles/{article}', [ResponseController::class, 'show']);
+        $types = new TypeResolver();
+        $session = $this->samplingSession();
+        $responses = OperationResponses::default(Samplers::default($session, $types), $types);
+
+        foreach ([1, 2] as $document) {
+            $context = $this->context(sampling: new SamplingConfiguration(examples: false));
+            $operation = (new OperationContextFactory($types))->create($this->definitions($context)[0], $context);
+            $session->run(static fn(): array => $responses->describe($operation, $context), $context);
+
+            Schemas::assertSame(self::ARTICLE, $context->components->get('Article') ?? Schema::create(), "document {$document}");
+        }
+    }
+
+    public function test_an_unwrapped_resource_with_additional_information_is_put_under_data(): void
+    {
+        Schemas::assertSame('{"type":"object","properties":{"data":{"$ref":"#/components/schemas/Unwrapped"},"meta":{"type":"object","properties":{"version":{"type":"string"}},"required":["version"]}},"required":["data","meta"]}', $this->jsonSchema($this->only('get', 'api/unwrapped', 'unwrapped')));
+    }
+
+    public function test_a_resource_whose_data_holds_data_is_not_wrapped_again(): void
+    {
+        Schemas::assertSame('{"$ref":"#/components/schemas/PreWrapped"}', $this->jsonSchema($this->only('get', 'api/pre-wrapped', 'preWrapped')));
+    }
+
+    public function test_the_discriminator_is_a_property_whose_value_does_not_change_between_samples(): void
+    {
+        $data = self::at($this->jsonSchema($this->only('get', 'api/animal', 'animal')), 'data');
+
+        self::assertSame('type', $data->discriminator?->propertyName);
+    }
+
+    public function test_a_failing_run_with_relations_keeps_the_plain_schema(): void
+    {
+        $this->only('get', 'api/broken-author', 'brokenAuthor');
+
+        Schemas::assertSame('{"type":"object","properties":{"id":{"type":"integer"},"author":{}},"required":["id","author"]}', $this->componentSchema('ArticleWithBrokenAuthor'));
+        self::assertStringContainsString('broken author', implode("\n", array_map(strval(...), $this->ctx()->diagnostics->all())));
+    }
+
+    public function test_a_nested_resource_is_described_with_its_relations(): void
+    {
+        $this->only('get', 'api/wrapper', 'wrapper');
+
+        Schemas::assertSame(self::ARTICLE, $this->componentSchema('Article'));
+    }
+
+    public function test_a_paginator_without_type_arguments_has_the_shape_of_laravel(): void
+    {
+        $plain = $this->jsonSchema($this->only('get', 'api/plain-paginator', 'plainPaginator'));
+        $this->context = null;
+        $contract = $this->jsonSchema($this->only('get', 'api/contract-paginator', 'contractPaginator'));
+
+        self::assertContains('total', self::keys($plain));
+        self::assertContains('total', self::keys($contract));
+    }
+
+    public function test_a_body_declared_by_a_parent_is_kept_when_the_child_declares_a_description(): void
+    {
+        $this->router()->get('api/inherited', [ChildResponseController::class, 'inherited']);
+
+        $response = $this->describe()[0];
+
+        self::assertSame('Fine', $response->description);
+        Schemas::assertSame('{"type":"object","properties":{"data":{"$ref":"#/components/schemas/Author"}},"required":["data"]}', $this->jsonSchema($response));
+    }
+
+    public function test_two_bodies_declared_for_one_status_are_one_of_them(): void
+    {
+        $this->router()->get('api/two-bodies', [ChildResponseController::class, 'twoBodies']);
+
+        $responses = $this->describe();
+
+        self::assertCount(1, $responses);
+        Schemas::assertSame([
+            'oneOf' => [['$ref' => '#/components/schemas/Cat'], ['$ref' => '#/components/schemas/Dog']],
+            'discriminator' => ['propertyName' => 'type', 'mapping' => ['cat' => '#/components/schemas/Cat', 'dog' => '#/components/schemas/Dog']],
+        ], self::at($this->jsonSchema($responses[0]), 'data'));
+    }
+
+    public function test_a_422_that_is_not_a_validation_has_the_error_body_and_an_exception_attribute_is_complete(): void
+    {
+        $responses = $this->describe('get', 'api/unprocessable', 'unprocessable');
+
+        Schemas::assertSame('{"$ref":"#/components/schemas/Error"}', $this->jsonSchema($responses[1]));
+        self::assertSame([409, 'Busy'], [$responses[2]->status, $responses[2]->summary]);
+        Schemas::assertSame('{"type":"object","properties":{"data":{"$ref":"#/components/schemas/Author"}},"required":["data"]}', $this->jsonSchema($responses[2]));
+        self::assertSame(['Retry-After'], array_map(static fn(HeaderDescription $header): string => $header->name, $responses[2]->headers));
     }
 
     /**

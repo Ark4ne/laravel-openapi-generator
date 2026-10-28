@@ -22,13 +22,13 @@ final class ErrorSchemas
     public const VALIDATION = 'ValidationError';
 
     /**
-     * A response of this status with the error body (the validation body for a 422).
+     * A response of this status with the error body, or the validation body (`ValidationException` only).
      */
-    public static function response(int $status, ?string $description, GenerationContext $context): ResponseDescription
+    public static function response(int $status, ?string $description, GenerationContext $context, bool $validation = false): ResponseDescription
     {
         return ResponseDescription::create($status)
             ->description($description ?? DeclaredResponses::phrase($status))
-            ->content('application/json', $status === 422 ? self::validation($context) : self::error($context));
+            ->content('application/json', $validation ? self::validation($context) : self::error($context));
     }
 
     public static function error(GenerationContext $context): Schema

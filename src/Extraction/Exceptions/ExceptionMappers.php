@@ -6,7 +6,7 @@ namespace Ark4ne\OpenApi\Extraction\Exceptions;
 
 use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Description\ResponseDescription;
-use Ark4ne\OpenApi\Types\TypeResolver;
+use Ark4ne\OpenApi\Extraction\Responses\DeclaredResponses;
 
 /**
  * The exception mappers: `#[Response]` of the exception → configuration → Laravel → Symfony → HttpException built.
@@ -23,10 +23,10 @@ final class ExceptionMappers
         $this->mappers = $mappers;
     }
 
-    public static function default(TypeResolver $types = new TypeResolver()): self
+    public static function default(DeclaredResponses $declared): self
     {
         return new self(
-            new AttributeExceptionMapper($types),
+            new AttributeExceptionMapper($declared),
             new ConfiguredExceptionMapper(),
             new LaravelExceptionMapper(),
             new SymfonyHttpExceptionMapper(),

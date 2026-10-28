@@ -30,14 +30,24 @@ use JsonSerializable;
  * - The declared type wins on the type of a scalar or of `null`: a `null` sample does not make a field only `null`.
  * - Lists take the schema of their first item (an empty list, the declared item type); arrays with keys are objects,
  *   each key required unless its value is missing (`when()`, `whenLoaded()`…).
- * - A model is its attributes, typed by ModelSchemas; a nested resource becomes a component, referenced by `$ref`.
+ * - A model is its attributes, typed by ModelSchemas; a nested resource is described by the ResourceDescriber
+ *   (as a returned resource), else becomes a component from one run, referenced by `$ref`.
  * - Scalars carry their value as example, unless `sampling.examples` is off.
  */
 final readonly class SchemaInferrer
 {
     public function __construct(
         private ModelSchemas $models,
+        private ?ResourceDescriber $resources = null,
     ) {}
+
+    /**
+     * This inferrer, describing the nested resources with the given describer.
+     */
+    public function withResources(ResourceDescriber $resources): self
+    {
+        return new self($this->models, $resources);
+    }
 
     public function infer(mixed $value, GenerationContext $context, ?Type $declared = null): Schema
     {
@@ -122,6 +132,10 @@ final readonly class SchemaInferrer
 
     private function resource(JsonResource $resource, GenerationContext $context): Schema
     {
+        if ($this->resources !== null) {
+            return $this->resources->describe($resource, $context);
+        }
+
         $class = $resource::class;
         $name = $context->components->nameOf($class);
 

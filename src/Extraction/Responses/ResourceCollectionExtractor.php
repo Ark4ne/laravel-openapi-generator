@@ -47,6 +47,18 @@ final readonly class ResourceCollectionExtractor implements ResponseExtractor
     }
 
     /**
+     * The body of a collection class: `data`, a list of the resource it collects.
+     *
+     * @param class-string<ResourceCollection> $collection
+     */
+    public function collection(string $collection, GenerationContext $context): Schema
+    {
+        $item = $this->models->collected($collection);
+
+        return Paginations::object(['data' => Schema::array()->items($item === null ? Schema::create() : $this->resources->schema($item, $context))]);
+    }
+
+    /**
      * The body of a paginated collection of a resource.
      *
      * @param class-string<JsonResource> $resource

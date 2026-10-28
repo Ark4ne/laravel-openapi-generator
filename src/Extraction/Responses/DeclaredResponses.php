@@ -11,10 +11,10 @@ use Ark4ne\OpenApi\Description\ResponseDescription;
 use Ark4ne\OpenApi\Description\ResponseOrigin;
 use Ark4ne\OpenApi\Extraction\OperationContext;
 use Ark4ne\OpenApi\Sampling\TypeSchemas;
-use Ark4ne\OpenApi\Types\NamedType;
 use Ark4ne\OpenApi\Types\TypeResolver;
 use Ark4ne\OpenApiWriter\Objects\Schema;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Http\Resources\Json\ResourceCollection;
 use ReflectionClass;
 use ReflectionFunctionAbstract;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
@@ -28,20 +28,22 @@ use Symfony\Component\HttpFoundation\Response as HttpResponse;
 final readonly class DeclaredResponses
 {
     public function __construct(
-        private ResponseExtractors $extractors,
+        private ResourceSchemas $resources,
         private ResourceCollectionExtractor $collections,
         private TypeResolver $types,
     ) {}
 
     /**
-     * @return list<ResponseDescription>
+     * Each response with the declaration that carries it, from the parent declaration down.
+     *
+     * @return list<array{ResponseDescription, ReflectionFunctionAbstract}>
      */
     public function describe(OperationContext $operation, GenerationContext $context): array
     {
         $responses = [];
 
         foreach ($operation->declaredActionAttributes(Response::class, $context) as [$attribute, $declaration]) {
-            $responses[] = $this->response($attribute, $declaration, $operation, $context);
+            $responses[] = [$this->response($attribute, $declaration, $context), $declaration];
         }
 
         return $responses;
@@ -62,13 +64,13 @@ final readonly class DeclaredResponses
      *
      * @param ReflectionFunctionAbstract|ReflectionClass<covariant object> $scope
      */
-    public function response(Response $attribute, ReflectionFunctionAbstract|ReflectionClass $scope, ?OperationContext $operation, GenerationContext $context): ResponseDescription
+    public function response(Response $attribute, ReflectionFunctionAbstract|ReflectionClass $scope, GenerationContext $context): ResponseDescription
     {
         $response = ResponseDescription::create($attribute->status)
             ->description($attribute->description ?? self::phrase($attribute->status))
             ->summary($attribute->summary)
             ->origin(ResponseOrigin::Declared);
-        $body = $this->body($attribute, $scope, $operation, $context);
+        $body = $this->body($attribute, $scope, $context);
 
         if ($body !== null) {
             $body = $attribute->example === null ? $body : $body->example($attribute->example);
@@ -86,22 +88,16 @@ final readonly class DeclaredResponses
     /**
      * @param ReflectionFunctionAbstract|ReflectionClass<covariant object> $scope
      */
-    private function body(Response $attribute, ReflectionFunctionAbstract|ReflectionClass $scope, ?OperationContext $operation, GenerationContext $context): ?Schema
+    private function body(Response $attribute, ReflectionFunctionAbstract|ReflectionClass $scope, GenerationContext $context): ?Schema
     {
         $resource = $attribute->resource;
 
-        if ($resource !== null && is_subclass_of($resource, JsonResource::class)) {
-            if ($attribute->paginator !== null) {
-                return $this->collections->paginated($resource, $attribute->paginator, $context);
-            }
-
-            if ($operation !== null) {
-                $inferred = $this->extractors->extract(new NamedType($resource), $operation, $context)[0] ?? null;
-
-                return $inferred?->contents['application/json'] ?? null;
-            }
-        }
-
-        return $attribute->type === null ? null : TypeSchemas::of($this->types->parse($attribute->type, $scope));
+        return match (true) {
+            $resource !== null && $attribute->paginator !== null && is_subclass_of($resource, JsonResource::class) => $this->collections->paginated($resource, $attribute->paginator, $context),
+            $resource !== null && is_subclass_of($resource, ResourceCollection::class) => $this->collections->collection($resource, $context),
+            $resource !== null && is_subclass_of($resource, JsonResource::class) => $this->resources->envelope($resource, $this->resources->schema($resource, $context), $context),
+            $attribute->type !== null => TypeSchemas::of($this->types->parse($attribute->type, $scope)),
+            default => null,
+        };
     }
 }

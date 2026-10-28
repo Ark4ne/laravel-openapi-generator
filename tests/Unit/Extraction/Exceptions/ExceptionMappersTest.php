@@ -11,17 +11,30 @@ use Ark4ne\OpenApi\Extraction\Exceptions\ExceptionMappers;
 use Ark4ne\OpenApi\Extraction\Exceptions\InstantiableHttpExceptionMapper;
 use Ark4ne\OpenApi\Extraction\Exceptions\LaravelExceptionMapper;
 use Ark4ne\OpenApi\Extraction\Exceptions\SymfonyHttpExceptionMapper;
+use Ark4ne\OpenApi\Extraction\Responses\DeclaredResponses;
+use Ark4ne\OpenApi\Extraction\Responses\ResourceCollectionExtractor;
+use Ark4ne\OpenApi\Extraction\Responses\ResourceSchemas;
+use Ark4ne\OpenApi\Sampling\ModelSchemas;
+use Ark4ne\OpenApi\Sampling\NullSamplingSession;
+use Ark4ne\OpenApi\Sampling\RelationLoader;
+use Ark4ne\OpenApi\Sampling\ResourceModels;
+use Ark4ne\OpenApi\Sampling\Samplers;
+use Ark4ne\OpenApi\Sampling\SchemaInferrer;
 use Ark4ne\OpenApi\Tests\Fixtures\Responses\Exceptions\ChildSeatException;
 use Ark4ne\OpenApi\Tests\Fixtures\Responses\Exceptions\PaymentRequiredException;
 use Ark4ne\OpenApi\Tests\Fixtures\Responses\Exceptions\TeapotException;
 use Ark4ne\OpenApi\Tests\Fixtures\Responses\Exceptions\UnknownException;
+use Ark4ne\OpenApi\Tests\Support\Schemas;
 use Ark4ne\OpenApi\Tests\TestCase;
+use Ark4ne\OpenApi\Types\TypeResolver;
+use Ark4ne\OpenApiWriter\Objects\Schema;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Session\TokenMismatchException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
+use RuntimeException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
@@ -38,7 +51,7 @@ final class ExceptionMappersTest extends TestCase
     {
         self::assertSame(
             [AttributeExceptionMapper::class, ConfiguredExceptionMapper::class, LaravelExceptionMapper::class, SymfonyHttpExceptionMapper::class, InstantiableHttpExceptionMapper::class],
-            array_map(get_class(...), ExceptionMappers::default()->all()),
+            array_map(get_class(...), self::mappers()->all()),
         );
     }
 
@@ -68,7 +81,7 @@ final class ExceptionMappersTest extends TestCase
     {
         $context = $this->context(exceptions: new ExceptionsConfiguration(map: [PaymentRequiredException::class => 402]));
 
-        self::assertSame($status, ExceptionMappers::default()->map($exception, $context)?->status);
+        self::assertSame($status, self::mappers()->map($exception, $context)?->status);
     }
 
     public function test_the_configuration_gives_the_description(): void
@@ -78,10 +91,34 @@ final class ExceptionMappersTest extends TestCase
         self::assertSame('Pay first', (new ConfiguredExceptionMapper())->map(PaymentRequiredException::class, $context)?->description);
     }
 
+    public function test_the_most_specific_configured_class_wins(): void
+    {
+        $context = $this->context(exceptions: new ExceptionsConfiguration(map: [RuntimeException::class => 500, PaymentRequiredException::class => 402]));
+
+        self::assertSame(402, (new ConfiguredExceptionMapper())->map(PaymentRequiredException::class, $context)?->status);
+    }
+
+    public function test_an_exception_attribute_without_body_gets_the_error_body(): void
+    {
+        $response = self::mappers()->map(ChildSeatException::class, $this->context());
+
+        Schemas::assertSame('{"$ref":"#/components/schemas/Error"}', $response->contents['application/json'] ?? Schema::create());
+    }
+
     public function test_an_invalid_configured_response_is_ignored(): void
     {
         $context = $this->context(exceptions: new ExceptionsConfiguration(map: [PaymentRequiredException::class => ['description' => 'no status']]));
 
         self::assertFalse((new ConfiguredExceptionMapper())->supports(PaymentRequiredException::class, $context));
+    }
+
+    private static function mappers(): ExceptionMappers
+    {
+        $types = new TypeResolver();
+        $samplers = Samplers::default(new NullSamplingSession(), $types);
+        $models = new ResourceModels($types);
+        $resources = new ResourceSchemas($models, $samplers, new SchemaInferrer(new ModelSchemas($types)), new RelationLoader($samplers));
+
+        return ExceptionMappers::default(new DeclaredResponses($resources, new ResourceCollectionExtractor($resources, $models), $types));
     }
 }

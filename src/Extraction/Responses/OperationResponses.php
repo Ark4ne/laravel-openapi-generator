@@ -20,6 +20,7 @@ use Ark4ne\OpenApi\Sampling\SchemaInferrer;
 use Ark4ne\OpenApi\Types\TypeResolver;
 use Ark4ne\OpenApiWriter\Objects\Discriminator;
 use Ark4ne\OpenApiWriter\Objects\Schema;
+use ReflectionFunctionAbstract;
 
 /**
  * Every response of an operation: inferred from each member of the return type, replaced by `#[Response]` for its
@@ -39,14 +40,14 @@ final readonly class OperationResponses
 
     public static function default(Samplers $samplers, TypeResolver $types): self
     {
-        $inferrer = new SchemaInferrer(new ModelSchemas($types));
         $models = new ResourceModels($types);
-        $resources = new ResourceSchemas($models, $samplers, $inferrer, new RelationLoader($samplers));
+        $resources = new ResourceSchemas($models, $samplers, new SchemaInferrer(new ModelSchemas($types)), new RelationLoader($samplers));
+        $inferrer = $resources->inferrer();
         $values = new ValueSchemas($resources, $samplers, $inferrer);
         $extractors = ResponseExtractors::default($resources, $models, $values, $samplers, $inferrer);
-        $declared = new DeclaredResponses($extractors, new ResourceCollectionExtractor($resources, $models), $types);
+        $declared = new DeclaredResponses($resources, new ResourceCollectionExtractor($resources, $models), $types);
 
-        return new self($extractors, $declared, new ExceptionResponses(ExceptionMappers::default($types)), $resources);
+        return new self($extractors, $declared, new ExceptionResponses(ExceptionMappers::default($declared)), $resources);
     }
 
     /**
@@ -69,11 +70,27 @@ final readonly class OperationResponses
 
         $responses = array_map(fn(array $responses): ResponseDescription => $this->merge($responses, $context), $byStatus);
 
-        foreach ($this->declared->describe($operation, $context) as $declared) {
-            $inferred = $responses[$declared->status] ?? null;
-            $responses[$declared->status] = $inferred === null || $declared->contents !== [] || $declared->itemContents !== []
-                ? $declared
-                : $inferred->description($declared->description)->summary($declared->summary)->addHeaders(...$declared->headers)->origin(ResponseOrigin::Declared);
+        /** @var array<int|string, ReflectionFunctionAbstract> $declarations status → declaration of its last declared body */
+        $declarations = [];
+
+        // From the parent declaration down: a body replaces the one of a parent, adds up with one of the same
+        // declaration (`oneOf`); a response without body changes only the description, the summary and the headers.
+        foreach ($this->declared->describe($operation, $context) as [$declared, $declaration]) {
+            $status = $declared->status;
+            $previous = $responses[$status] ?? null;
+            $hasBody = $declared->contents !== [] || $declared->itemContents !== [];
+
+            if ($previous === null || ($hasBody && ($declarations[$status] ?? null) !== $declaration)) {
+                $responses[$status] = $declared;
+            } elseif ($hasBody) {
+                $responses[$status] = $this->merge([$previous, $declared], $context)->description($declared->description)->summary($declared->summary)->addHeaders(...$declared->headers);
+            } else {
+                $responses[$status] = $previous->description($declared->description)->summary($declared->summary ?? $previous->summary)->addHeaders(...$declared->headers)->origin(ResponseOrigin::Declared);
+            }
+
+            if ($hasBody) {
+                $declarations[$status] = $declaration;
+            }
         }
 
         return [...array_values($responses), ...$this->exceptions->describe($operation, $context)];
@@ -150,7 +167,7 @@ final readonly class OperationResponses
             $mapping = [];
 
             foreach ($names as $name) {
-                $value = $this->resources->value($name, $property);
+                $value = $this->resources->value($name, $property, $context);
 
                 if (is_string($value) && ! isset($mapping[$value])) {
                     $mapping[$value] = "#/components/schemas/{$name}";

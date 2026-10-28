@@ -50,7 +50,7 @@ final readonly class LaravelExceptionMapper implements ExceptionMapper
     {
         $status = self::status($exception);
 
-        return $status === null ? null : ErrorSchemas::response($status, null, $context);
+        return $status === null ? null : ErrorSchemas::response($status, null, $context, is_a($exception, ValidationException::class, true));
     }
 
     private static function status(string $exception): ?int
