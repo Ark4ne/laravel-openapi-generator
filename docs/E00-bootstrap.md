@@ -66,7 +66,7 @@ Fait : les modifications en attente de la v0.6 sont commitées sur `v0.6` (`e7d0
 - La CI récupère `ark4ne/openapi-writer` depuis GitHub (`main`) et le place dans `../openapi-writer` : elle échouera
   tant que ce dépôt n'existe pas.
 - `codecov.yml` et l'envoi à Codecov sont retirés : le seuil est vérifié par `bin/coverage-check.php`, comme dans le writer.
-- `LICENSE` contient la GPL-3.0 alors que `composer.json` déclare MIT (déjà le cas en v0.6) : à trancher avant la 1.0.
+- `LICENSE` contenait la GPL-3.0 alors que `composer.json` déclarait MIT (déjà le cas en v0.6) : MIT retenu le 2026-10-28, comme pour `openapi-writer`.
 
 - Laravel 14 est attendu au premier trimestre 2027 : l'ajouter à la contrainte et à la matrice dès sa sortie.
 - `ark4ne/openapi-writer` n'a ni dépôt distant ni tag : sa publication en 1.0.0 bloque la release du générateur (E11).

@@ -93,4 +93,5 @@ E4 et E5/E6 peuvent avancer en parallèle une fois E3 terminé.
 | 2026-10-28 | Découverte (E2) : une `RouteDefinition` par méthode et par chemin ; masques `include` / `exclude` par URI, nom, domaine ou middleware ; `QUERY` et méthodes non standard retirées avant 3.2 en permissif, laissées au writer en strict |
 | 2026-10-28 | Webhooks : `#[Webhook]` reste posé sur des routes réelles ; la documentation explique comment les protéger ou les désactiver |
 | 2026-10-28 | `externalDocsDescription` ajouté à `#[Operation]` et `#[Tag]`, à côté de l'URL `externalDocs` |
+| 2026-10-28 | Licence MIT (le fichier `LICENSE` était en GPL-3.0, `composer.json` en MIT) |
 | 2026-10-28 | Tests : PHPUnit, Orchestra Testbench, fixtures JSON validées contre le schéma officiel ; couverture ≥ 90 % des lignes, MSI ≥ 80 % |
