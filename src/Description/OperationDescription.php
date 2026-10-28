@@ -24,7 +24,7 @@ final readonly class OperationDescription extends Description
      * @param list<SecurityDescription>|null $security `null` inherits the document security
      * @param array{url: string, description?: string}|null $externalDocs
      * @param list<CallbackDescription> $callbacks
-     * @param list<string> $servers server URLs of the operation (domain routes)
+     * @param list<ServerDescription> $servers servers of the operation (routes with a domain)
      * @param array<string, mixed> $extensions `x-*` extensions
      */
     protected function __construct(
@@ -159,12 +159,12 @@ final readonly class OperationDescription extends Description
         return $this->copy(callbacks: [...$this->callbacks, ...array_values($callbacks)]);
     }
 
-    public function servers(string ...$servers): static
+    public function servers(ServerDescription ...$servers): static
     {
         return $this->copy(servers: array_values($servers));
     }
 
-    public function addServers(string ...$servers): static
+    public function addServers(ServerDescription ...$servers): static
     {
         return $this->copy(servers: [...$this->servers, ...array_values($servers)]);
     }

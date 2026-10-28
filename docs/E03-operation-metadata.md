@@ -43,7 +43,8 @@ attributs et sa PHPDoc, et en tirer résumé, description, tags, `operationId`, 
 - [x] `SummaryStrategy` : PHPDoc, nom de route, URI, contrôleur (remplace `name-by`)
 - [x] `TagStrategy` : contrôleur, URI, nom de route, avec `pattern` (remplace `tag-by`) ; `#[Tag]` lu par
       l'extracteur d'attributs
-- [x] `GroupStrategy` : groupes de tags (remplace `group-by`), appliquée par la `TagGroupPass` (E7)
+- [x] `GroupStrategy` : groupes de tags (remplace `group-by`), appliquée par l'extracteur de nommage (parent du tag) ; la
+      `TagGroupPass` (E7) déclare les tags parents
 - [x] `OperationIdStrategy` : nom de route, `Contrôleur.méthode`, méthode + chemin (repli des deux premiers) ;
       unicité garantie par une passe (E7)
 - [x] Clés de traduction acceptées dans les résumés, descriptions et tags (`TranslationOperationExtractor`, contrat

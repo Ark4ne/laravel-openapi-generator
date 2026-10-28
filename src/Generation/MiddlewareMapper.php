@@ -15,14 +15,16 @@ use Ark4ne\OpenApi\Description\OperationDescription;
 interface MiddlewareMapper
 {
     /**
-     * @param string $middleware as declared on the route (`auth:sanctum`, `throttle:60,1`)
+     * The aliases it handles (`auth`, `throttle`…); the declared classes are read as their alias.
+     *
+     * @return list<string>
      */
-    public function supports(string $middleware): bool;
+    public function handles(): array;
 
     /**
      * Returns the operation and the document, which receives the shared components (security schemes, responses).
      *
      * @return array{OperationDescription, DocumentDescription}
      */
-    public function map(string $middleware, OperationDescription $operation, DocumentDescription $document, GenerationContext $context): array;
+    public function map(Middleware $middleware, OperationDescription $operation, DocumentDescription $document, GenerationContext $context): array;
 }

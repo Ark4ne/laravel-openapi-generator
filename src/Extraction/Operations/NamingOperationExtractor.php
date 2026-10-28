@@ -6,14 +6,16 @@ namespace Ark4ne\OpenApi\Extraction\Operations;
 
 use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Description\OperationDescription;
+use Ark4ne\OpenApi\Description\TagDescription;
 use Ark4ne\OpenApi\Extraction\OperationContext;
+use Ark4ne\OpenApi\Extraction\Strategies\GroupStrategy;
 use Ark4ne\OpenApi\Extraction\Strategies\OperationIdStrategy;
 use Ark4ne\OpenApi\Extraction\Strategies\SummaryStrategy;
 use Ark4ne\OpenApi\Extraction\Strategies\TagStrategy;
 
 /**
  * Summary, tags and operationId given by the naming strategies of the document: the defaults the PHPDoc and the
- * attributes refine.
+ * attributes refine. The group strategy gives the parent of each tag (`Tag.parent`, `x-tagGroups` before 3.2).
  */
 final readonly class NamingOperationExtractor implements OperationExtractor
 {
@@ -23,6 +25,7 @@ final readonly class NamingOperationExtractor implements OperationExtractor
         private SummaryStrategy $summary,
         private TagStrategy $tags,
         private OperationIdStrategy $operationId,
+        private ?GroupStrategy $groups = null,
     ) {}
 
     public function priority(): int
@@ -37,9 +40,20 @@ final readonly class NamingOperationExtractor implements OperationExtractor
 
     public function extract(OperationContext $operation, OperationDescription $description, GenerationContext $context): OperationDescription
     {
-        return $description
+        $tags = $this->tags->tags($operation);
+        $description = $description
             ->summary($this->summary->summary($operation) ?? $description->summary)
-            ->tags(...$this->tags->tags($operation))
+            ->tags(...$tags)
             ->operationId($this->operationId->operationId($operation) ?? $description->operationId);
+
+        foreach ($tags as $tag) {
+            $group = $this->groups?->group($tag, $operation);
+
+            if ($group !== null) {
+                $description = $description->addDeclaredTags(TagDescription::create($tag)->parent($group));
+            }
+        }
+
+        return $description;
     }
 }

@@ -109,6 +109,12 @@ return [
             'security_schemes' => [],
 
             /*
+            | Security schemes required by default on every operation (their
+            | names), on top of those the middlewares give.
+            */
+            'security' => [],
+
+            /*
             | Resources and enums as `components.schemas` referenced by `$ref`
             | (true), or written inline (false).
             */

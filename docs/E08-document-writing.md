@@ -11,8 +11,10 @@ choisie, et rendre compte de sa validité.
 ### `DocumentBuilder` (`src/Generation/`)
 
 - [ ] `Info` : `title`, `version`, `description`, `summary`, `termsOfService`, `contact`, `license`
-- [ ] Serveurs et variables (corrige la v0.6, qui lisait `variables` alors que la configuration écrit `variable`),
-      `Server.name` (3.2)
+- [ ] Serveurs et variables du document (configuration globale et par document ; corrige la v0.6, qui lisait
+      `variables` alors que la configuration écrit `variable`), `Server.name` (3.2), serveurs d'opération
+      (`ServerDescription`)
+- [ ] Paramètres partagés d'un chemin (`DocumentDescription::$pathParameters`) écrits sur son Path Item
 - [ ] `$self` (3.2) et `externalDocs` du document
 - [ ] Paramètre `querystring` (3.2) écrit en `content` `application/x-www-form-urlencoded`, avec le schéma de la
       description

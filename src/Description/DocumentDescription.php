@@ -20,6 +20,7 @@ final readonly class DocumentDescription extends Description
      * @param array<string, ResponseDescription> $responses component name → shared response
      * @param array<string, SecurityScheme> $securitySchemes component name → scheme
      * @param list<SecurityDescription> $security default security of the operations
+     * @param array<string, list<ParameterDescription>> $pathParameters path → parameters shared by its operations
      */
     protected function __construct(
         public array $operations = [],
@@ -29,6 +30,7 @@ final readonly class DocumentDescription extends Description
         public array $responses = [],
         public array $securitySchemes = [],
         public array $security = [],
+        public array $pathParameters = [],
     ) {}
 
     public static function create(): self
@@ -103,6 +105,14 @@ final readonly class DocumentDescription extends Description
     public function securityScheme(string $name, SecurityScheme $scheme): static
     {
         return $this->copy(securitySchemes: [...$this->securitySchemes, $name => $scheme]);
+    }
+
+    /**
+     * The parameters every operation of a path shares, written once on its Path Item.
+     */
+    public function pathParameters(string $path, ParameterDescription ...$parameters): static
+    {
+        return $this->copy(pathParameters: [...$this->pathParameters, $path => array_values($parameters)]);
     }
 
     public function security(SecurityDescription ...$security): static

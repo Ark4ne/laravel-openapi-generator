@@ -7,6 +7,7 @@ namespace Ark4ne\OpenApi\Extraction\Operations;
 use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Description\OperationDescription;
 use Ark4ne\OpenApi\Extraction\OperationContext;
+use Ark4ne\OpenApi\Extraction\Strategies\GroupStrategy;
 use Ark4ne\OpenApi\Extraction\Strategies\OperationIdStrategy;
 use Ark4ne\OpenApi\Extraction\Strategies\SummaryStrategy;
 use Ark4ne\OpenApi\Extraction\Strategies\TagStrategy;
@@ -50,10 +51,10 @@ final class OperationExtractors
      * The built-in extractors: naming strategies, PHPDoc, attributes, then the translation when a translator is
      * given.
      */
-    public static function default(SummaryStrategy $summary, TagStrategy $tags, OperationIdStrategy $operationId, ?Translator $translator = null): self
+    public static function default(SummaryStrategy $summary, TagStrategy $tags, OperationIdStrategy $operationId, ?Translator $translator = null, ?GroupStrategy $groups = null): self
     {
         return new self(
-            new NamingOperationExtractor($summary, $tags, $operationId),
+            new NamingOperationExtractor($summary, $tags, $operationId, $groups),
             new PhpDocOperationExtractor(),
             new AttributeOperationExtractor(),
             ...($translator === null ? [] : [new TranslationOperationExtractor($translator)]),

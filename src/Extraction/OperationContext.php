@@ -7,6 +7,7 @@ namespace Ark4ne\OpenApi\Extraction;
 use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Context\Stage;
 use Ark4ne\OpenApi\Description\OperationDescription;
+use Ark4ne\OpenApi\Description\ServerDescription;
 use Ark4ne\OpenApi\Discovery\RouteDefinition;
 use Ark4ne\OpenApi\Types\DocBlock;
 use Ark4ne\OpenApi\Types\NullableType;
@@ -45,13 +46,28 @@ final readonly class OperationContext
     ) {}
 
     /**
-     * The description extraction starts from: method, path, route label and middlewares.
+     * The description extraction starts from: method, path, route label, middlewares, and the server of a route with a
+     * domain (`https://{account}.example.com`, a variable per domain parameter).
      */
     public function describe(): OperationDescription
     {
-        return OperationDescription::create($this->method, $this->path)
+        $description = OperationDescription::create($this->method, $this->path)
             ->route($this->route->label())
             ->middlewares(...$this->route->middlewares);
+        $domain = $this->route->domain;
+
+        if ($domain === null) {
+            return $description;
+        }
+
+        $server = ServerDescription::create("https://{$domain}");
+
+        foreach ($this->route->domainParameters as $parameter) {
+            $enum = array_values(array_map(strval(...), array_filter($parameter->schema->enum ?? [], is_scalar(...))));
+            $server = $server->variable($parameter->name, $enum[0] ?? $parameter->name, $enum, $parameter->description);
+        }
+
+        return $description->servers($server);
     }
 
     /**

@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Ark4ne\OpenApi\Extraction\Operations;
 
 use Ark4ne\OpenApi\Attributes\Operation;
+use Ark4ne\OpenApi\Attributes\Security;
 use Ark4ne\OpenApi\Attributes\Tag;
 use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Description\OperationDescription;
+use Ark4ne\OpenApi\Description\SecurityDescription;
 use Ark4ne\OpenApi\Description\TagDescription;
 use Ark4ne\OpenApi\Extraction\OperationContext;
 
@@ -21,6 +23,7 @@ use Ark4ne\OpenApi\Extraction\OperationContext;
  *   `deprecated: true`, which apply to every action.
  * - `#[Operation(tags: […])]` replaces the tags of the strategy; each `#[Tag]` adds its tag, with its details.
  * - `#[Operation(deprecated: false)]` on the action cancels a `@deprecated`.
+ * - `#[Security]`: each attribute is an alternative requirement; those of the action replace those of the class.
  */
 final readonly class AttributeOperationExtractor implements OperationExtractor
 {
@@ -59,6 +62,13 @@ final readonly class AttributeOperationExtractor implements OperationExtractor
             if (! in_array($tag->name, $description->tags, true)) {
                 $description = $description->addTags($tag->name);
             }
+        }
+
+        $security = $operation->actionAttributes(Security::class, $context);
+        $security = $security === [] ? $operation->classAttributes(Security::class, $context) : $security;
+
+        if ($security !== []) {
+            $description = $description->security(...array_map(static fn(Security $attribute): SecurityDescription => SecurityDescription::create([$attribute->scheme => $attribute->scopes]), $security));
         }
 
         if ($operation->action?->getAttributes(self::DEPRECATED) !== []) {

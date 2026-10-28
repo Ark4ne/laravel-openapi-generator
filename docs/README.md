@@ -12,7 +12,7 @@ de ses livrables ; le tableau ci-dessous en est calculé automatiquement (`compo
 ## Progression
 
 <!-- progress:start -->
-**Avancement global : `██████░░░░` 65 % (172 / 263 livrables)**
+**Avancement global : `███████░░░` 74 % (197 / 265 livrables)**
 
 | Épique | Statut | Avancement | Livrables |
 | --- | --- | --- | --- |
@@ -23,8 +23,8 @@ de ses livrables ; le tableau ci-dessous en est calculé automatiquement (`compo
 | [E4 — Requêtes et règles de validation](E04-requests.md) | Terminé | `██████████` 100 % | 29 / 29 |
 | [E5 — Échantillonnage et inférence de schémas](E05-sampling.md) | Terminé | `██████████` 100 % | 20 / 20 |
 | [E6 — Réponses](E06-responses.md) | Terminé | `██████████` 100 % | 32 / 32 |
-| [E7 — Passes du pipeline](E07-pipeline-passes.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 24 |
-| [E8 — Écriture du document](E08-document-writing.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 18 |
+| [E7 — Passes du pipeline](E07-pipeline-passes.md) | Terminé | `██████████` 100 % | 25 / 25 |
+| [E8 — Écriture du document](E08-document-writing.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 19 |
 | [E9 — Intégration JSON:API](E09-json-api.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 11 |
 | [E10 — Intégration Laravel et expérience développeur](E10-laravel-dx.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 12 |
 | [E11 — Migration, documentation et version 1.0.0](E11-release.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 12 |
@@ -101,4 +101,5 @@ E4 et E5/E6 peuvent avancer en parallèle une fois E3 terminé.
 | 2026-10-28 | Échantillonnage (E5) : transactions annulées dans un `finally`, `create()` seulement dans une transaction, graine par `mt_srand()` ; la PHPDoc et les casts priment sur la valeur échantillonnée pour le type |
 | 2026-10-28 | Relations `whenLoaded()` : échantillonnées sur un niveau et décrites entièrement, facultatives (ressource exécutée sans puis avec les relations) |
 | 2026-10-28 | Réponses (E6) : ressource exécutée sans puis avec ses relations, en composant ; 201 pour une ressource renvoyée par `POST` ; `#[Response]` sans corps garde le contenu inféré de son statut |
+| 2026-10-28 | Passes (E7) : elles ne voient que la description ; groupe de tags, serveurs de domaine et `#[Security]` décidés à l'extraction ; réponses d'erreur partagées, ajoutées seulement si le statut manque ; corps d'erreur remplaçables (`ErrorBodies`) |
 | 2026-10-28 | Tests : PHPUnit, Orchestra Testbench, fixtures JSON validées contre le schéma officiel ; couverture ≥ 90 % des lignes, MSI ≥ 80 % |

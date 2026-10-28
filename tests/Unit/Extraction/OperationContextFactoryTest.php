@@ -92,6 +92,18 @@ final class OperationContextFactoryTest extends TestCase
         self::assertSame(['users', 'admin'], $tags);
     }
 
+    public function test_a_route_with_a_domain_gets_its_server(): void
+    {
+        $route = $this->router()->get('api/users', [UserController::class, 'index'])->whereIn('account', ['acme', 'globex']);
+        $route->domain('{account}.example.com');
+
+        $servers = $this->operation()->describe()->servers;
+
+        self::assertCount(1, $servers);
+        self::assertSame('https://{account}.example.com', $servers[0]->url);
+        self::assertSame(['account' => ['default' => 'acme', 'enum' => ['acme', 'globex']]], $servers[0]->variables);
+    }
+
     public function test_the_description_starts_from_the_route(): void
     {
         $this->router()->get('api/users', [UserController::class, 'index'])->middleware('auth:sanctum');

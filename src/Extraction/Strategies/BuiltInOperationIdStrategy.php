@@ -29,14 +29,17 @@ final readonly class BuiltInOperationIdStrategy implements OperationIdStrategy
         return match (true) {
             $this->by === 'name' && $route->name !== null => $route->name,
             $this->by === 'action' && $route->controller !== null => RouteValues::basename($route->controller) . ".{$route->action}",
-            default => self::methodPath($operation),
+            default => self::methodPath($operation->method, $operation->path),
         };
     }
 
-    private static function methodPath(OperationContext $operation): string
+    /**
+     * `GET /api/users/{user}` → `getApiUsersByUser`.
+     */
+    public static function methodPath(HttpMethod|string $method, string $path): string
     {
-        $method = $operation->method instanceof HttpMethod ? $operation->method->value : strtolower($operation->method);
-        $path = (string) preg_replace('/\{(\w+)}/', 'by $1', $operation->path);
+        $method = $method instanceof HttpMethod ? $method->value : strtolower($method);
+        $path = (string) preg_replace('/\{(\w+)}/', 'by $1', $path);
 
         return Str::camel($method . ' ' . (string) preg_replace('/[^A-Za-z0-9]+/', ' ', $path));
     }

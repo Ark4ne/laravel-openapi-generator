@@ -6,18 +6,23 @@ namespace Ark4ne\OpenApi\Tests\Unit\Extraction\Operations;
 
 use Ark4ne\OpenApi\Attributes\Operation;
 use Ark4ne\OpenApi\Description\OperationDescription;
+use Ark4ne\OpenApi\Description\SecurityDescription;
 use Ark4ne\OpenApi\Description\TagDescription;
+use Ark4ne\OpenApi\Extraction\OperationContextFactory;
 use Ark4ne\OpenApi\Extraction\Operations\AttributeOperationExtractor;
 use Ark4ne\OpenApi\Extraction\Operations\NamingOperationExtractor;
 use Ark4ne\OpenApi\Extraction\Operations\OperationExtractors;
 use Ark4ne\OpenApi\Extraction\Operations\PhpDocOperationExtractor;
 use Ark4ne\OpenApi\Extraction\Operations\TranslationOperationExtractor;
+use Ark4ne\OpenApi\Extraction\Strategies\BuiltInGroupStrategy;
 use Ark4ne\OpenApi\Extraction\Strategies\BuiltInOperationIdStrategy;
 use Ark4ne\OpenApi\Extraction\Strategies\BuiltInSummaryStrategy;
 use Ark4ne\OpenApi\Extraction\Strategies\BuiltInTagStrategy;
+use Ark4ne\OpenApi\Tests\Fixtures\Metadata\Controllers\SecuredController;
 use Ark4ne\OpenApi\Tests\Fixtures\Metadata\Controllers\UserController;
 use Ark4ne\OpenApi\Tests\Fixtures\Types\BrokenAttributes;
 use Ark4ne\OpenApi\Tests\TestCase;
+use Ark4ne\OpenApi\Types\TypeResolver;
 use Illuminate\Contracts\Translation\Translator;
 use PHPUnit\Framework\Attributes\CoversClass;
 
@@ -38,6 +43,33 @@ final class OperationExtractorsTest extends TestCase
         self::assertSame('List the users.', $description->summary);
         self::assertSame(['User'], $description->tags);
         self::assertSame('users.index', $description->operationId);
+    }
+
+    public function test_the_group_strategy_gives_the_parent_of_the_tag(): void
+    {
+        $this->router()->get('api/users', [UserController::class, 'index'])->name('admin.users.index');
+        $operation = $this->operation();
+        $naming = new NamingOperationExtractor(new BuiltInSummaryStrategy(), new BuiltInTagStrategy(), new BuiltInOperationIdStrategy(), new BuiltInGroupStrategy('name'));
+
+        $description = $naming->extract($operation, $operation->describe(), $this->context());
+
+        self::assertEquals([TagDescription::create('User')->parent('admin')], $description->declaredTags);
+    }
+
+    public function test_security_attributes_are_alternatives_the_action_overrides(): void
+    {
+        $this->router()->get('api/secured', [SecuredController::class, 'index']);
+        $this->router()->get('api/secured/{id}', [SecuredController::class, 'show']);
+        $context = $this->context();
+        $factory = new OperationContextFactory(new TypeResolver());
+        $schemes = [];
+
+        foreach ($this->definitions($context) as $definition) {
+            $operation = $factory->create($definition, $context);
+            $schemes[] = array_map(static fn(SecurityDescription $security): array => $security->schemes, (new AttributeOperationExtractor())->extract($operation, $operation->describe(), $context)->security ?? []);
+        }
+
+        self::assertSame([[['sanctum' => []]], [['passport' => ['read']], ['apiKey' => []]]], $schemes);
     }
 
     public function test_the_phpdoc_gives_the_description_and_the_deprecation(): void
