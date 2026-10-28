@@ -70,8 +70,9 @@ suivants.
 ## Notes de réalisation
 
 - Corps neutres : les registres conservent leurs éléments mais ne les trient ni ne les appliquent, `Configuration`
-  et ses sous-objets ne lisent pas le tableau, `Description::copy()` renvoie l'objet lui-même. PHPStan ignore
-  `return.unusedType` dans `src/` tant que ces corps restent neutres (`phpstan.neon.dist`).
+  et ses sous-objets ne lisent pas le tableau, `Description::copy()` renvoie l'objet lui-même. PHPStan ignorait
+  `return.unusedType` dans `src/` tant que ces corps restaient neutres ; l'exception est retirée avec E5, quand le
+  dernier corps neutre a été implémenté.
 - Deux modes de registre (architecture §4.1) : opérations et requêtes enrichissent (tous les extracteurs, priorité
   croissante), réponses et samplers choisissent (le premier, priorité décroissante). `priority()` renvoie une
   constante `PRIORITY`.

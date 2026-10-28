@@ -17,10 +17,6 @@ parameters:
         # Deliberately odd PHPDoc read by the TypeResolver tests (unbound templates, non-generic parents…).
         - tests/Fixtures/Types/*
     ignoreErrors:
-        # Contract with neutral bodies (docs/E01-contracts.md): removed once every epic implemented its part.
-        -
-            identifier: return.unusedType
-            path: src/*
         # Description::copy() rebuilds the final subclass from its promoted properties, passed by name.
         -
             identifier: new.static
