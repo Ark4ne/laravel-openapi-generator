@@ -12,7 +12,7 @@ de ses livrables ; le tableau ci-dessous en est calculé automatiquement (`compo
 ## Progression
 
 <!-- progress:start -->
-**Avancement global : `████░░░░░░` 45 % (120 / 261 livrables)**
+**Avancement global : `█████░░░░░` 53 % (140 / 262 livrables)**
 
 | Épique | Statut | Avancement | Livrables |
 | --- | --- | --- | --- |
@@ -21,7 +21,7 @@ de ses livrables ; le tableau ci-dessous en est calculé automatiquement (`compo
 | [E2 — Découverte des routes](E02-route-discovery.md) | Terminé | `██████████` 100 % | 21 / 21 |
 | [E3 — Métadonnées d'opération et types](E03-operation-metadata.md) | Terminé | `██████████` 100 % | 20 / 20 |
 | [E4 — Requêtes et règles de validation](E04-requests.md) | Terminé | `██████████` 100 % | 29 / 29 |
-| [E5 — Échantillonnage et inférence de schémas](E05-sampling.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 19 |
+| [E5 — Échantillonnage et inférence de schémas](E05-sampling.md) | Terminé | `██████████` 100 % | 20 / 20 |
 | [E6 — Réponses](E06-responses.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 31 |
 | [E7 — Passes du pipeline](E07-pipeline-passes.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 24 |
 | [E8 — Écriture du document](E08-document-writing.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 18 |
@@ -98,4 +98,5 @@ E4 et E5/E6 peuvent avancer en parallèle une fois E3 terminé.
 | 2026-10-28 | Métadonnées (E3) : `#[Operation]` sur un contrôleur donne des valeurs par défaut (sauf `tags` et `deprecated: true`) ; la PHPDoc l'emporte sur le type natif ; textes traduisibles par le contrat `Translator` |
 | 2026-10-28 | Actions héritées : attributs fusionnés le long des contrôleurs (jusqu'au contrôleur de la route) et des redéfinitions de la méthode, l'enfant l'emportant ; PHPDoc héritée sans commentaire ou avec `{@inheritDoc}` |
 | 2026-10-28 | Requêtes (E4) : un `RuleMapper` par comportement de règle ; ce qu'OpenAPI ne sait pas écrire devient une phrase de la description ; description manuelle par `DescribesRequest` et un `RequestDescriber` immuable |
+| 2026-10-28 | Échantillonnage (E5) : transactions annulées dans un `finally`, `create()` seulement dans une transaction, graine par `mt_srand()` ; la PHPDoc et les casts priment sur la valeur échantillonnée pour le type |
 | 2026-10-28 | Tests : PHPUnit, Orchestra Testbench, fixtures JSON validées contre le schéma officiel ; couverture ≥ 90 % des lignes, MSI ≥ 80 % |

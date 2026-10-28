@@ -9,7 +9,7 @@ use Ark4ne\OpenApi\Exceptions\InvalidConfigurationException;
 /**
  * The whole `config/openapi.php`, typed and validated once when it is loaded.
  *
- * Read so far: the documents (see DocumentConfiguration) and `exceptions`; the other keys keep their defaults until
+ * Read so far: the documents (see DocumentConfiguration), `sampling`, `date_formats` and `exceptions`; the other keys keep their defaults until
  * the loading of the configuration is completed (E10).
  *
  * Nothing outside the Laravel layer reads `config()`: every component receives this object, or the
@@ -62,7 +62,25 @@ final readonly class Configuration
             throw InvalidConfigurationException::forKey('exceptions', 'an array', $exceptions);
         }
 
-        return new self($documents, exceptions: ExceptionsConfiguration::fromArray('exceptions', $exceptions));
+        $sampling = $config['sampling'] ?? [];
+
+        if (! is_array($sampling)) {
+            throw InvalidConfigurationException::forKey('sampling', 'an array', $sampling);
+        }
+
+        $dateFormats = $config['date_formats'] ?? [];
+
+        if (! is_array($dateFormats) || array_filter($dateFormats, is_string(...)) !== $dateFormats || array_is_list($dateFormats) && $dateFormats !== []) {
+            throw InvalidConfigurationException::forKey('date_formats', 'a map of PHP date format to OpenAPI format', $dateFormats);
+        }
+
+        /** @var array<string, string> $dateFormats */
+        return new self(
+            $documents,
+            SamplingConfiguration::fromArray('sampling', $sampling),
+            dateFormats: $dateFormats,
+            exceptions: ExceptionsConfiguration::fromArray('exceptions', $exceptions),
+        );
     }
 
     /**

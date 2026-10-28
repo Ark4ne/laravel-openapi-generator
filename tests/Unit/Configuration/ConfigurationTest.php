@@ -7,6 +7,7 @@ namespace Ark4ne\OpenApi\Tests\Unit\Configuration;
 use Ark4ne\OpenApi\Configuration\Configuration;
 use Ark4ne\OpenApi\Configuration\RouteMasks;
 use Ark4ne\OpenApi\Configuration\RouteOrder;
+use Ark4ne\OpenApi\Configuration\SamplingConfiguration;
 use Ark4ne\OpenApi\Exceptions\InvalidConfigurationException;
 use Ark4ne\OpenApi\Tests\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -15,6 +16,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * The parts of the configuration the epics done so far read; the whole loading comes with E10.
  */
 #[CoversClass(Configuration::class)]
+#[CoversClass(SamplingConfiguration::class)]
 #[CoversClass(\Ark4ne\OpenApi\Configuration\DocumentConfiguration::class)]
 final class ConfigurationTest extends TestCase
 {
@@ -34,6 +36,23 @@ final class ConfigurationTest extends TestCase
         self::assertNull($document->groups);
         self::assertSame('name', $document->operationId->by);
         self::assertTrue($configuration->exceptions->readThrows);
+        self::assertSame(2, $configuration->sampling->collectionSize);
+        self::assertSame('date', $configuration->dateFormats['Y-m-d'] ?? null);
+    }
+
+    public function test_the_sampling_entry_is_read(): void
+    {
+        $sampling = Configuration::fromArray(['sampling' => ['transactions' => false, 'connections' => ['mysql'], 'collection_size' => 3, 'seed' => 7, 'examples' => false]])->sampling;
+
+        self::assertEquals(new SamplingConfiguration(false, ['mysql'], 3, 7, false), $sampling);
+    }
+
+    public function test_an_invalid_sampling_entry_is_rejected(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('openapi.sampling.collection_size: expected an integer of at least 1, got 0');
+
+        Configuration::fromArray(['sampling' => ['collection_size' => 0]]);
     }
 
     public function test_the_routes_the_strategies_and_the_exceptions_are_read(): void

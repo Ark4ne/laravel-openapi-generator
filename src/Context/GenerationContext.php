@@ -28,6 +28,8 @@ final readonly class GenerationContext
      */
     public static function for(Configuration $configuration, DocumentConfiguration $document, ?string $locale = null): self
     {
-        return new self($configuration, $document, locale: $locale);
+        $diagnostics = new Diagnostics();
+
+        return new self($configuration, $document, $diagnostics, new ComponentRegistry($diagnostics), $locale);
     }
 }

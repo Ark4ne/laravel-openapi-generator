@@ -13,6 +13,16 @@ use Ark4ne\OpenApiWriter\Objects\Schema;
  */
 final class ComponentRegistry
 {
+    /** @var array<string, Schema> component name → schema, in registration order */
+    private array $schemas = [];
+
+    /** @var array<class-string, string> class → component name */
+    private array $names = [];
+
+    public function __construct(
+        private readonly ?Diagnostics $diagnostics = null,
+    ) {}
+
     /**
      * Registers the schema of a class and returns the component name it was given.
      *
@@ -21,7 +31,11 @@ final class ComponentRegistry
      */
     public function register(string $source, string $name, Schema $schema): string
     {
-        return $name;
+        $given = $this->names[$source] ?? $this->free($source, $name);
+        $this->names[$source] = $given;
+        $this->schemas[$given] = $schema->objectId($given);
+
+        return $given;
     }
 
     /**
@@ -29,17 +43,17 @@ final class ComponentRegistry
      */
     public function nameOf(string $source): ?string
     {
-        return null;
+        return $this->names[$source] ?? null;
     }
 
     public function has(string $name): bool
     {
-        return false;
+        return isset($this->schemas[$name]);
     }
 
     public function get(string $name): ?Schema
     {
-        return null;
+        return $this->schemas[$name] ?? null;
     }
 
     /**
@@ -47,6 +61,27 @@ final class ComponentRegistry
      */
     public function all(): array
     {
-        return [];
+        return $this->schemas;
+    }
+
+    /**
+     * @param class-string $source
+     */
+    private function free(string $source, string $name): string
+    {
+        if (! $this->has($name)) {
+            return $name;
+        }
+
+        $suffix = 2;
+
+        while ($this->has($name . $suffix)) {
+            $suffix++;
+        }
+
+        $owner = array_search($name, $this->names, true);
+        $this->diagnostics?->warning(Stage::Pass, sprintf('component %s already describes %s, %s is named %s', $name, is_string($owner) ? $owner : '?', $source, $name . $suffix));
+
+        return $name . $suffix;
     }
 }

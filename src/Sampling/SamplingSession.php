@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ark4ne\OpenApi\Sampling;
 
+use Ark4ne\OpenApi\Context\GenerationContext;
 use Closure;
 
 /**
@@ -18,10 +19,11 @@ interface SamplingSession
      *
      * @return T
      */
-    public function run(Closure $callback): mixed;
+    public function run(Closure $callback, GenerationContext $context): mixed;
 
     /**
-     * Whether the sampled models may be saved: `false` outside a transaction, where only `make()` is used.
+     * Whether the models of a connection (the default one when `null`) may be saved: `false` outside a transaction,
+     * where only `make()` is used.
      */
-    public function canPersist(): bool;
+    public function canPersist(?string $connection = null): bool;
 }
