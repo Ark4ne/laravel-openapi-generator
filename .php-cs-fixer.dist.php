@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 $finder = (new PhpCsFixer\Finder())
     ->in([__DIR__ . '/src', __DIR__ . '/tests', __DIR__ . '/bin'])
+    // Deliberately odd signatures read by the TypeResolver tests (a method without return type…).
+    ->notPath('Fixtures/Types')
     ->append([__FILE__]);
 
 $config = new PhpCsFixer\Config();

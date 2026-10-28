@@ -236,5 +236,23 @@ return [
     | translation keys. Empty: one document in the application locale.
     |
     */
+    /*
+    |--------------------------------------------------------------------------
+    | Exceptions
+    |--------------------------------------------------------------------------
+    |
+    | `read_throws` reads the `@throws` of the actions. Each exception becomes
+    | a response: `#[Response]` on the exception class, else `map`, else what
+    | Laravel and Symfony do with it. `map` covers the exceptions you cannot
+    | annotate, and those `bootstrap/app.php` renders through closures:
+    |
+    | PaymentRequiredException::class => 402,
+    | SeatTakenException::class => ['status' => 409, 'description' => 'Seat taken'],
+    */
+    'exceptions' => [
+        'read_throws' => true,
+        'map' => [],
+    ],
+
     'languages' => [],
 ];

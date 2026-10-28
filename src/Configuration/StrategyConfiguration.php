@@ -27,6 +27,36 @@ final readonly class StrategyConfiguration
      */
     public static function fromArray(string $key, array $config, string $default): self
     {
-        return new self($default);
+        $by = $config['by'] ?? $default;
+
+        if (! is_string($by) || $by === '') {
+            throw InvalidConfigurationException::forKey("{$key}.by", 'a strategy name or class', $by);
+        }
+
+        $options = [];
+
+        foreach ($config as $name => $value) {
+            if ($name !== 'by') {
+                $options[(string) $name] = $value;
+            }
+        }
+
+        $pattern = $options['pattern'] ?? null;
+
+        if ($pattern !== null && (! is_string($pattern) || @preg_match($pattern, '') === false)) {
+            throw InvalidConfigurationException::forKey("{$key}.pattern", 'a regular expression', $pattern);
+        }
+
+        return new self($by, $options);
+    }
+
+    /**
+     * The `pattern` option: its first group, or its whole match, gives the value.
+     */
+    public function pattern(): ?string
+    {
+        $pattern = $this->options['pattern'] ?? null;
+
+        return is_string($pattern) ? $pattern : null;
     }
 }

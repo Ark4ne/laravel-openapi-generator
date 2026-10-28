@@ -23,6 +23,11 @@ final readonly class TagDescription extends Description
         return new self($name);
     }
 
+    public function name(string $name): static
+    {
+        return $this->copy(name: $name);
+    }
+
     public function description(?string $description): static
     {
         return $this->copy(description: $description);

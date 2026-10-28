@@ -27,6 +27,7 @@ final readonly class Configuration
         public ExtensionsConfiguration $extensions = new ExtensionsConfiguration(),
         public array $dateFormats = [],
         public array $languages = [],
+        public ExceptionsConfiguration $exceptions = new ExceptionsConfiguration(),
     ) {}
 
     /**

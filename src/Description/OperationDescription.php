@@ -18,6 +18,8 @@ final readonly class OperationDescription extends Description
      * @param string|null $route route name, or `Controller@method`, for the diagnostics
      * @param list<string> $middlewares resolved middlewares of the route
      * @param list<string> $tags
+     * @param list<TagDescription> $declaredTags tags declared with their details (`#[Tag]`), gathered in the
+     *        document by the TagPass (E7)
      * @param list<ResponseDescription> $responses
      * @param list<SecurityDescription>|null $security `null` inherits the document security
      * @param array{url: string, description?: string}|null $externalDocs
@@ -35,6 +37,7 @@ final readonly class OperationDescription extends Description
         public ?string $summary = null,
         public ?string $description = null,
         public array $tags = [],
+        public array $declaredTags = [],
         public bool $deprecated = false,
         public ?array $externalDocs = null,
         public array $responses = [],
@@ -88,6 +91,16 @@ final readonly class OperationDescription extends Description
     public function addTags(string ...$tags): static
     {
         return $this->copy(tags: [...$this->tags, ...array_values($tags)]);
+    }
+
+    public function declaredTags(TagDescription ...$tags): static
+    {
+        return $this->copy(declaredTags: array_values($tags));
+    }
+
+    public function addDeclaredTags(TagDescription ...$tags): static
+    {
+        return $this->copy(declaredTags: [...$this->declaredTags, ...array_values($tags)]);
     }
 
     public function deprecated(bool $deprecated = true): static

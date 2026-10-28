@@ -195,8 +195,8 @@ interface RuleMapper
 ### 4.3 Système de types
 
 `Types\TypeResolver` lit les types natifs et la PHPDoc (`@return`, `@param`, `@var`, `@extends`, `@property`) via
-`phpstan/phpdoc-parser`, et produit un arbre `Type` (`NamedType`, `GenericType`, `UnionType`, `NullableType`,
-`ArrayShapeType`, `LiteralType`). Il résout les noms par rapport aux `use` du fichier et aux templates déclarés.
+`phpstan/phpdoc-parser`, et produit un arbre `Type` (`NamedType`, `GenericType`, `ListType`, `ArrayShapeType`,
+`UnionType`, `IntersectionType`, `NullableType`, `LiteralType`, `MixedType`). Il résout les noms par rapport aux `use` du fichier et aux templates déclarés.
 Il remplace `Support\Reflection` et `Reflection\Type<T, U>` de la v0.6.
 
 ## 5. Échantillonnage

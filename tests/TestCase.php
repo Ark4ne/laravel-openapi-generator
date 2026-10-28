@@ -6,11 +6,19 @@ namespace Ark4ne\OpenApi\Tests;
 
 use Ark4ne\OpenApi\Configuration\Configuration;
 use Ark4ne\OpenApi\Configuration\DocumentConfiguration;
+use Ark4ne\OpenApi\Configuration\ExceptionsConfiguration;
 use Ark4ne\OpenApi\Configuration\InfoConfiguration;
 use Ark4ne\OpenApi\Configuration\RouteFilterConfiguration;
 use Ark4ne\OpenApi\Configuration\RouteMasks;
 use Ark4ne\OpenApi\Context\Diagnostic;
 use Ark4ne\OpenApi\Context\GenerationContext;
+use Ark4ne\OpenApi\Discovery\MiddlewareResolver;
+use Ark4ne\OpenApi\Discovery\PathParameterResolver;
+use Ark4ne\OpenApi\Discovery\RouteCollector;
+use Ark4ne\OpenApi\Discovery\RouteDefinition;
+use Ark4ne\OpenApi\Extraction\OperationContext;
+use Ark4ne\OpenApi\Extraction\OperationContextFactory;
+use Ark4ne\OpenApi\Types\TypeResolver;
 use Ark4ne\OpenApiWriter\Enums\Strictness;
 use Ark4ne\OpenApiWriter\Enums\Version;
 use Ark4ne\OpenApiWriter\Objects\Schema;
@@ -34,6 +42,8 @@ abstract class TestCase extends Testbench
         RouteFilterConfiguration $routes = new RouteFilterConfiguration(include: new RouteMasks()),
         Version $version = Version::V3_1_2,
         Strictness $strictness = Strictness::Strict,
+        ExceptionsConfiguration $exceptions = new ExceptionsConfiguration(),
+        ?string $locale = null,
     ): GenerationContext {
         $document = new DocumentConfiguration(
             'v1',
@@ -43,7 +53,31 @@ abstract class TestCase extends Testbench
             routes: $routes,
         );
 
-        return GenerationContext::for(new Configuration(['v1' => $document]), $document);
+        return GenerationContext::for(new Configuration(['v1' => $document], exceptions: $exceptions), $document, $locale);
+    }
+
+    /**
+     * The definitions of the registered routes, every route kept.
+     *
+     * @return list<RouteDefinition>
+     */
+    protected function definitions(?GenerationContext $context = null): array
+    {
+        $router = $this->router();
+
+        return (new RouteCollector($router, new MiddlewareResolver($router), new PathParameterResolver()))->collect($context ?? $this->context());
+    }
+
+    /**
+     * The operation context of the first definition of a route registered for the test.
+     */
+    protected function operation(?GenerationContext $context = null): OperationContext
+    {
+        $context ??= $this->context();
+        $definitions = $this->definitions($context);
+        self::assertNotEmpty($definitions);
+
+        return (new OperationContextFactory(new TypeResolver()))->create($definitions[0], $context);
     }
 
     /**
