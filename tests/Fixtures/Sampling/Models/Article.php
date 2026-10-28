@@ -9,6 +9,7 @@ use Ark4ne\OpenApi\Tests\Fixtures\Sampling\Factories\ArticleFactory;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property int $id
@@ -22,6 +23,14 @@ final class Article extends Model
     use HasFactory;
 
     protected $guarded = [];
+
+    /**
+     * @return BelongsTo<Author, $this>
+     */
+    public function author(): BelongsTo
+    {
+        return $this->belongsTo(Author::class);
+    }
 
     /**
      * @return array<string, string>

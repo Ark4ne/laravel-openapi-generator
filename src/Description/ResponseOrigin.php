@@ -15,6 +15,9 @@ enum ResponseOrigin: string
     /** Declared by `#[Response]`. */
     case Declared = 'declared';
 
+    /** Given by an exception of `@throws`. */
+    case Exception = 'exception';
+
     /** Added by a pass (error responses). */
     case Pass = 'pass';
 }

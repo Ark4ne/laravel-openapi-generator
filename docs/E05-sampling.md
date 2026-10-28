@@ -81,7 +81,7 @@ schéma juste de ce qu'elle renvoie, valeurs et types déclarés combinés.
 - **Configuration** : `sampling` et `date_formats` sont lus par `Configuration::fromArray()`.
 - Les formats de date par défaut sont dans `Support\DateFormats`, partagés par l'inférence et `date_format` (E4).
 
-## Questions à clore pendant E5
+## Décision : relations `whenLoaded()` (2026-10-28)
 
-- Relations `whenLoaded()` : échantillonner avec les relations chargées (factories `has()` / `for()`) pour en
-  décrire le schéma, ou les déclarer seulement optionnelles et sans forme ?
+Les relations sont échantillonnées et attachées (`setRelation()`) sur un niveau, la ressource exécutée sans puis avec
+elles : une relation est décrite entièrement, et facultative. Réalisé en E6 (`RelationLoader`).

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Ark4ne\OpenApi\Sampling;
 
-use Ark4ne\OpenApi\Attributes\SchemaName;
 use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Support\DateFormats;
 use Ark4ne\OpenApi\Support\Enums;
@@ -24,7 +23,6 @@ use Illuminate\Http\Resources\MergeValue;
 use Illuminate\Http\Resources\PotentiallyMissing;
 use Illuminate\Support\Str;
 use JsonSerializable;
-use ReflectionClass;
 
 /**
  * Infers a schema from a sampled value, completed by its declared type when there is one.
@@ -46,7 +44,7 @@ final readonly class SchemaInferrer
         $schema = $declared === null ? null : TypeSchemas::of($declared);
 
         return match (true) {
-            $value instanceof PotentiallyMissing, $value === null => $schema ?? Schema::create(),
+            $value instanceof PotentiallyMissing, $value === null, self::missing($value) => $schema ?? Schema::create(),
             is_scalar($value) => $this->example($schema ?? self::scalar($value, $context), $value, $context),
             $value instanceof BackedEnum => $this->example(Schema::create()->type(Enums::type($value::class))->enum(...Enums::values($value::class)), $value->value, $context),
             $value instanceof DateTimeInterface => $this->example($schema ?? Schema::string()->format('date-time'), json_decode((string) json_encode($value)), $context),
@@ -96,7 +94,7 @@ final readonly class SchemaInferrer
             $key = (string) $key;
             $schema = $schema->addProperties($this->infer($property, $context, $types[$key] ?? null)->objectId($key));
 
-            if (! $property instanceof PotentiallyMissing || ! $property->isMissing()) {
+            if (! ($property instanceof PotentiallyMissing && $property->isMissing()) && ! self::missing($property)) {
                 $required[] = $key;
             }
         }
@@ -128,14 +126,20 @@ final readonly class SchemaInferrer
         $name = $context->components->nameOf($class);
 
         if ($name === null) {
-            $attribute = (new ReflectionClass($class))->getAttributes(SchemaName::class)[0] ?? null;
-            $preferred = $attribute?->newInstance()->name ?? (string) preg_replace('/Resource$/', '', substr($class, (int) strrpos('\\' . $class, '\\')));
             // Registered before its schema is inferred, so that a resource nested in itself is a reference.
-            $name = $context->components->register($class, $preferred, Schema::object());
+            $name = $context->components->register($class, ComponentNames::of($class), Schema::object());
             $context->components->register($class, $name, $this->infer($resource->toArray(Request::create('/')), $context));
         }
 
-        return Schema::ref($name);
+        return $context->document->useReferences ? Schema::ref($name) : $context->components->get($name) ?? Schema::object();
+    }
+
+    /**
+     * A resource around a missing value (`UserResource::make($this->whenLoaded('user'))`): left out by Laravel.
+     */
+    private static function missing(mixed $value): bool
+    {
+        return $value instanceof JsonResource && $value->resource instanceof PotentiallyMissing && $value->resource->isMissing();
     }
 
     private static function scalar(int|float|string|bool $value, GenerationContext $context): Schema

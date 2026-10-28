@@ -7,12 +7,13 @@ namespace Ark4ne\OpenApi\Attributes;
 use Attribute;
 
 /**
- * Declares one response of an action; repeat it for each status.
+ * Declares one response of an action; repeat it for each status. On an exception class, it describes the response
+ * Laravel renders for the exception.
  *
  * For its status, it takes precedence over what the generator infers. The body is given by a resource class or by
  * a PHPDoc type (`array{id: int, name: string}`, `list<UserResource>`), never both.
  */
-#[Attribute(Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
+#[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
 final readonly class Response
 {
     /**
@@ -23,6 +24,8 @@ final readonly class Response
      * @param string|null $type PHPDoc type of the body
      * @param array<string, string> $headers header name → PHPDoc type of its value
      * @param class-string|null $paginator LengthAwarePaginator, Paginator or CursorPaginator around the resource
+     * @param string|null $mediaType `application/json` by default; `text/event-stream`: the type is one event
+     * @param mixed $example example of the body
      */
     public function __construct(
         public int|string $status = 200,
@@ -33,5 +36,6 @@ final readonly class Response
         public array $headers = [],
         public ?string $paginator = null,
         public ?string $summary = null,
+        public mixed $example = null,
     ) {}
 }

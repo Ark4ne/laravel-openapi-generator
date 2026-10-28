@@ -12,7 +12,7 @@ de ses livrables ; le tableau ci-dessous en est calculé automatiquement (`compo
 ## Progression
 
 <!-- progress:start -->
-**Avancement global : `█████░░░░░` 53 % (140 / 262 livrables)**
+**Avancement global : `██████░░░░` 65 % (172 / 263 livrables)**
 
 | Épique | Statut | Avancement | Livrables |
 | --- | --- | --- | --- |
@@ -22,7 +22,7 @@ de ses livrables ; le tableau ci-dessous en est calculé automatiquement (`compo
 | [E3 — Métadonnées d'opération et types](E03-operation-metadata.md) | Terminé | `██████████` 100 % | 20 / 20 |
 | [E4 — Requêtes et règles de validation](E04-requests.md) | Terminé | `██████████` 100 % | 29 / 29 |
 | [E5 — Échantillonnage et inférence de schémas](E05-sampling.md) | Terminé | `██████████` 100 % | 20 / 20 |
-| [E6 — Réponses](E06-responses.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 31 |
+| [E6 — Réponses](E06-responses.md) | Terminé | `██████████` 100 % | 32 / 32 |
 | [E7 — Passes du pipeline](E07-pipeline-passes.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 24 |
 | [E8 — Écriture du document](E08-document-writing.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 18 |
 | [E9 — Intégration JSON:API](E09-json-api.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 11 |
@@ -99,4 +99,6 @@ E4 et E5/E6 peuvent avancer en parallèle une fois E3 terminé.
 | 2026-10-28 | Actions héritées : attributs fusionnés le long des contrôleurs (jusqu'au contrôleur de la route) et des redéfinitions de la méthode, l'enfant l'emportant ; PHPDoc héritée sans commentaire ou avec `{@inheritDoc}` |
 | 2026-10-28 | Requêtes (E4) : un `RuleMapper` par comportement de règle ; ce qu'OpenAPI ne sait pas écrire devient une phrase de la description ; description manuelle par `DescribesRequest` et un `RequestDescriber` immuable |
 | 2026-10-28 | Échantillonnage (E5) : transactions annulées dans un `finally`, `create()` seulement dans une transaction, graine par `mt_srand()` ; la PHPDoc et les casts priment sur la valeur échantillonnée pour le type |
+| 2026-10-28 | Relations `whenLoaded()` : échantillonnées sur un niveau et décrites entièrement, facultatives (ressource exécutée sans puis avec les relations) |
+| 2026-10-28 | Réponses (E6) : ressource exécutée sans puis avec ses relations, en composant ; 201 pour une ressource renvoyée par `POST` ; `#[Response]` sans corps garde le contenu inféré de son statut |
 | 2026-10-28 | Tests : PHPUnit, Orchestra Testbench, fixtures JSON validées contre le schéma officiel ; couverture ≥ 90 % des lignes, MSI ≥ 80 % |

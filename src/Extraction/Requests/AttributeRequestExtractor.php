@@ -15,9 +15,11 @@ use Ark4ne\OpenApi\Description\BodyDescription;
 use Ark4ne\OpenApi\Description\ParameterDescription;
 use Ark4ne\OpenApi\Description\RequestDescription;
 use Ark4ne\OpenApi\Extraction\OperationContext;
+use Ark4ne\OpenApi\Extraction\Responses\ResourceSchemas;
 use Ark4ne\OpenApi\Sampling\TypeSchemas;
 use Ark4ne\OpenApi\Types\TypeResolver;
 use Ark4ne\OpenApiWriter\Objects\Schema;
+use Illuminate\Http\Resources\Json\JsonResource;
 use ReflectionClass;
 use ReflectionFunctionAbstract;
 use Throwable;
@@ -31,8 +33,12 @@ final readonly class AttributeRequestExtractor implements RequestExtractor
 {
     public const PRIORITY = 300;
 
+    /**
+     * @param ResourceSchemas|null $resources describes `#[RequestBody(resource:)]`; without it, an info
+     */
     public function __construct(
         private TypeResolver $types,
+        private ?ResourceSchemas $resources = null,
     ) {}
 
     public function priority(): int
@@ -115,17 +121,24 @@ final readonly class AttributeRequestExtractor implements RequestExtractor
 
     private function body(RequestBody $attribute, RequestDescription $request, ReflectionFunctionAbstract $action, OperationContext $operation, GenerationContext $context): RequestDescription
     {
-        if ($attribute->type === null && $attribute->resource !== null) {
-            $context->diagnostics->info(Stage::Request, '#[RequestBody(resource:)] is described from E6, body left out', $operation->route->label());
+        $resource = $attribute->type === null ? $attribute->resource : null;
+
+        if ($resource !== null && ($this->resources === null || ! is_subclass_of($resource, JsonResource::class))) {
+            $context->diagnostics->info(Stage::Request, "#[RequestBody(resource:)] needs a resource, {$resource} is not one: body left out", $operation->route->label());
 
             return $request;
         }
 
         $body = $request->body;
+        $schema = match (true) {
+            $resource !== null => $this->resources->schema($resource, $context),
+            $attribute->type !== null => $this->schema($attribute->type, $action, null),
+            default => null,
+        };
 
-        if ($attribute->type !== null) {
+        if ($schema !== null) {
             $body = ($body ?? BodyDescription::create())
-                ->content($attribute->mediaType ?? FieldPlacer::JSON, $this->schema($attribute->type, $action, null))
+                ->content($attribute->mediaType ?? FieldPlacer::JSON, $schema)
                 ->required($attribute->required ?? true);
         } elseif ($body !== null && $attribute->required !== null) {
             $body = $body->required($attribute->required);

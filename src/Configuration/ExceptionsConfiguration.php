@@ -13,8 +13,8 @@ final readonly class ExceptionsConfiguration
 {
     /**
      * @param bool $readThrows read the `@throws` of the actions
-     * @param array<class-string, int|array{status: int, description?: string, resource?: class-string}> $map
-     *        exception class → its response, for the exceptions the application cannot annotate (E6)
+     * @param array<class-string, int|array<string, mixed>> $map exception class → its status, or `status` and
+     *        `description`, for the exceptions the application cannot annotate; an entry without status is ignored
      */
     public function __construct(
         public bool $readThrows = true,
@@ -46,7 +46,7 @@ final readonly class ExceptionsConfiguration
             throw InvalidConfigurationException::forKey("{$key}.map", 'a map of exception class to response', $map);
         }
 
-        /** @var array<class-string, int|array{status: int, description?: string, resource?: class-string}> $map validated by E6 */
+        /** @var array<class-string, int|array<string, mixed>> $map an entry without status is ignored by its mapper */
         return new self($readThrows, $map);
     }
 }

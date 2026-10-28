@@ -15,13 +15,21 @@ use Ark4ne\OpenApi\Extraction\Requests\PathParameterRequestExtractor;
 use Ark4ne\OpenApi\Extraction\Requests\RequestDescriber;
 use Ark4ne\OpenApi\Extraction\Requests\RequestExtractors;
 use Ark4ne\OpenApi\Extraction\Requests\RequestFactory;
+use Ark4ne\OpenApi\Extraction\Responses\ResourceSchemas;
 use Ark4ne\OpenApi\Extraction\Strategies\BuiltInQueryStrategy;
+use Ark4ne\OpenApi\Sampling\ModelSchemas;
+use Ark4ne\OpenApi\Sampling\NullSamplingSession;
+use Ark4ne\OpenApi\Sampling\RelationLoader;
+use Ark4ne\OpenApi\Sampling\ResourceModels;
+use Ark4ne\OpenApi\Sampling\Samplers;
+use Ark4ne\OpenApi\Sampling\SchemaInferrer;
 use Ark4ne\OpenApi\Tests\Fixtures\Requests\ChildRequestController;
 use Ark4ne\OpenApi\Tests\Fixtures\Requests\FailingRequest;
 use Ark4ne\OpenApi\Tests\Fixtures\Requests\RequestController;
 use Ark4ne\OpenApi\Tests\Fixtures\Requests\ThrowingRuleRequest;
 use Ark4ne\OpenApi\Tests\Support\Schemas;
 use Ark4ne\OpenApi\Tests\TestCase;
+use Ark4ne\OpenApi\Types\TypeResolver;
 use Ark4ne\OpenApiWriter\Enums\ParameterLocation;
 use Ark4ne\OpenApiWriter\Enums\Version;
 use Ark4ne\OpenApiWriter\Objects\Schema;
@@ -177,13 +185,18 @@ final class RequestExtractorsTest extends TestCase
         self::assertTrue($request->body->required);
     }
 
-    public function test_a_resource_body_is_left_to_the_responses_with_an_info(): void
+    public function test_a_resource_body_is_the_schema_of_the_resource(): void
     {
         $this->router()->post('api/resource', [RequestController::class, 'resource']);
         $context = $this->context();
+        $operation = $this->operation($context);
+        $types = new TypeResolver();
+        $resources = new ResourceSchemas(new ResourceModels($types), Samplers::default(new NullSamplingSession(), $types), new SchemaInferrer(new ModelSchemas($types)), new RelationLoader(Samplers::default(new NullSamplingSession(), $types)));
 
-        self::assertNull($this->request($context)->body);
-        self::assertDiagnostics(['[info] request POST /api/resource: #[RequestBody(resource:)] is described from E6, body left out'], $context);
+        $request = RequestExtractors::default($this->container(), new BuiltInQueryStrategy('last'), resources: $resources)->extract($operation, RequestDescription::create(), $context);
+
+        Schemas::assertSame('{"$ref":"#/components/schemas/Author"}', $request->body?->contents['application/json'] ?? Schema::create());
+        self::assertTrue($context->components->has('Author'));
     }
 
     public function test_application_code_that_fails_while_reading_the_rules_gives_a_warning(): void

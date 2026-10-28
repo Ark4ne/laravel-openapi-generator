@@ -8,6 +8,7 @@ use Ark4ne\OpenApi\Context\Diagnostic;
 use Ark4ne\OpenApi\Context\DiagnosticLevel;
 use Ark4ne\OpenApi\Context\Diagnostics;
 use Ark4ne\OpenApi\Context\Stage;
+use Ark4ne\OpenApi\Extraction\Exceptions\ExceptionMapper;
 use Ark4ne\OpenApi\Extraction\Operations\OperationExtractor;
 use Ark4ne\OpenApi\Extraction\Requests\RequestExtractor;
 use Ark4ne\OpenApi\Extraction\Responses\ResponseExtractor;
@@ -106,6 +107,7 @@ final class ArchitectureTest
             'Sampler' => [Sampler::class],
             'Pass' => [Pass::class],
             'MiddlewareMapper' => [MiddlewareMapper::class],
+            'ExceptionMapper' => [ExceptionMapper::class],
             'Strategy' => [SummaryStrategy::class, TagStrategy::class, GroupStrategy::class, OperationIdStrategy::class, QueryStrategy::class],
         ];
 

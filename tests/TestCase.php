@@ -10,6 +10,7 @@ use Ark4ne\OpenApi\Configuration\ExceptionsConfiguration;
 use Ark4ne\OpenApi\Configuration\InfoConfiguration;
 use Ark4ne\OpenApi\Configuration\RouteFilterConfiguration;
 use Ark4ne\OpenApi\Configuration\RouteMasks;
+use Ark4ne\OpenApi\Configuration\SamplingConfiguration;
 use Ark4ne\OpenApi\Context\Diagnostic;
 use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Discovery\MiddlewareResolver;
@@ -45,6 +46,8 @@ abstract class TestCase extends Testbench
         Strictness $strictness = Strictness::Strict,
         ExceptionsConfiguration $exceptions = new ExceptionsConfiguration(),
         ?string $locale = null,
+        SamplingConfiguration $sampling = new SamplingConfiguration(),
+        bool $useReferences = true,
     ): GenerationContext {
         $document = new DocumentConfiguration(
             'v1',
@@ -52,9 +55,10 @@ abstract class TestCase extends Testbench
             version: $version,
             strictness: $strictness,
             routes: $routes,
+            useReferences: $useReferences,
         );
 
-        return GenerationContext::for(new Configuration(['v1' => $document], exceptions: $exceptions), $document, $locale);
+        return GenerationContext::for(new Configuration(['v1' => $document], $sampling, exceptions: $exceptions), $document, $locale);
     }
 
     /**

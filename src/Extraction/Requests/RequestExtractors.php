@@ -7,6 +7,7 @@ namespace Ark4ne\OpenApi\Extraction\Requests;
 use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Description\RequestDescription;
 use Ark4ne\OpenApi\Extraction\OperationContext;
+use Ark4ne\OpenApi\Extraction\Responses\ResourceSchemas;
 use Ark4ne\OpenApi\Extraction\Rules\FieldsBuilder;
 use Ark4ne\OpenApi\Extraction\Rules\RuleMappers;
 use Ark4ne\OpenApi\Extraction\Rules\RuleParser;
@@ -51,7 +52,7 @@ final class RequestExtractors
     /**
      * The built-in extractors: path parameters, form request, manual description, attributes.
      */
-    public static function default(Container $container, QueryStrategy $query, ?RuleMappers $mappers = null, TypeResolver $types = new TypeResolver()): self
+    public static function default(Container $container, QueryStrategy $query, ?RuleMappers $mappers = null, TypeResolver $types = new TypeResolver(), ?ResourceSchemas $resources = null): self
     {
         $requests = new RequestFactory($container);
         $parser = new RuleParser();
@@ -62,7 +63,7 @@ final class RequestExtractors
             new PathParameterRequestExtractor(),
             new FormRequestExtractor($requests, $parser, $fields, $placer),
             new DescribableRequestExtractor($requests, $parser, $fields, $placer),
-            new AttributeRequestExtractor($types),
+            new AttributeRequestExtractor($types, $resources),
         );
     }
 }

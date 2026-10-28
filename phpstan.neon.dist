@@ -16,6 +16,8 @@ parameters:
     excludePaths:
         # Deliberately odd PHPDoc read by the TypeResolver tests (unbound templates, non-generic parents…).
         - tests/Fixtures/Types/*
+        # Declares in @throws the exceptions it documents, without throwing them.
+        - tests/Fixtures/Responses/ResponseController.php
     ignoreErrors:
         # Description::copy() rebuilds the final subclass from its promoted properties, passed by name.
         -

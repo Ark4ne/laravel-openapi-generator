@@ -8,6 +8,7 @@ use Ark4ne\OpenApi\Attributes\Cookie;
 use Ark4ne\OpenApi\Attributes\PathParameter;
 use Ark4ne\OpenApi\Attributes\QueryParameter;
 use Ark4ne\OpenApi\Attributes\RequestBody;
+use Ark4ne\OpenApi\Tests\Fixtures\Responses\Http\Resources\AuthorResource;
 use Ark4ne\OpenApi\Tests\Fixtures\Routing\Models\Post;
 use Illuminate\Http\Request;
 
@@ -33,7 +34,7 @@ final class RequestController
     #[RequestBody(type: 'array{title: string, tags?: list<string>}', description: 'The changes')]
     public function patch(Request $request, Post $post): void {}
 
-    #[RequestBody(resource: Post::class)]
+    #[RequestBody(resource: AuthorResource::class)]
     public function resource(Request $request): void {}
 
     public function plain(Request $request): void {}
