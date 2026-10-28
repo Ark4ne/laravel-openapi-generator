@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Ark4ne\OpenApi\Generation;
+namespace Ark4ne\OpenApi\Extraction\Exceptions;
 
 use Ark4ne\OpenApi\Context\GenerationContext;
-use Ark4ne\OpenApi\Extraction\Exceptions\ErrorSchemas;
 use Ark4ne\OpenApiWriter\Objects\Schema;
 
 /**

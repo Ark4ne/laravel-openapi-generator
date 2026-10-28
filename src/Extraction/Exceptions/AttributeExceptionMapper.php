@@ -20,6 +20,7 @@ final readonly class AttributeExceptionMapper implements ExceptionMapper
 
     public function __construct(
         private DeclaredResponses $declared,
+        private ErrorBodies $errors = new LaravelErrorBodies(),
     ) {}
 
     public function priority(): int
@@ -48,7 +49,7 @@ final readonly class AttributeExceptionMapper implements ExceptionMapper
 
         $response = $this->declared->response($attribute, $class, $context);
 
-        return $response->contents === [] ? $response->content('application/json', ErrorSchemas::error($context)) : $response;
+        return $response->contents === [] ? $response->content($this->errors->mediaType(), $this->errors->error($context)) : $response;
     }
 
     /**

@@ -107,12 +107,18 @@ final class ResourceSchemas implements ResourceDescriber
 
     /**
      * The body of a list of a resource, as a resource collection writes it: `data`, with `links` and `meta` when
-     * paginated.
+     * paginated. A collection class gives the list of the resource it collects.
      *
      * @param class-string<JsonResource> $resource
      */
     public function collection(string $resource, ?string $paginator, GenerationContext $context): Schema
     {
+        if (is_subclass_of($resource, ResourceCollection::class)) {
+            $collected = $this->models->collected($resource);
+
+            return $collected === null ? Paginations::object(['data' => Schema::array()->items(Schema::create())]) : $this->collection($collected, $paginator, $context);
+        }
+
         $data = $this->schema($resource, $context);
         $format = $this->format($resource);
 
@@ -121,6 +127,18 @@ final class ResourceSchemas implements ResourceDescriber
             $paginator !== null => Paginations::resource($paginator, $data),
             default => Paginations::object(['data' => Schema::array()->items($data)]),
         };
+    }
+
+    /**
+     * The body of a request that sends a resource: the resource itself, or as its format sends it.
+     *
+     * @param class-string<JsonResource> $resource
+     */
+    public function request(string $resource, GenerationContext $context): Schema
+    {
+        $data = $this->schema($resource, $context);
+
+        return $this->format($resource)?->request($resource, $data, $this, $context) ?? $data;
     }
 
     public function describe(JsonResource $resource, GenerationContext $context): Schema
@@ -215,7 +233,7 @@ final class ResourceSchemas implements ResourceDescriber
      */
     private function run(string $resource, string $name, GenerationContext $context): Schema
     {
-        $format = $this->format($resource);
+        $format = is_subclass_of($resource, ResourceCollection::class) ? null : $this->format($resource);
 
         if ($format !== null) {
             try {

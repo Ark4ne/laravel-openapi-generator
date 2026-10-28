@@ -7,8 +7,10 @@ namespace Ark4ne\OpenApi\Tests\Unit\Extraction\Exceptions;
 use Ark4ne\OpenApi\Configuration\ExceptionsConfiguration;
 use Ark4ne\OpenApi\Extraction\Exceptions\AttributeExceptionMapper;
 use Ark4ne\OpenApi\Extraction\Exceptions\ConfiguredExceptionMapper;
+use Ark4ne\OpenApi\Extraction\Exceptions\ErrorBodies;
 use Ark4ne\OpenApi\Extraction\Exceptions\ExceptionMappers;
 use Ark4ne\OpenApi\Extraction\Exceptions\InstantiableHttpExceptionMapper;
+use Ark4ne\OpenApi\Extraction\Exceptions\LaravelErrorBodies;
 use Ark4ne\OpenApi\Extraction\Exceptions\LaravelExceptionMapper;
 use Ark4ne\OpenApi\Extraction\Exceptions\SymfonyHttpExceptionMapper;
 use Ark4ne\OpenApi\Extraction\Responses\DeclaredResponses;
@@ -20,8 +22,10 @@ use Ark4ne\OpenApi\Sampling\RelationLoader;
 use Ark4ne\OpenApi\Sampling\ResourceModels;
 use Ark4ne\OpenApi\Sampling\Samplers;
 use Ark4ne\OpenApi\Sampling\SchemaInferrer;
+use Ark4ne\OpenApi\Tests\Fixtures\Integrations\TestErrorBodies;
 use Ark4ne\OpenApi\Tests\Fixtures\Responses\Exceptions\ChildSeatException;
 use Ark4ne\OpenApi\Tests\Fixtures\Responses\Exceptions\PaymentRequiredException;
+use Ark4ne\OpenApi\Tests\Fixtures\Responses\Exceptions\SeatTakenException;
 use Ark4ne\OpenApi\Tests\Fixtures\Responses\Exceptions\TeapotException;
 use Ark4ne\OpenApi\Tests\Fixtures\Responses\Exceptions\UnknownException;
 use Ark4ne\OpenApi\Tests\Support\Schemas;
@@ -32,6 +36,7 @@ use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Session\TokenMismatchException;
+use Illuminate\Validation\ValidationException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
@@ -112,13 +117,26 @@ final class ExceptionMappersTest extends TestCase
         self::assertFalse((new ConfiguredExceptionMapper())->supports(PaymentRequiredException::class, $context));
     }
 
-    private static function mappers(): ExceptionMappers
+    public function test_the_error_bodies_given_shape_every_error_response(): void
+    {
+        $context = $this->context(exceptions: new ExceptionsConfiguration(map: [PaymentRequiredException::class => 402]));
+        $mappers = self::mappers(new TestErrorBodies());
+
+        foreach ([ModelNotFoundException::class, ValidationException::class, NotFoundHttpException::class, PaymentRequiredException::class, SeatTakenException::class] as $exception) {
+            $response = $mappers->map($exception, $context);
+
+            self::assertSame(['application/problem+json'], array_keys($response->contents ?? []), $exception);
+            Schemas::assertSame(['$ref' => '#/components/schemas/Problem'], $response?->contents['application/problem+json'] ?? Schema::create(), $exception);
+        }
+    }
+
+    private static function mappers(ErrorBodies $errors = new LaravelErrorBodies()): ExceptionMappers
     {
         $types = new TypeResolver();
         $samplers = Samplers::default(new NullSamplingSession(), $types);
         $models = new ResourceModels($types);
         $resources = new ResourceSchemas($models, $samplers, new SchemaInferrer(new ModelSchemas($types)), new RelationLoader($samplers));
 
-        return ExceptionMappers::default(new DeclaredResponses($resources, new ResourceCollectionExtractor($resources, $models), $types));
+        return ExceptionMappers::default(new DeclaredResponses($resources, new ResourceCollectionExtractor($resources, $models), $types), $errors);
     }
 }

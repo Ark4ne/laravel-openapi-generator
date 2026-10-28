@@ -10,7 +10,10 @@ use Ark4ne\OpenApi\Description\BodyDescription;
 use Ark4ne\OpenApi\Description\CallbackDescription;
 use Ark4ne\OpenApi\Extraction\Callbacks\DeclaredCallbacks;
 use Ark4ne\OpenApi\Extraction\Responses\OperationResponses;
+use Ark4ne\OpenApi\Extraction\Responses\ResourceFormat;
 use Ark4ne\OpenApi\Sampling\Samplers;
+use Ark4ne\OpenApi\Tests\Fixtures\Integrations\TestResourceFormat;
+use Ark4ne\OpenApi\Tests\Fixtures\Responses\Http\Resources\ArticleResource;
 use Ark4ne\OpenApi\Tests\Fixtures\Types\BrokenWebhooks;
 use Ark4ne\OpenApi\Tests\Fixtures\Webhooks\OrderController;
 use Ark4ne\OpenApi\Tests\Fixtures\Webhooks\OrderPayload;
@@ -70,17 +73,26 @@ final class DeclaredCallbacksTest extends SamplingTestCase
         self::assertDiagnostics(['[warning] response POST /api/orders: #[Callback] dto: ' . OrderPayload::class . ' is not a resource, request written without body'], $context);
     }
 
+    public function test_a_resource_of_a_format_is_sent_in_its_media_type(): void
+    {
+        $callbacks = $this->callbacks('store', formats: [new TestResourceFormat('application/x-test', [ArticleResource::class])]);
+        $article = array_values(array_filter($callbacks, static fn(CallbackDescription $callback): bool => $callback->name === 'article'))[0] ?? null;
+
+        self::assertSame(['application/x-test'], array_keys($article?->operation?->request->body->contents ?? []));
+    }
+
     /**
      * @param class-string $controller
+     * @param list<ResourceFormat> $formats
      *
      * @return list<CallbackDescription>
      */
-    private function callbacks(string $action, ?GenerationContext $context = null, string $controller = OrderController::class): array
+    private function callbacks(string $action, ?GenerationContext $context = null, string $controller = OrderController::class, array $formats = []): array
     {
         $this->router()->post('api/orders', [$controller, $action]);
         $context ??= $this->context();
         $types = new TypeResolver();
-        $responses = OperationResponses::default(Samplers::default($this->samplingSession(), $types), $types);
+        $responses = OperationResponses::default(Samplers::default($this->samplingSession(), $types), $types, $formats);
 
         return $this->samplingSession()->run(fn(): array => (new DeclaredCallbacks($responses->declared()))->describe($this->operation($context), $context), $context);
     }

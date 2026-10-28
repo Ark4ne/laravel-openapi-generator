@@ -49,7 +49,7 @@ final readonly class DeclaredCallbacks
             if ($payload === null && $attribute->resource !== null) {
                 $context->diagnostics->warning(Stage::Response, "#[Callback] {$attribute->name}: {$attribute->resource} is not a resource, request written without body", $operation->route->label());
             } elseif ($payload !== null) {
-                $request = $request->body(BodyDescription::create()->content($attribute->mediaType ?? 'application/json', $payload)->required());
+                $request = $request->body(BodyDescription::create()->content($attribute->mediaType ?? $this->responses->mediaType($attribute->resource), $payload)->required());
             }
 
             $status = $attribute->status ?? 200;

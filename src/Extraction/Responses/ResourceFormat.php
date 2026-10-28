@@ -39,6 +39,14 @@ interface ResourceFormat
     public function document(string $resource, Schema $data, ResourceSchemas $resources, GenerationContext $context): Schema;
 
     /**
+     * The body of a request that sends the resource (`#[RequestBody(resource:)]`).
+     *
+     * @param class-string<JsonResource> $resource
+     * @param Schema $data the schema of the resource (a reference to its component)
+     */
+    public function request(string $resource, Schema $data, ResourceSchemas $resources, GenerationContext $context): Schema;
+
+    /**
      * The body of a list of the resource, paginated when a paginator is given.
      *
      * @param class-string<JsonResource> $resource

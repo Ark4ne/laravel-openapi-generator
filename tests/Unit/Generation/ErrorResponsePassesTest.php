@@ -12,7 +12,7 @@ use Ark4ne\OpenApi\Description\RequestDescription;
 use Ark4ne\OpenApi\Description\ResponseDescription;
 use Ark4ne\OpenApi\Description\ResponseOrigin;
 use Ark4ne\OpenApi\Description\SecurityDescription;
-use Ark4ne\OpenApi\Generation\LaravelErrorBodies;
+use Ark4ne\OpenApi\Extraction\Exceptions\LaravelErrorBodies;
 use Ark4ne\OpenApi\Generation\Pass;
 use Ark4ne\OpenApi\Generation\Passes\AuthorizationResponsePass;
 use Ark4ne\OpenApi\Generation\Passes\NotFoundResponsePass;

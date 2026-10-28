@@ -8,7 +8,7 @@ use Ark4ne\OpenApi\Generation\Integration;
 use Ark4ne\OpenApi\Integrations\JsonApi\JsonApiIntegration;
 
 /**
- * The integrations shipped with the generator, those whose package is installed.
+ * The integrations shipped with the generator; the generator keeps those whose package is installed.
  */
 final class BuiltInIntegrations
 {
@@ -17,16 +17,8 @@ final class BuiltInIntegrations
      *
      * @return list<Integration>
      */
-    public static function available(bool $jsonApiErrors = false): array
+    public static function all(bool $jsonApiErrors = false): array
     {
-        $integrations = [];
-
-        foreach ([new JsonApiIntegration($jsonApiErrors)] as $integration) {
-            if ($integration->available()) {
-                $integrations[] = $integration;
-            }
-        }
-
-        return $integrations;
+        return [new JsonApiIntegration($jsonApiErrors)];
     }
 }

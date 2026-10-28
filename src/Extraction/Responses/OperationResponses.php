@@ -9,8 +9,10 @@ use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Context\Stage;
 use Ark4ne\OpenApi\Description\ResponseDescription;
 use Ark4ne\OpenApi\Description\ResponseOrigin;
+use Ark4ne\OpenApi\Extraction\Exceptions\ErrorBodies;
 use Ark4ne\OpenApi\Extraction\Exceptions\ExceptionMappers;
 use Ark4ne\OpenApi\Extraction\Exceptions\ExceptionResponses;
+use Ark4ne\OpenApi\Extraction\Exceptions\LaravelErrorBodies;
 use Ark4ne\OpenApi\Extraction\OperationContext;
 use Ark4ne\OpenApi\Sampling\ModelSchemas;
 use Ark4ne\OpenApi\Sampling\RelationLoader;
@@ -38,16 +40,19 @@ final readonly class OperationResponses
         private ResourceSchemas $resources,
     ) {}
 
-    public static function default(Samplers $samplers, TypeResolver $types, ResourceFormat ...$formats): self
+    /**
+     * @param list<ResourceFormat> $formats
+     */
+    public static function default(Samplers $samplers, TypeResolver $types, array $formats = [], ErrorBodies $errors = new LaravelErrorBodies()): self
     {
         $models = new ResourceModels($types);
-        $resources = new ResourceSchemas($models, $samplers, new SchemaInferrer(new ModelSchemas($types)), new RelationLoader($samplers), array_values($formats));
+        $resources = new ResourceSchemas($models, $samplers, new SchemaInferrer(new ModelSchemas($types)), new RelationLoader($samplers), $formats);
         $inferrer = $resources->inferrer();
         $values = new ValueSchemas($resources, $samplers, $inferrer);
         $extractors = ResponseExtractors::default($resources, $models, $values, $samplers, $inferrer);
         $declared = new DeclaredResponses($resources, new ResourceCollectionExtractor($resources, $models), $types);
 
-        return new self($extractors, $declared, new ExceptionResponses(ExceptionMappers::default($declared)), $resources);
+        return new self($extractors, $declared, new ExceptionResponses(ExceptionMappers::default($declared, $errors)), $resources);
     }
 
     /**

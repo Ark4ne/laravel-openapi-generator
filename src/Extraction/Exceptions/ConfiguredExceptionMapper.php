@@ -16,6 +16,10 @@ final readonly class ConfiguredExceptionMapper implements ExceptionMapper
 {
     public const PRIORITY = 400;
 
+    public function __construct(
+        private ErrorBodies $errors = new LaravelErrorBodies(),
+    ) {}
+
     public function priority(): int
     {
         return self::PRIORITY;
@@ -30,7 +34,7 @@ final readonly class ConfiguredExceptionMapper implements ExceptionMapper
     {
         $entry = self::entry($exception, $context);
 
-        return $entry === null ? null : ErrorSchemas::response($entry[0], $entry[1], $context);
+        return $entry === null ? null : ErrorSchemas::response($this->errors, $entry[0], $entry[1], $context);
     }
 
     /**

@@ -13,7 +13,7 @@ use Ark4ne\OpenApi\Extraction\Rules\RuleMapper;
 /**
  * `new Includes(UserResource::class)`: a string of relationship paths separated by commas (`posts,posts.comments`);
  * the description lists the paths of the resource, a path never going back to a resource it went through; the
- * example takes its first two relationships.
+ * example takes the first two relationships it describes.
  */
 final readonly class IncludesRuleMapper implements RuleMapper
 {
@@ -35,7 +35,7 @@ final readonly class IncludesRuleMapper implements RuleMapper
         }
 
         $description = 'Relationships to include, separated by commas: ' . implode(', ', array_map(static fn(string $path): string => "`{$path}`", $paths)) . '.';
-        $example = implode(',', array_slice(array_keys($skeleton->relationships), 0, 2));
+        $example = implode(',', array_slice(array_values(array_filter($paths, static fn(string $path): bool => ! str_contains($path, '.'))), 0, 2));
 
         $schema = $schema->description($description);
 

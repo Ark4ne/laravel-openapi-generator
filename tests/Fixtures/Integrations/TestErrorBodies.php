@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Ark4ne\OpenApi\Tests\Fixtures\Integrations;
 
 use Ark4ne\OpenApi\Context\GenerationContext;
-use Ark4ne\OpenApi\Generation\ErrorBodies;
+use Ark4ne\OpenApi\Extraction\Exceptions\ErrorBodies;
 use Ark4ne\OpenApiWriter\Objects\Schema;
 
 /**

@@ -37,10 +37,10 @@ final class JsonApiIntegrationTest extends TestCase
         self::assertInstanceOf(JsonApiErrorBodies::class, (new JsonApiIntegration(errors: true))->errorBodies());
     }
 
-    public function test_the_built_in_integrations_are_those_available(): void
+    public function test_the_built_in_integrations_are_listed_with_their_options(): void
     {
-        self::assertEquals([new JsonApiIntegration()], BuiltInIntegrations::available());
-        self::assertEquals([new JsonApiIntegration(errors: true)], BuiltInIntegrations::available(jsonApiErrors: true));
+        self::assertEquals([new JsonApiIntegration()], BuiltInIntegrations::all());
+        self::assertEquals([new JsonApiIntegration(errors: true)], BuiltInIntegrations::all(jsonApiErrors: true));
     }
 
     public function test_the_error_bodies_are_json_api_error_documents(): void

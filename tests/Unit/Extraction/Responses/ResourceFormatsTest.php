@@ -91,7 +91,7 @@ final class ResourceFormatsTest extends SamplingTestCase
         self::assertNotEmpty($definitions);
         $operation = (new OperationContextFactory(new TypeResolver()))->create($definitions[array_key_last($definitions)], $context);
         $types = new TypeResolver();
-        $this->responses = OperationResponses::default(Samplers::default($this->samplingSession(), $types), $types, new TestResourceFormat(self::MEDIA_TYPE, [ArticleResource::class], $failing));
+        $this->responses = OperationResponses::default(Samplers::default($this->samplingSession(), $types), $types, [new TestResourceFormat(self::MEDIA_TYPE, [ArticleResource::class], $failing)]);
         $responses = $this->responses->describe($operation, $context);
         self::assertCount(1, $responses, implode("\n", array_map(strval(...), $context->diagnostics->all())));
 

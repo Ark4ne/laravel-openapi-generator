@@ -18,6 +18,11 @@ use Ark4ne\OpenApi\Tests\Fixtures\JsonApi\Resources\PostResource;
 use Ark4ne\OpenApi\Tests\Fixtures\JsonApi\Resources\UserResource;
 use Ark4ne\OpenApi\Tests\Fixtures\Sampling\Http\Resources\AuthorResource;
 use Ark4ne\OpenApi\Tests\Fixtures\Types\BrokenJsonApiResource;
+use Ark4ne\OpenApi\Tests\Fixtures\Types\TagCollection;
+use Ark4ne\OpenApi\Tests\Fixtures\Types\TaggedJsonApiResource;
+use Ark4ne\OpenApi\Tests\Fixtures\Types\TwinAResource;
+use Ark4ne\OpenApi\Tests\Fixtures\Types\TwinBResource;
+use Ark4ne\OpenApi\Tests\Fixtures\Types\TwinsJsonApiResource;
 use Ark4ne\OpenApi\Tests\Fixtures\Types\UnsampledJsonApiResource;
 use Ark4ne\OpenApi\Tests\Support\Schemas;
 use Ark4ne\OpenApi\Types\TypeResolver;
@@ -112,6 +117,31 @@ final class JsonApiResourceFormatTest extends JsonApiTestCase
         self::assertSame(['user', 'comments'], array_keys(self::at($post, 'relationships')->properties ?? []));
     }
 
+    public function test_a_relation_to_a_collection_lists_the_resource_it_collects(): void
+    {
+        $tagged = $this->resourceObject(TaggedJsonApiResource::class, 'TaggedJsonApi');
+
+        Schemas::assertSame(['type' => 'array', 'items' => ['type' => 'object', 'properties' => ['type' => ['type' => 'string', 'const' => 'tag'], 'id' => ['type' => 'string']], 'required' => ['type', 'id']]], self::at($tagged, 'relationships', 'tags', 'data'));
+    }
+
+    public function test_the_links_and_meta_of_a_many_relation_receive_a_collection(): void
+    {
+        $tagged = $this->resourceObject(TaggedJsonApiResource::class, 'TaggedJsonApi');
+
+        Schemas::assertSame(['type' => 'object', 'properties' => ['total' => ['type' => 'integer']], 'required' => ['total']], self::at($tagged, 'relationships', 'tags', 'meta'));
+        Schemas::assertSame(['type' => 'object', 'properties' => ['count' => ['type' => 'integer']], 'required' => ['count']], self::at($tagged, 'relationships', 'labels', 'meta'));
+        self::assertSame([], array_map(strval(...), $this->ctx()->diagnostics->all()));
+    }
+
+    public function test_a_collection_class_is_written_as_the_collection_of_its_resource(): void
+    {
+        $resources = $this->resources();
+        $paginated = $resources->collection(TagCollection::class, LengthAwarePaginator::class, $this->ctx());
+
+        Schemas::assertSame(['type' => 'array', 'items' => ['$ref' => '#/components/schemas/Tag']], self::at($paginated, 'data'));
+        self::assertFalse($this->ctx()->components->has('TagCollection'));
+    }
+
     public function test_the_type_defaults_to_the_class_name(): void
     {
         Schemas::assertSame(['type' => 'string', 'const' => 'comment'], self::at($this->resourceObject(CommentResource::class, 'Comment'), 'type'));
@@ -149,11 +179,35 @@ final class JsonApiResourceFormatTest extends JsonApiTestCase
         ], $document);
     }
 
+    public function test_included_resources_sharing_a_type_have_no_discriminator(): void
+    {
+        $resources = $this->resources();
+        $document = $resources->envelope(TwinsJsonApiResource::class, $resources->schema(TwinsJsonApiResource::class, $this->ctx()), $this->ctx());
+
+        Schemas::assertSame(['type' => 'array', 'items' => ['oneOf' => [['$ref' => '#/components/schemas/TwinA'], ['$ref' => '#/components/schemas/TwinB']]]], self::at($document, 'included'));
+        self::assertStringContainsString('the included resources ' . TwinAResource::class . ' and ' . TwinBResource::class . ' share the type twin: written without discriminator', implode("\n", array_map(strval(...), $this->ctx()->diagnostics->all())));
+    }
+
     public function test_a_resource_without_relationship_includes_nothing(): void
     {
         $resources = $this->resources();
 
         Schemas::assertSame(['type' => 'object', 'properties' => ['data' => ['$ref' => '#/components/schemas/UnsampledJsonApi']], 'required' => ['data']], $resources->envelope(UnsampledJsonApiResource::class, $resources->schema(UnsampledJsonApiResource::class, $this->ctx()), $this->ctx()));
+    }
+
+    public function test_the_meta_of_the_resource_joins_the_pagination_s_which_stays_required(): void
+    {
+        $meta = self::at($this->resources()->collection(PostResource::class, LengthAwarePaginator::class, $this->ctx()), 'meta');
+
+        self::assertSame(['current_page', 'from', 'last_page', 'links', 'path', 'per_page', 'to', 'total'], $meta->required);
+        self::assertSame(['current_page', 'from', 'last_page', 'links', 'path', 'per_page', 'to', 'total', 'version'], array_keys($meta->properties ?? []));
+    }
+
+    public function test_a_request_sends_the_resource_object_under_data(): void
+    {
+        $resources = $this->resources();
+
+        Schemas::assertSame(['type' => 'object', 'properties' => ['data' => ['$ref' => '#/components/schemas/Post']], 'required' => ['data']], $resources->request(PostResource::class, $this->ctx()));
     }
 
     public function test_a_collection_lists_its_resources_and_a_paginated_one_has_laravel_s_links_and_meta(): void

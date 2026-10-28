@@ -8,6 +8,8 @@ use Ark4ne\OpenApi\Configuration\Configuration;
 use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Description\DocumentDescription;
 use Ark4ne\OpenApi\Exceptions\InvalidConfigurationException;
+use Ark4ne\OpenApi\Extraction\Exceptions\ErrorBodies;
+use Ark4ne\OpenApi\Extraction\Exceptions\LaravelErrorBodies;
 
 /**
  * The passes, in their explicit order: exception responses → security → error responses → tags and groups →

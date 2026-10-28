@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ark4ne\OpenApi\Generation;
 
+use Ark4ne\OpenApi\Extraction\Exceptions\ErrorBodies;
 use Ark4ne\OpenApi\Extraction\Responses\ResourceFormat;
 use Ark4ne\OpenApi\Extraction\Rules\RuleMapper;
 

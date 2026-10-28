@@ -76,7 +76,7 @@ final readonly class DeclaredResponses
 
         if ($body !== null) {
             $body = $attribute->example === null ? $body : $body->example($attribute->example);
-            $mediaType = $attribute->mediaType ?? ($attribute->resource !== null && is_subclass_of($attribute->resource, JsonResource::class) ? $this->resources->mediaType($attribute->resource) : 'application/json');
+            $mediaType = $attribute->mediaType ?? $this->mediaType($attribute->resource);
             $response = $mediaType === 'text/event-stream' ? $response->itemContent($mediaType, $body) : $response->content($mediaType, $body);
         }
 
@@ -85,6 +85,14 @@ final readonly class DeclaredResponses
         }
 
         return $response;
+    }
+
+    /**
+     * The media type of a body given by a resource (its format's) or by a type (`application/json`).
+     */
+    public function mediaType(?string $resource): string
+    {
+        return $resource !== null && is_subclass_of($resource, JsonResource::class) ? $this->resources->mediaType($resource) : 'application/json';
     }
 
     /**

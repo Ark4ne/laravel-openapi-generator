@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Ark4ne\OpenApi\Generation;
 
+use Ark4ne\OpenApi\Extraction\Exceptions\ErrorBodies;
+use Ark4ne\OpenApi\Extraction\Exceptions\LaravelErrorBodies;
 use Ark4ne\OpenApi\Generation\Middlewares\AuthMiddlewareMapper;
 use Ark4ne\OpenApi\Generation\Middlewares\BasicAuthMiddlewareMapper;
 use Ark4ne\OpenApi\Generation\Middlewares\CsrfMiddlewareMapper;

@@ -35,7 +35,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Support\Str;
-use ReflectionClass;
 use ReflectionMethod;
 use ReflectionProperty;
 use Throwable;
@@ -52,8 +51,9 @@ use WeakMap;
  *   any sampling; any other value is inferred from a sample of the model.
  * - Relationships: `data`, a resource identifier (`type`, `id`), nullable for one, a list for many; their `links` and
  *   `meta` from the closures of the relation.
+ * - Requests: the resource object under `data`.
  * - Documents: `data`, `included` (every resource reachable through the relationships, `oneOf` with a discriminator
- *   on `type`), the `meta` of `toMeta()`; a paginated collection adds Laravel's `links` and `meta`.
+ *   on `type` unless two of them share a type), the `meta` of `toMeta()`; a paginated collection adds Laravel's `links` and `meta`.
  */
 final class JsonApiResourceFormat implements ResourceFormat
 {
@@ -117,6 +117,11 @@ final class JsonApiResourceFormat implements ResourceFormat
         return $this->body($resource, ['data' => $data], ['data'], $resources, $context);
     }
 
+    public function request(string $resource, Schema $data, ResourceSchemas $resources, GenerationContext $context): Schema
+    {
+        return Paginations::object(['data' => $data]);
+    }
+
     public function collection(string $resource, Schema $data, ?string $paginator, ResourceSchemas $resources, GenerationContext $context): Schema
     {
         if ($paginator === null) {
@@ -144,7 +149,7 @@ final class JsonApiResourceFormat implements ResourceFormat
             $members = $included === null ? $members : [...$members, 'included' => $included];
 
             if ($meta !== null) {
-                $members['meta'] = isset($members['meta']) ? ResourceSchemas::union($members['meta'], $meta) : $meta;
+                $members['meta'] = isset($members['meta']) ? self::join($members['meta'], $meta) : $meta;
             }
         }
 
@@ -155,6 +160,17 @@ final class JsonApiResourceFormat implements ResourceFormat
         }
 
         return Schema::object()->properties(...$properties)->required(...$required);
+    }
+
+    /**
+     * The members of `toMeta()` added to the pagination's `meta`, whose members stay required.
+     */
+    private static function join(Schema $pagination, Schema $meta): Schema
+    {
+        $properties = [...$pagination->properties ?? [], ...$meta->properties ?? []];
+        $joined = $pagination->properties(...array_values($properties));
+
+        return $pagination->required === null ? $joined : $joined->required(...$pagination->required);
     }
 
     /**
@@ -169,7 +185,7 @@ final class JsonApiResourceFormat implements ResourceFormat
         $queue = [$resource];
 
         while ($queue !== []) {
-            foreach ($this->relations(array_shift($queue), $context) as $relation) {
+            foreach ($this->relations(array_shift($queue), $resources, $context) as $relation) {
                 if (! isset($reached[$relation->related])) {
                     $reached[$relation->related] = true;
                     $queue[] = $relation->related;
@@ -179,10 +195,20 @@ final class JsonApiResourceFormat implements ResourceFormat
 
         $members = [];
         $mapping = [];
+        $typed = [];
+        $discriminated = $context->document->useReferences;
 
         foreach (array_keys($reached) as $related) {
             $members[] = $resources->schema($related, $context);
-            $mapping[$this->type($related, $context)] = '#/components/schemas/' . $context->components->nameOf($related);
+            $type = $this->type($related, $context);
+
+            if (isset($typed[$type])) {
+                $context->diagnostics->warning(Stage::Response, "{$resource}: the included resources {$typed[$type]} and {$related} share the type {$type}: written without discriminator");
+                $discriminated = false;
+            }
+
+            $typed[$type] = $related;
+            $mapping[$type] = '#/components/schemas/' . $context->components->nameOf($related);
         }
 
         if ($members === []) {
@@ -195,7 +221,7 @@ final class JsonApiResourceFormat implements ResourceFormat
 
         $items = Schema::create()->oneOf(...$members);
 
-        return Schema::array()->items($context->document->useReferences ? $items->discriminator(Discriminator::create()->propertyName('type')->mapping($mapping)) : $items);
+        return Schema::array()->items($discriminated ? $items->discriminator(Discriminator::create()->propertyName('type')->mapping($mapping)) : $items);
     }
 
     /**
@@ -205,7 +231,7 @@ final class JsonApiResourceFormat implements ResourceFormat
     {
         $properties = [];
 
-        foreach ($this->relations($resource, $context) as $relation) {
+        foreach ($this->relations($resource, $resources, $context) as $relation) {
             $identifier = Paginations::object([
                 'type' => Schema::string()->const($this->type($relation->related, $context)),
                 'id' => $this->identifier($relation->related, $resources, $context),
@@ -213,7 +239,7 @@ final class JsonApiResourceFormat implements ResourceFormat
             $members = [($relation->many ? Schema::array()->items($identifier) : $identifier->nullable())->objectId('data')];
 
             foreach (['links' => $relation->links, 'meta' => $relation->meta] as $member => $closure) {
-                $value = $closure === null ? null : $this->call($resource, "{$relation->name}.{$member}", static fn(): mixed => $closure(self::instance($relation->related, new FakeModel())), $context);
+                $value = $closure === null ? null : $this->call($resource, "{$relation->name}.{$member}", static fn(): mixed => $closure($relation->holder()), $context);
 
                 if (is_array($value) && $value !== []) {
                     $members[] = $resources->inferrer()->infer($value, $context)->objectId($member);
@@ -233,7 +259,7 @@ final class JsonApiResourceFormat implements ResourceFormat
      *
      * @return list<JsonApiRelation>
      */
-    private function relations(string $resource, GenerationContext $context): array
+    private function relations(string $resource, ResourceSchemas $resources, GenerationContext $context): array
     {
         $known = $this->relations[$context] ?? [];
 
@@ -254,8 +280,10 @@ final class JsonApiResourceFormat implements ResourceFormat
                 ? [$relation->related(), $relation instanceof RelationMany]
                 : [$relation->getResource(), self::read($relation, 'asCollection') === true];
 
-            if (is_subclass_of($related, ResourceCollection::class)) {
-                [$related, $many] = [self::read((new ReflectionClass($related))->newInstanceWithoutConstructor(), 'collects'), true];
+            $collection = is_subclass_of($related, ResourceCollection::class) ? $related : null;
+
+            if ($collection !== null) {
+                [$related, $many] = [$resources->models()->collected($collection), true];
             }
 
             if (! is_string($related) || ! is_subclass_of($related, JsonApiResource::class)) {
@@ -264,7 +292,7 @@ final class JsonApiResourceFormat implements ResourceFormat
 
             $links = self::read($relation, 'links');
             $meta = self::read($relation, 'meta');
-            $relations[] = new JsonApiRelation((string) Describer::retrieveName($relation, $key), $related, $many, $links instanceof Closure ? $links : null, $meta instanceof Closure ? $meta : null);
+            $relations[] = new JsonApiRelation((string) Describer::retrieveName($relation, $key), $related, $many, $links instanceof Closure ? $links : null, $meta instanceof Closure ? $meta : null, $collection);
         }
 
         $known = $this->relations[$context] ?? [];

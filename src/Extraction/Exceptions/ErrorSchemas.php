@@ -13,7 +13,7 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * The JSON bodies of Laravel's errors: `Error` (`message`) and `ValidationError` (`message`, `errors`), shared
- * components; E7 lets them be replaced (JSON:API in E9).
+ * components, the bodies of LaravelErrorBodies.
  */
 final class ErrorSchemas
 {
@@ -24,11 +24,11 @@ final class ErrorSchemas
     /**
      * A response of this status with the error body, or the validation body (`ValidationException` only).
      */
-    public static function response(int $status, ?string $description, GenerationContext $context, bool $validation = false): ResponseDescription
+    public static function response(ErrorBodies $errors, int $status, ?string $description, GenerationContext $context, bool $validation = false): ResponseDescription
     {
         return ResponseDescription::create($status)
             ->description($description ?? DeclaredResponses::phrase($status))
-            ->content('application/json', $validation ? self::validation($context) : self::error($context));
+            ->content($errors->mediaType(), $validation ? $errors->validation($context) : $errors->error($context));
     }
 
     public static function error(GenerationContext $context): Schema

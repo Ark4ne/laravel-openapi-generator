@@ -12,7 +12,8 @@ use Ark4ne\OpenApiWriter\Objects\Schema;
 use RuntimeException;
 
 /**
- * A format of its own media type: `formatted` components, `document` bodies, `list` or `paginator` collections.
+ * A format of its own media type: `formatted` components, `document` bodies, `request` bodies, `list` or
+ * `paginator` collections.
  */
 final readonly class TestResourceFormat implements ResourceFormat
 {
@@ -43,6 +44,11 @@ final readonly class TestResourceFormat implements ResourceFormat
     public function document(string $resource, Schema $data, ResourceSchemas $resources, GenerationContext $context): Schema
     {
         return Paginations::object(['document' => $data]);
+    }
+
+    public function request(string $resource, Schema $data, ResourceSchemas $resources, GenerationContext $context): Schema
+    {
+        return Paginations::object(['request' => $data]);
     }
 
     public function collection(string $resource, Schema $data, ?string $paginator, ResourceSchemas $resources, GenerationContext $context): Schema

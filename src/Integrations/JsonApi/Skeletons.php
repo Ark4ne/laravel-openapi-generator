@@ -24,9 +24,11 @@ final class Skeletons
      */
     public static function ofRule(object $rule, GenerationContext $context, string $field): ?Skeleton
     {
-        $resource = (new ReflectionProperty($rule, 'resource'))->getValue($rule);
+        $resource = property_exists($rule, 'resource') ? (new ReflectionProperty($rule, 'resource'))->getValue($rule) : null;
 
         if (! is_string($resource) || ! is_subclass_of($resource, JsonApiResource::class)) {
+            $context->diagnostics->warning(Stage::Request, "{$field}: cannot read the resource of " . $rule::class . ', field described without its resource');
+
             return null;
         }
 

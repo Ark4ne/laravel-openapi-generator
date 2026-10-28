@@ -23,14 +23,17 @@ final class ExceptionMappers
         $this->mappers = $mappers;
     }
 
-    public static function default(DeclaredResponses $declared): self
+    /**
+     * The built-in mappers, writing their errors with the given bodies.
+     */
+    public static function default(DeclaredResponses $declared, ErrorBodies $errors = new LaravelErrorBodies()): self
     {
         return new self(
-            new AttributeExceptionMapper($declared),
-            new ConfiguredExceptionMapper(),
-            new LaravelExceptionMapper(),
-            new SymfonyHttpExceptionMapper(),
-            new InstantiableHttpExceptionMapper(),
+            new AttributeExceptionMapper($declared, $errors),
+            new ConfiguredExceptionMapper($errors),
+            new LaravelExceptionMapper($errors),
+            new SymfonyHttpExceptionMapper($errors),
+            new InstantiableHttpExceptionMapper($errors),
         );
     }
 

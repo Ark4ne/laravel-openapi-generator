@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Ark4ne\OpenApi\Integrations\JsonApi;
 
-use Ark4ne\OpenApi\Generation\ErrorBodies;
+use Ark4ne\OpenApi\Extraction\Exceptions\ErrorBodies;
 use Ark4ne\OpenApi\Generation\Integration;
 
 /**

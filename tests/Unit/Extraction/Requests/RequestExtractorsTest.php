@@ -23,6 +23,7 @@ use Ark4ne\OpenApi\Sampling\RelationLoader;
 use Ark4ne\OpenApi\Sampling\ResourceModels;
 use Ark4ne\OpenApi\Sampling\Samplers;
 use Ark4ne\OpenApi\Sampling\SchemaInferrer;
+use Ark4ne\OpenApi\Tests\Fixtures\Integrations\TestResourceFormat;
 use Ark4ne\OpenApi\Tests\Fixtures\Requests\ChildRequestController;
 use Ark4ne\OpenApi\Tests\Fixtures\Requests\FailingRequest;
 use Ark4ne\OpenApi\Tests\Fixtures\Requests\RequestController;
@@ -197,6 +198,20 @@ final class RequestExtractorsTest extends TestCase
 
         Schemas::assertSame('{"$ref":"#/components/schemas/Author"}', $request->body?->contents['application/json'] ?? Schema::create());
         self::assertTrue($context->components->has('Author'));
+    }
+
+    public function test_a_resource_body_of_a_format_is_its_request_in_its_media_type(): void
+    {
+        $this->router()->post('api/resource', [RequestController::class, 'resource']);
+        $context = $this->context();
+        $operation = $this->operation($context);
+        $types = new TypeResolver();
+        $samplers = Samplers::default(new NullSamplingSession(), $types);
+        $resources = new ResourceSchemas(new ResourceModels($types), $samplers, new SchemaInferrer(new ModelSchemas($types)), new RelationLoader($samplers), [new TestResourceFormat()]);
+
+        $request = RequestExtractors::default($this->container(), new BuiltInQueryStrategy('last'), resources: $resources)->extract($operation, RequestDescription::create(), $context);
+
+        Schemas::assertSame(['type' => 'object', 'properties' => ['request' => ['$ref' => '#/components/schemas/Author']], 'required' => ['request']], $request->body?->contents['application/x-test'] ?? Schema::create());
     }
 
     public function test_application_code_that_fails_while_reading_the_rules_gives_a_warning(): void

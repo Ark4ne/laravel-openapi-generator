@@ -7,7 +7,7 @@ namespace Ark4ne\OpenApi\Generation\Passes;
 use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Description\DocumentDescription;
 use Ark4ne\OpenApi\Description\HeaderDescription;
-use Ark4ne\OpenApi\Generation\ErrorBodies;
+use Ark4ne\OpenApi\Extraction\Exceptions\ErrorBodies;
 use Ark4ne\OpenApi\Generation\Middleware;
 use Ark4ne\OpenApi\Generation\Pass;
 use Ark4ne\OpenApi\Generation\SharedResponses;

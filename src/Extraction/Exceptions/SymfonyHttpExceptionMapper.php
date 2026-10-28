@@ -52,6 +52,10 @@ final readonly class SymfonyHttpExceptionMapper implements ExceptionMapper
         UnsupportedMediaTypeHttpException::class => 415,
     ];
 
+    public function __construct(
+        private ErrorBodies $errors = new LaravelErrorBodies(),
+    ) {}
+
     public function priority(): int
     {
         return self::PRIORITY;
@@ -66,7 +70,7 @@ final readonly class SymfonyHttpExceptionMapper implements ExceptionMapper
     {
         $status = self::status($exception);
 
-        return $status === null ? null : ErrorSchemas::response($status, null, $context);
+        return $status === null ? null : ErrorSchemas::response($this->errors, $status, null, $context);
     }
 
     private static function status(string $exception): ?int

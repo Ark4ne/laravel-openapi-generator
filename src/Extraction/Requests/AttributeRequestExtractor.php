@@ -131,14 +131,14 @@ final readonly class AttributeRequestExtractor implements RequestExtractor
 
         $body = $request->body;
         $schema = match (true) {
-            $resource !== null => $this->resources->schema($resource, $context),
+            $resource !== null => $this->resources->request($resource, $context),
             $attribute->type !== null => $this->schema($attribute->type, $action, null),
             default => null,
         };
 
         if ($schema !== null) {
             $body = ($body ?? BodyDescription::create())
-                ->content($attribute->mediaType ?? FieldPlacer::JSON, $schema)
+                ->content($attribute->mediaType ?? ($resource === null ? FieldPlacer::JSON : $this->resources->mediaType($resource)), $schema)
                 ->required($attribute->required ?? true);
         } elseif ($body !== null && $attribute->required !== null) {
             $body = $body->required($attribute->required);

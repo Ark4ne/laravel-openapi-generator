@@ -18,6 +18,10 @@ final readonly class InstantiableHttpExceptionMapper implements ExceptionMapper
 {
     public const PRIORITY = 100;
 
+    public function __construct(
+        private ErrorBodies $errors = new LaravelErrorBodies(),
+    ) {}
+
     public function priority(): int
     {
         return self::PRIORITY;
@@ -42,6 +46,6 @@ final readonly class InstantiableHttpExceptionMapper implements ExceptionMapper
             return null;
         }
 
-        return $instance instanceof HttpExceptionInterface ? ErrorSchemas::response($instance->getStatusCode(), null, $context) : null;
+        return $instance instanceof HttpExceptionInterface ? ErrorSchemas::response($this->errors, $instance->getStatusCode(), null, $context) : null;
     }
 }

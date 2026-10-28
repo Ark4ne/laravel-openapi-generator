@@ -11,8 +11,8 @@ extension isolée, active seulement quand le paquet est installé.
 ### Enregistrement (`src/Integrations/JsonApi/`)
 
 - [x] Fournisseur de l'intégration : `JsonApiIntegration` (contrat `Generation\Integration`) donne un format de
-      ressource, des mappers de règles et des corps d'erreur ; `BuiltInIntegrations::available()` ne la renvoie que si
-      `ark4ne/laravel-json-api ^1.9` est présent, rien sinon (le fournisseur de services d'E10 la passe au `Generator`)
+      ressource, des mappers de règles et des corps d'erreur ; `BuiltInIntegrations::all()` la liste, le `Generator`
+      ne la retient que si `ark4ne/laravel-json-api ^1.9` est présent (le fournisseur de services d'E10 la lui passe)
 - [x] Type de média `application/vnd.api+json`
 
 ### Réponses
@@ -74,9 +74,21 @@ extension isolée, active seulement quand le paquet est installé.
   - Changement du cœur : un champ objet laissé en un seul paramètre de requête (stratégie `all` ou `last`) est
     maintenant un `deepObject`.
 - **Erreurs.** Le paquet laisse les erreurs de Laravel telles quelles. Les corps JSON:API (`JsonApiErrors`, type de
-  média du paquet) ne s'appliquent donc que sur option, aux réponses d'erreur des passes d'E7. Les exceptions
-  déclarées (`@throws`, E6) gardent le corps de Laravel. Le contrat `ErrorBodies` donne désormais aussi le type de
-  média des réponses partagées.
+  média du paquet) ne s'appliquent donc que sur option. Ils s'appliquent alors à toutes les réponses d'erreur : celles
+  des passes d'E7 et celles des exceptions déclarées (`@throws`, `#[Response]` sans corps sur une exception, E6).
+  - Le contrat `ErrorBodies` donne aussi le type de média des erreurs.
+  - Il a quitté `Generation` pour `Extraction\Exceptions`, afin que les mappers d'exceptions le reçoivent.
+- **Ressources déclarées.**
+  - `#[RequestBody(resource:)]` envoie ce que le format envoie (`ResourceFormat::request()` : l'objet ressource sous
+    `data`), dans son type de média.
+  - `#[Callback(resource:)]` prend le type de média du format.
+  - Une classe de collection (`#[Response(resource: UserCollection::class)]`, relation vers une collection) est la
+    liste de la ressource qu'elle collecte. Celle-ci est trouvée comme ailleurs (`$collects`, puis la convention de
+    nommage de Laravel).
+- **Robustesse.**
+  - Les closures `links` et `meta` d'une relation multiple reçoivent une collection, comme dans le paquet.
+  - Deux ressources incluses d'un même `type` retirent le discriminateur, avec un avertissement.
+  - Une règle `Includes` ou `Fields` dont la ressource est illisible donne un avertissement, jamais une exception.
 - **Écarts avec le document v0.6** (`openapi-jsonapi.json`) :
   - **Noms de composants** : `User`, `Post`, `Comment` au lieu de `resource-user` et `resource-6c97a4-post-resource`.
   - **`type` et `id`** : `type` est une `const` (au lieu d'un `default`) ; `id` est typé (`integer`) au lieu d'être

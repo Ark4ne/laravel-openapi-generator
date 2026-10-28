@@ -6,6 +6,7 @@ namespace Ark4ne\OpenApi\Tests\Unit\Generation;
 
 use Ark4ne\OpenApi\Configuration\Configuration;
 use Ark4ne\OpenApi\Description\OperationDescription;
+use Ark4ne\OpenApi\Description\ResponseDescription;
 use Ark4ne\OpenApi\Generation\GeneratedDocument;
 use Ark4ne\OpenApi\Generation\Generator;
 use Ark4ne\OpenApi\Tests\Feature\DocumentScenario;
@@ -102,6 +103,19 @@ final class GeneratorTest extends DocumentScenario
 
         self::assertSame(['application/problem+json'], array_keys($generated->description->responses['Unauthenticated']->contents ?? []));
         self::assertSame(['application/x-article'], array_keys($generated->description->operations[0]->responses[0]->contents));
+    }
+
+    public function test_the_error_bodies_of_an_integration_shape_the_responses_of_the_declared_exceptions(): void
+    {
+        $this->router()->get('api/throwing', [ResponseController::class, 'throwing']);
+        $container = $this->app?->make(Container::class);
+        self::assertInstanceOf(Container::class, $container);
+        $generator = Generator::make($this->router(), $container, $this->samplingSession(), integrations: [new TestIntegration(true, 'application/x-article', 'application/problem+json')]);
+
+        $responses = $generator->generate($this->configuration(), 'v1')->description->operations[0]->responses;
+        $notFound = array_values(array_filter($responses, static fn(ResponseDescription $response): bool => $response->status === 404))[0] ?? null;
+
+        self::assertSame(['application/problem+json'], array_keys($notFound->contents ?? []));
     }
 
     private function configuration(): Configuration
