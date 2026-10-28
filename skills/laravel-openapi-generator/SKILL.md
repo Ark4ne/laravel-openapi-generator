@@ -25,7 +25,7 @@ The source is the final authority: `vendor/ark4ne/laravel-openapi-generator/src/
 ```bash
 composer require ark4ne/laravel-openapi-generator
 php artisan vendor:publish --tag=openapi-config   # config/openapi.php
-php artisan openapi:generate                      # writes storage/app/…/openapi/<document>.json
+php artisan openapi:generate                      # writes openapi/openapi-v1.json on the default disk
 composer require --dev opis/json-schema           # validation against the official schemas (recommended)
 ```
 
@@ -65,7 +65,8 @@ composer require --dev opis/json-schema           # validation against the offic
 11. **Description objects are immutable**: every method returns a copy; always use the return value
     (`$field = $field->schema(...)`). Schemas are `Ark4ne\OpenApiWriter\Objects\Schema`.
 12. **Webhook routes are documented, not served**: a `#[Webhook]` action is a real route describing the request the
-    application sends; register it only in the console or protect it with a middleware.
+    application sends. It must match `routes.include` like any route, and a middleware must refuse every request
+    (`abort(404)`); registering it only in the console does not work, `route:cache` runs in the console too.
 
 ## Workflow to document an endpoint
 

@@ -160,13 +160,22 @@ is the payload) and mark it `#[Webhook]`: it is written under `webhooks` (3.1+, 
 `redoc` vendor extensions), never under `paths`. `#[Callback]` documents a request sent back to a URL given by the
 client, reusing a webhook or describing its own payload.
 
-These routes exist only to be documented. Do not let them answer: register them in the console only, or protect them
-with a middleware that refuses every request:
+These routes exist only to be documented. Like any route, they must match `routes.include` (`api/*` by default),
+and a middleware must keep them from answering. Do not register them conditionally (`app()->runningInConsole()`):
+`php artisan route:cache` runs in the console too, so they would end up in the route cache and be served.
 
 ```php
-// routes/webhooks.php, loaded from routes/api.php
-if (app()->runningInConsole()) {
-    Route::post('webhooks/orders/paid', [OrderWebhooks::class, 'paid']);
+// routes/api.php
+Route::middleware(DocumentedOnly::class)->group(function () {
+    Route::post('webhooks/orders/paid', [OrderWebhooks::class, 'paid']);   // documented, never served
+});
+
+final class DocumentedOnly
+{
+    public function handle(Request $request, Closure $next): never
+    {
+        abort(404);
+    }
 }
 ```
 
@@ -287,8 +296,9 @@ excluded (`routes.exclude`, `#[Exclude]`, a redirect or view route, an internal 
 **A resource is empty, or a property is missing.** `toArray()` failed on the sampled model: the warning says why.
 Give the model a factory, `@property` tags or casts, or the resource a `#[ResourceFactory]`.
 
-**Does the generation touch the database?** Factories run inside a transaction rolled back at the end, on the
-default connection when its driver is in `sampling.connections`; otherwise models are only made, never saved. Set
+**Does the generation touch the database?** Factories run inside a transaction rolled back at the end, opened on the
+default connection only, when its driver is in `sampling.connections`; models of another connection, or of a driver
+not listed, are only made, never saved. Set
 `sampling.transactions` to `false` to never write.
 
 **How do I keep the documentation from degrading?** Run `php artisan openapi:generate --strict --dry-run` in CI: it

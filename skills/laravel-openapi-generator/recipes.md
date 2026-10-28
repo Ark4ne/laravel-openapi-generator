@@ -1,9 +1,10 @@
 # Recipes
 
 Each recipe is one complete `php` block: the classes it needs, then its routes. The package's test suite runs every
-block in a Laravel application, generates its document in 3.0, 3.1 and 3.2, and validates it against the official
-schemas. In an application, each class goes to its own file (`app/Models/`, `app/Http/…`) and the routes to
-`routes/api.php`; the namespaces here only keep the recipes apart.
+block as `routes/api.php` of a Laravel application (its routes under the `api` prefix), generates its document with
+the published configuration in 3.0, 3.1 and 3.2, and validates it against the official schemas. In an application,
+each class goes to its own file (`app/Models/`, `app/Http/…`) and the routes to `routes/api.php`; the namespaces here
+only keep the recipes apart. Only the routes matching `routes.include` (`api/*` by default) are documented.
 
 Blocks marked `php skip` are fragments (configuration, service provider, tests), not run.
 
@@ -102,9 +103,8 @@ final class BookController
     }
 
     /**
-     * Remove a book.
+     * Remove a book: a `Response` returned by a `DELETE` is a 204.
      */
-    #[Response(204)]
     public function destroy(Book $book): HttpResponse
     {
         $book->delete();
@@ -114,10 +114,10 @@ final class BookController
 }
 
 Route::middleware('auth:sanctum')->group(static function (): void {
-    Route::get('api/books', [BookController::class, 'index'])->name('books.index');
-    Route::post('api/books', [BookController::class, 'store'])->name('books.store');
-    Route::get('api/books/{book}', [BookController::class, 'show'])->name('books.show');
-    Route::delete('api/books/{book}', [BookController::class, 'destroy'])->name('books.destroy');
+    Route::get('books', [BookController::class, 'index'])->name('books.index');
+    Route::post('books', [BookController::class, 'store'])->name('books.store');
+    Route::get('books/{book}', [BookController::class, 'show'])->name('books.show');
+    Route::delete('books/{book}', [BookController::class, 'destroy'])->name('books.destroy');
 });
 ```
 
@@ -154,7 +154,7 @@ final class SeatController
     }
 }
 
-Route::post('api/seats/{seat}/hold', [SeatController::class, 'hold'])->name('seats.hold');
+Route::post('seats/{seat}/hold', [SeatController::class, 'hold'])->name('seats.hold');
 ```
 
 ## Requests described by hand
@@ -219,7 +219,7 @@ final class SearchController
     }
 }
 
-Route::get('api/catalogs/{catalog}/search', [SearchController::class, 'search'])->name('catalogs.search');
+Route::get('catalogs/{catalog}/search', [SearchController::class, 'search'])->name('catalogs.search');
 ```
 
 ## Webhooks and callbacks
@@ -229,8 +229,9 @@ A webhook is a request the application sends. Describe it on a route whose actio
 `x-webhooks` with `redoc` before), never under `paths`. `#[Callback]` documents a request sent back to a URL the
 client gave, reusing a webhook or describing its own payload.
 
-The webhook routes must not answer real requests: register them only for the console (where the documents are
-generated), or protect them with a middleware.
+The webhook routes exist only to be documented: like any route, they must match `routes.include` (here under `api/`),
+and a middleware must keep them from answering. Do not register them conditionally (`runningInConsole()`): the
+console also builds the route cache (`route:cache`), so they would be served anyway.
 
 ```php
 namespace App\Orders;
@@ -238,9 +239,22 @@ namespace App\Orders;
 use Ark4ne\OpenApi\Attributes\Callback;
 use Ark4ne\OpenApi\Attributes\Header;
 use Ark4ne\OpenApi\Attributes\Webhook;
+use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+/**
+ * Keeps the routes that describe the webhooks from answering.
+ */
+final class DocumentedOnly
+{
+    public function handle(Request $request, Closure $next): never
+    {
+        abort(404);
+    }
+}
 
 final class OrderPayload extends FormRequest
 {
@@ -272,11 +286,11 @@ final class OrderController
     }
 }
 
-if (app()->runningInConsole()) {
+Route::middleware(DocumentedOnly::class)->group(static function (): void {
     Route::post('webhooks/orders/paid', [OrderWebhooks::class, 'paid']);
-}
+});
 
-Route::post('api/orders', [OrderController::class, 'store'])->name('orders.store');
+Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
 ```
 
 ## Extending the generator
@@ -347,7 +361,7 @@ final class ContactController
 app()->tag([PhoneRuleMapper::class], 'openapi.rule-mappers');
 app()->tag([ApiVersionPass::class], 'openapi.passes');
 
-Route::post('api/contact', [ContactController::class, 'store'])->name('contact.store');
+Route::post('contact', [ContactController::class, 'store'])->name('contact.store');
 ```
 
 The same extensions in the configuration of the application:
@@ -430,7 +444,7 @@ final class ArticleController
     }
 }
 
-Route::get('api/articles/{article}', [ArticleController::class, 'show'])->name('articles.show');
+Route::get('articles/{article}', [ArticleController::class, 'show'])->name('articles.show');
 ```
 
 ## Checking the documentation in the test suite

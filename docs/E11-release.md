@@ -54,7 +54,11 @@ pour les agents.
     propres à chaque recette ;
   - la référence nomme chaque attribut et chacun de ses paramètres, chaque clé de configuration et chaque point
     d'extension ;
-  - les liens entre fichiers se résolvent.
+  - les liens entre fichiers se résolvent, ancres comprises.
+  - Les recettes s'exécutent comme `routes/api.php` (préfixe `api`) avec la configuration publiée : ce qui ne serait pas
+    documenté par défaut fait échouer le test.
+- **Webhooks.** Leurs routes doivent correspondre à `routes.include` et être protégées par un middleware qui refuse
+  toute requête. Les enregistrer seulement en console ne suffit pas : `route:cache` s'exécute aussi en console.
 - **Couverture.** 92,37 % des lignes. Depuis PHPUnit 12, seules les classes déclarées par `#[CoversClass]` /
   `#[CoversNamespace]` sont mesurées ; les tests qui exercent les objets de description, les schémas de sécurité, les
   portées, le chargeur de relations, les valeurs de configuration, les réponses partagées, les squelettes JSON:API et

@@ -8,7 +8,7 @@ replaced; the documented behaviour is kept and extended. Plan to regenerate your
 | | 0.6 | 1.0 |
 | --- | --- | --- |
 | PHP | 8.1+ | 8.3+ |
-| Laravel | 10, 11, 12 | 13 |
+| Laravel | 10, 11, 12, 13 | 13 |
 | OpenAPI written | 3.0.2 | 3.0.0 → 3.0.4, 3.1.0 → 3.1.2, 3.2.0 (3.1.2 by default) |
 | OpenAPI objects | `goldspecdigital/oooas` | `ark4ne/openapi-writer` |
 | PHPDoc | `phpdocumentor/reflection-docblock` | `phpstan/phpdoc-parser` (generics, array shapes, conditional types) |

@@ -6,9 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
-## [1.0.0] - Unreleased
-
-A rewrite: see [UPGRADE.md](UPGRADE.md) to migrate from 0.6.
+1.0.0, a rewrite: see [UPGRADE.md](UPGRADE.md) to migrate from 0.6. This section becomes `## [1.0.0] - <date>` when
+the version is tagged.
 
 ### Added
 

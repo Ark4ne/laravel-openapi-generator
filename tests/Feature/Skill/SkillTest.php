@@ -12,6 +12,7 @@ use Ark4ne\OpenApi\Tests\Support\Schemas;
 use Ark4ne\OpenApiWriter\Enums\Version;
 use Ark4ne\OpenApiWriter\Validation\OpisJsonSchemaValidator;
 use Illuminate\Contracts\Config\Repository;
+use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
 use ReflectionClass;
@@ -36,10 +37,21 @@ final class SkillTest extends LaravelTestCase
     public function test_every_link_between_the_files_of_the_skill_resolves(): void
     {
         foreach (['SKILL.md', 'reference.md', 'recipes.md'] as $file) {
-            preg_match_all('/\]\(([a-z-]+\.md)(#[a-z0-9-]+)?\)/', self::read($file), $links);
+            preg_match_all('/\]\(([^)\s]+)\)/', self::read($file), $links);
 
             foreach ($links[1] as $link) {
-                self::assertFileExists(self::DIRECTORY . $link, $file);
+                if (preg_match('#^[a-z]+://#', $link) === 1) {
+                    continue;
+                }
+
+                [$path, $anchor] = array_pad(explode('#', $link, 2), 2, null);
+                $target = $path === '' ? self::DIRECTORY . $file : self::DIRECTORY . $path;
+
+                self::assertFileExists($target, "{$file}: {$link}");
+
+                if ($anchor !== null) {
+                    self::assertContains($anchor, self::anchors((string) file_get_contents($target)), "{$file}: {$link}");
+                }
             }
         }
     }
@@ -82,6 +94,7 @@ final class SkillTest extends LaravelTestCase
         self::assertSame(['data', 'links', 'meta'], array_keys((array) Schemas::at($document, 'paths', '/api/books', 'get', 'responses', '200', 'content', 'application/json', 'schema', 'properties')));
         self::assertSame([201, 401, 422], array_keys((array) Schemas::at($document, 'paths', '/api/books', 'post', 'responses')));
         self::assertSame([204, 401, 404], array_keys((array) Schemas::at($document, 'paths', '/api/books/{book}', 'delete', 'responses')));
+        self::assertStringNotContainsString('#[Response(204)]', self::code('CRUD resource'));
         self::assertSame('book', Schemas::at($document, 'paths', '/api/books/{book}', 'parameters', '0', 'name'));
         self::assertSame(['id', 'title', 'price', 'published_at'], array_keys((array) Schemas::at($document, 'components', 'schemas', 'Book', 'properties')));
     }
@@ -123,6 +136,7 @@ final class SkillTest extends LaravelTestCase
 
         self::assertSame(['/api/orders'], array_keys((array) Schemas::at($document, 'paths')));
         self::assertSame(['order.paid'], array_keys((array) Schemas::at($document, 'webhooks')));
+        $this->post('/api/webhooks/orders/paid', ['id' => 1, 'total' => 10, 'status' => 'paid'])->assertNotFound();
         self::assertSame(['orderPaid'], array_keys((array) Schemas::at($document, 'paths', '/api/orders', 'post', 'callbacks')));
     }
 
@@ -146,16 +160,32 @@ final class SkillTest extends LaravelTestCase
     }
 
     /**
-     * Runs the block of a recipe, then generates and validates its document in each line; returns the 3.1 one.
+     * The anchors GitHub gives to the headings of a Markdown file.
+     *
+     * @return list<string>
+     */
+    private static function anchors(string $markdown): array
+    {
+        preg_match_all('/^#{1,6} (.+)$/m', $markdown, $headings);
+
+        return array_map(static fn(string $heading): string => str_replace(' ', '-', (string) preg_replace('/[^a-z0-9 _-]/', '', strtolower($heading))), $headings[1]);
+    }
+
+    /**
+     * Runs the block of a recipe as `routes/api.php` (its routes under the `api` prefix), then generates and validates
+     * its document in each line with the published configuration; returns the 3.1 one.
      *
      * @return array<array-key, mixed>
      */
     private function recipe(string $title): array
     {
-        eval(self::code($title));
+        $code = self::code($title);
+        Route::prefix('api')->group(static function () use ($code): void {
+            eval($code);
+        });
         $config = $this->app?->make(Repository::class);
         self::assertInstanceOf(Repository::class, $config);
-        $config->set('openapi.documents.v1.routes.include', null);
+        // Written in 3.0 too: what 3.0 cannot write (webhooks) is dropped instead of failing.
         $config->set('openapi.documents.v1.strict', false);
         $config->set('openapi.sampling.transactions', false);
         $written = [];
