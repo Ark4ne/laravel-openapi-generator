@@ -23,6 +23,10 @@ retour, de l'exécution des ressources et des attributs `#[Response]`.
 - [ ] `Responsable` : exécution de `toResponse()` sur un échantillon
 - [ ] Vues, Inertia et réponses inconnues : ignorées avec diagnostic
 
+### Corps de requête décrit par une ressource
+
+- [ ] `#[RequestBody(resource:)]` : schéma de la ressource échantillonnée (diagnostic `Info` depuis E4)
+
 ### Attribut `#[Response]`
 
 - [ ] Répétable : un attribut par statut ; prioritaire sur l'inférence pour son statut

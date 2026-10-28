@@ -23,7 +23,8 @@
         "illuminate/routing": "^13.0",
         "illuminate/support": "^13.0",
         "illuminate/validation": "^13.0",
-        "phpstan/phpdoc-parser": "^2.3"
+        "phpstan/phpdoc-parser": "^2.3",
+        "symfony/mime": "^7.4 || ^8.0"
     },
     "require-dev": {
         "ark4ne/laravel-json-api": "^1.9",

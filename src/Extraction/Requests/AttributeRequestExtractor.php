@@ -1,0 +1,165 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Ark4ne\OpenApi\Extraction\Requests;
+
+use Ark4ne\OpenApi\Attributes\Cookie;
+use Ark4ne\OpenApi\Attributes\Header;
+use Ark4ne\OpenApi\Attributes\PathParameter;
+use Ark4ne\OpenApi\Attributes\QueryParameter;
+use Ark4ne\OpenApi\Attributes\RequestBody;
+use Ark4ne\OpenApi\Context\GenerationContext;
+use Ark4ne\OpenApi\Context\Stage;
+use Ark4ne\OpenApi\Description\BodyDescription;
+use Ark4ne\OpenApi\Description\ParameterDescription;
+use Ark4ne\OpenApi\Description\RequestDescription;
+use Ark4ne\OpenApi\Extraction\OperationContext;
+use Ark4ne\OpenApi\Sampling\TypeSchemas;
+use Ark4ne\OpenApi\Types\TypeResolver;
+use Ark4ne\OpenApiWriter\Objects\Schema;
+use ReflectionClass;
+use ReflectionFunctionAbstract;
+use Throwable;
+
+/**
+ * `#[QueryParameter]`, `#[Header]`, `#[Cookie]` on the request class or the action (the action's win),
+ * `#[PathParameter]` and `#[RequestBody]` on the action. Types are PHPDoc types, read in the scope of the class or
+ * of the action that carries the attribute.
+ */
+final readonly class AttributeRequestExtractor implements RequestExtractor
+{
+    public const PRIORITY = 300;
+
+    public function __construct(
+        private TypeResolver $types,
+    ) {}
+
+    public function priority(): int
+    {
+        return self::PRIORITY;
+    }
+
+    public function supports(OperationContext $operation): bool
+    {
+        return $operation->action !== null;
+    }
+
+    public function extract(OperationContext $operation, RequestDescription $request, GenerationContext $context): RequestDescription
+    {
+        $action = $operation->action;
+
+        if ($action === null) {
+            return $request;
+        }
+
+        $class = RequestClass::of($operation);
+        $reflection = $class === null ? null : new ReflectionClass($class);
+        $parameters = [];
+
+        foreach ([QueryParameter::class, Header::class, Cookie::class] as $attribute) {
+            if ($reflection !== null) {
+                foreach ($this->instances($reflection, $attribute, $operation, $context) as $instance) {
+                    $parameters[] = $this->parameter($instance, $reflection);
+                }
+            }
+
+            foreach ($operation->actionAttributes($attribute, $context) as $instance) {
+                $parameters[] = $this->parameter($instance, $action);
+            }
+        }
+
+        $request = $request->parameters(...FieldPlacer::merge($request->parameters, $parameters));
+
+        foreach ($operation->actionAttributes(PathParameter::class, $context) as $path) {
+            $request = $request->parameters(...FieldPlacer::merge($request->parameters, [$this->path($path, $request, $action)]));
+        }
+
+        foreach ($operation->actionAttributes(RequestBody::class, $context) as $body) {
+            $request = $this->body($body, $request, $action, $operation, $context);
+        }
+
+        return $request;
+    }
+
+    /**
+     * @param ReflectionClass<covariant object>|ReflectionFunctionAbstract $scope
+     */
+    private function parameter(QueryParameter|Header|Cookie $attribute, ReflectionClass|ReflectionFunctionAbstract $scope): ParameterDescription
+    {
+        $schema = $this->schema($attribute->type, $scope, $attribute->example);
+        $parameter = match (true) {
+            $attribute instanceof QueryParameter => ParameterDescription::query($attribute->name, $schema)->deprecated($attribute->deprecated),
+            $attribute instanceof Header => ParameterDescription::header($attribute->name, $schema),
+            default => ParameterDescription::cookie($attribute->name, $schema),
+        };
+
+        return $parameter->required($attribute->required)->description($attribute->description);
+    }
+
+    private function path(PathParameter $attribute, RequestDescription $request, ReflectionFunctionAbstract $action): ParameterDescription
+    {
+        $existing = ParameterDescription::path($attribute->name);
+
+        foreach ($request->parameters as $parameter) {
+            if ($parameter->name === $attribute->name && $parameter->in === $existing->in) {
+                $existing = $parameter;
+            }
+        }
+
+        $schema = $attribute->type === null ? $existing->schema : $this->schema($attribute->type, $action, null);
+        $schema = $attribute->example === null ? $schema : $schema->example($attribute->example);
+
+        return $existing->schema($schema)->description($attribute->description ?? $existing->description);
+    }
+
+    private function body(RequestBody $attribute, RequestDescription $request, ReflectionFunctionAbstract $action, OperationContext $operation, GenerationContext $context): RequestDescription
+    {
+        if ($attribute->type === null && $attribute->resource !== null) {
+            $context->diagnostics->info(Stage::Request, '#[RequestBody(resource:)] is described from E6, body left out', $operation->route->label());
+
+            return $request;
+        }
+
+        $body = ($request->body ?? BodyDescription::create())
+            ->content($attribute->mediaType ?? FieldPlacer::JSON, $this->schema($attribute->type, $action, null))
+            ->required($attribute->required);
+
+        return $request->body($attribute->description === null ? $body : $body->description($attribute->description));
+    }
+
+    /**
+     * @param ReflectionClass<covariant object>|ReflectionFunctionAbstract $scope
+     */
+    private function schema(?string $type, ReflectionClass|ReflectionFunctionAbstract $scope, mixed $example): Schema
+    {
+        $schema = $type === null ? Schema::string() : TypeSchemas::of($this->types->parse($type, $scope));
+
+        return $example === null ? $schema : $schema->example($example);
+    }
+
+    /**
+     * Attributes of the request class; one that cannot be built is left out with a warning.
+     *
+     * @template T of object
+     *
+     * @param ReflectionClass<covariant object> $class
+     * @param class-string<T> $attribute
+     *
+     * @return list<T>
+     */
+    private function instances(ReflectionClass $class, string $attribute, OperationContext $operation, GenerationContext $context): array
+    {
+        $instances = [];
+
+        foreach ($class->getAttributes($attribute) as $reflection) {
+            try {
+                $instances[] = $reflection->newInstance();
+            } catch (Throwable $error) {
+                $context->diagnostics->warning(Stage::Request, "invalid #[{$attribute}] on {$class->getName()}, attribute ignored: {$error->getMessage()}", $operation->route->label());
+            }
+        }
+
+        return $instances;
+    }
+}

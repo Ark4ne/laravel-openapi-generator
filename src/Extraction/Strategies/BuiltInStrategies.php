@@ -58,6 +58,16 @@ final class BuiltInStrategies
     }
 
     /**
+     * @throws InvalidConfigurationException
+     */
+    public static function query(StrategyConfiguration $configuration, string $key = 'strategies.query'): QueryStrategy
+    {
+        return in_array($configuration->by, BuiltInQueryStrategy::BY, true)
+            ? new BuiltInQueryStrategy($configuration->by)
+            : self::custom($configuration, QueryStrategy::class, BuiltInQueryStrategy::BY, $key);
+    }
+
+    /**
      * @template T of object
      *
      * @param class-string<T> $interface

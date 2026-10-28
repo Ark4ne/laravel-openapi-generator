@@ -18,6 +18,7 @@ use Ark4ne\OpenApi\Discovery\RouteCollector;
 use Ark4ne\OpenApi\Discovery\RouteDefinition;
 use Ark4ne\OpenApi\Extraction\OperationContext;
 use Ark4ne\OpenApi\Extraction\OperationContextFactory;
+use Ark4ne\OpenApi\Tests\Support\Schemas;
 use Ark4ne\OpenApi\Types\TypeResolver;
 use Ark4ne\OpenApiWriter\Enums\Strictness;
 use Ark4ne\OpenApiWriter\Enums\Version;
@@ -81,17 +82,13 @@ abstract class TestCase extends Testbench
     }
 
     /**
-     * Compares a schema with its array form, whatever the order of the keys (the writer follows the specification).
+     * Compares a schema with its array form, whatever the order of the keys, at every level.
      *
      * @param array<string, mixed> $expected
      */
     protected static function assertSchema(array $expected, Schema $schema): void
     {
-        $actual = $schema->toArray();
-        ksort($expected);
-        ksort($actual);
-
-        self::assertSame($expected, $actual);
+        Schemas::assertSame($expected, $schema);
     }
 
     /**

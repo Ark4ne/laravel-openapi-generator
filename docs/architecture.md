@@ -173,8 +173,9 @@ interface ResponseExtractor
 
 ### 4.2 Règles de validation : une règle = une classe
 
-Pattern **Strategy**, comme les rewriters du writer : chaque règle Laravel a son `RuleMapper`, indexé par son nom
-(`'required'`, `'max'`) ou par sa classe (`Illuminate\Validation\Rules\Enum`, `Password`, `File`).
+Pattern **Strategy**, comme les rewriters du writer : chaque comportement de règle Laravel a son `RuleMapper`,
+indexé par les noms (`'required'`, `'max'`) ou les classes (`Illuminate\Validation\Rules\Enum`, `Password`, `File`)
+qu'il traite ; les règles de même effet partagent une classe (`required_with`, `required_without`…).
 
 ```php
 interface RuleMapper

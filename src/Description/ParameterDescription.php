@@ -38,6 +38,14 @@ final readonly class ParameterDescription extends Description
         return new self($name, ParameterLocation::Query, $schema ?? Schema::string());
     }
 
+    /**
+     * The whole query string as one parameter (3.2): its schema describes every query field.
+     */
+    public static function querystring(string $name, Schema $schema): self
+    {
+        return new self($name, ParameterLocation::Querystring, $schema);
+    }
+
     public static function header(string $name, ?Schema $schema = null): self
     {
         return new self($name, ParameterLocation::Header, $schema ?? Schema::string());

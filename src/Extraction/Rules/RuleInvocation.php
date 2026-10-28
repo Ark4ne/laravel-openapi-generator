@@ -13,13 +13,13 @@ final readonly class RuleInvocation
      * @param string $name snake case rule name, or the class of a rule object
      * @param list<string> $parameters
      * @param object|null $rule the rule object (`Rule::enum()`, `Password`, a custom rule)
-     * @param array<string, list<RuleInvocation>> $siblings rules of the other fields, for the rules that refer to them
+     * @param bool $conditional the rule comes from `Rule::when()`: it applies in some cases only
      */
     public function __construct(
         public string $field,
         public string $name,
         public array $parameters = [],
         public ?object $rule = null,
-        public array $siblings = [],
+        public bool $conditional = false,
     ) {}
 }

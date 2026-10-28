@@ -14,7 +14,11 @@ use Ark4ne\OpenApiWriter\Objects\Schema;
 final readonly class FieldDescription extends Description
 {
     /**
-     * @param list<string> $conditions human-readable conditions (`required if type is "company"`)
+     * @param list<string> $conditions human-readable conditions (`required if type is company`), written in the
+     *        description
+     * @param list<string> $contentTypes accepted content types of a file (`image/png`), for the multipart encoding
+     * @param bool $distinct the values of a list item (`tags.*`) are distinct: the list gets `uniqueItems`
+     * @param bool $forbidden the field must not be sent (`prohibited`, `missing`): left out of the schemas
      */
     protected function __construct(
         public string $name,
@@ -22,6 +26,9 @@ final readonly class FieldDescription extends Description
         public bool $required = false,
         public array $conditions = [],
         public bool $file = false,
+        public array $contentTypes = [],
+        public bool $distinct = false,
+        public bool $forbidden = false,
     ) {}
 
     public static function create(string $name): self
@@ -55,5 +62,25 @@ final readonly class FieldDescription extends Description
     public function file(bool $file = true): static
     {
         return $this->copy(file: $file);
+    }
+
+    public function contentTypes(string ...$contentTypes): static
+    {
+        return $this->copy(contentTypes: array_values($contentTypes));
+    }
+
+    public function addContentTypes(string ...$contentTypes): static
+    {
+        return $this->copy(contentTypes: array_values(array_unique([...$this->contentTypes, ...$contentTypes])));
+    }
+
+    public function distinct(bool $distinct = true): static
+    {
+        return $this->copy(distinct: $distinct);
+    }
+
+    public function forbidden(bool $forbidden = true): static
+    {
+        return $this->copy(forbidden: $forbidden);
     }
 }

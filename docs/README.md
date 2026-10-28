@@ -12,7 +12,7 @@ de ses livrables ; le tableau ci-dessous en est calculé automatiquement (`compo
 ## Progression
 
 <!-- progress:start -->
-**Avancement global : `███░░░░░░░` 35 % (91 / 256 livrables)**
+**Avancement global : `████░░░░░░` 46 % (120 / 260 livrables)**
 
 | Épique | Statut | Avancement | Livrables |
 | --- | --- | --- | --- |
@@ -20,9 +20,9 @@ de ses livrables ; le tableau ci-dessous en est calculé automatiquement (`compo
 | [E1 — Architecture et contrats](E01-contracts.md) | Terminé | `██████████` 100 % | 26 / 26 |
 | [E2 — Découverte des routes](E02-route-discovery.md) | Terminé | `██████████` 100 % | 21 / 21 |
 | [E3 — Métadonnées d'opération et types](E03-operation-metadata.md) | Terminé | `██████████` 100 % | 20 / 20 |
-| [E4 — Requêtes et règles de validation](E04-requests.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 26 |
+| [E4 — Requêtes et règles de validation](E04-requests.md) | Terminé | `██████████` 100 % | 29 / 29 |
 | [E5 — Échantillonnage et inférence de schémas](E05-sampling.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 19 |
-| [E6 — Réponses](E06-responses.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 30 |
+| [E6 — Réponses](E06-responses.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 31 |
 | [E7 — Passes du pipeline](E07-pipeline-passes.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 24 |
 | [E8 — Écriture du document](E08-document-writing.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 17 |
 | [E9 — Intégration JSON:API](E09-json-api.md) | À faire | `░░░░░░░░░░` 0 % | 0 / 11 |
@@ -97,4 +97,5 @@ E4 et E5/E6 peuvent avancer en parallèle une fois E3 terminé.
 | 2026-10-28 | Exceptions : `@throws` lu sur l'action seulement ; réponse par chaîne (`#[Response]` sur la classe de l'exception → configuration → table de Laravel → classes HTTP de Symfony → échantillonnage de `HttpException`) ; rien d'inventé sans correspondance |
 | 2026-10-28 | Métadonnées (E3) : `#[Operation]` sur un contrôleur donne des valeurs par défaut (sauf `tags` et `deprecated: true`) ; la PHPDoc l'emporte sur le type natif ; textes traduisibles par le contrat `Translator` |
 | 2026-10-28 | Actions héritées : attributs fusionnés le long des contrôleurs (jusqu'au contrôleur de la route) et des redéfinitions de la méthode, l'enfant l'emportant ; PHPDoc héritée sans commentaire ou avec `{@inheritDoc}` |
+| 2026-10-28 | Requêtes (E4) : un `RuleMapper` par comportement de règle ; ce qu'OpenAPI ne sait pas écrire devient une phrase de la description ; description manuelle par `DescribesRequest` et un `RequestDescriber` immuable |
 | 2026-10-28 | Tests : PHPUnit, Orchestra Testbench, fixtures JSON validées contre le schéma officiel ; couverture ≥ 90 % des lignes, MSI ≥ 80 % |

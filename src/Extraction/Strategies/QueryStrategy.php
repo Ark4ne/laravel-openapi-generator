@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Ark4ne\OpenApi\Extraction\Strategies;
 
+use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Description\FieldDescription;
 use Ark4ne\OpenApi\Description\ParameterDescription;
 
 /**
- * Turns validated fields into query parameters: flat (`filter[][name]`), last level kept as an array, or
- * `deepObject` (`query` of a document configuration: `all`, `last`, `none`).
+ * Turns validated fields into query parameters (`query` of a document configuration): every level flattened
+ * (`filter[][name][]`), the last list kept as an array (`filter[][name]`), objects as `deepObject`, or the whole
+ * query as one `querystring` parameter (3.2).
  */
 interface QueryStrategy
 {
@@ -18,5 +20,5 @@ interface QueryStrategy
      *
      * @return list<ParameterDescription>
      */
-    public function parameters(array $fields): array;
+    public function parameters(array $fields, GenerationContext $context): array;
 }
