@@ -135,6 +135,14 @@ final class OperationResponsesTest extends SamplingTestCase
         self::assertDiagnostics([], $this->ctx());
     }
 
+    public function test_a_declared_success_replaces_the_success_inferred_for_another_status(): void
+    {
+        $responses = $this->responses('post', 'api/json', 'createdJson');
+
+        self::assertSame([201], array_keys($responses));
+        self::assertSame(ResponseOrigin::Declared, $responses[201]->origin);
+    }
+
     public function test_empty_responses(): void
     {
         $destroy = $this->only('delete', 'api/articles/{article}', 'destroy');

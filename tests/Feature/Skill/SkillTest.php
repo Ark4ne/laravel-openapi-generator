@@ -101,11 +101,11 @@ final class SkillTest extends LaravelTestCase
 
     public function test_the_declared_responses_recipe(): void
     {
-        $responses = Schemas::at($this->recipe('Declared responses and exceptions'), 'paths', '/api/seats/{seat}/hold', 'post', 'responses');
+        $responses = Schemas::at($this->recipe('Declared responses and exceptions'), 'paths', '/api/seats/{seat}/booking', 'post', 'responses');
 
-        self::assertSame([200, 409, 403], array_keys((array) $responses));
+        self::assertSame([201, 409, 403], array_keys((array) $responses));
         self::assertIsArray($responses);
-        self::assertSame(['Retry-After'], array_keys((array) Schemas::at($responses, '200', 'headers')));
+        self::assertSame(['Location'], array_keys((array) Schemas::at($responses, '201', 'headers')));
         self::assertSame('The seat is already taken (SeatTakenException)', Schemas::at($responses, '409', 'description'));
     }
 

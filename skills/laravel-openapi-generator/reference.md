@@ -51,8 +51,10 @@ Repeatable, on the controller or the action: adds a tag to the operation and des
 
 ### `#[Response]`
 
-Repeatable, on the controller, the action or an exception class. Replaces the response inferred for its status; on
-an exception class, it is the response of the actions that declare `@throws` with it.
+Repeatable, on the controller, the action or an exception class. Replaces the response inferred for its status, and
+a declared success (2xx) leaves out the successes inferred for other statuses (`#[Response(201)]` on an action
+returning a `JsonResponse`, inferred as a 200, gives the 201 only). On an exception class, it is the response of the
+actions that declare `@throws` with it.
 
 | Parameter | Effect |
 | --- | --- |

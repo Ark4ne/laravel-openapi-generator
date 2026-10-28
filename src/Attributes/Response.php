@@ -10,7 +10,8 @@ use Attribute;
  * Declares one response of an action; repeat it for each status. On an exception class, it describes the response
  * Laravel renders for the exception.
  *
- * For its status, it takes precedence over what the generator infers. The body is given by a resource class or by
+ * For its status, it takes precedence over what the generator infers; a declared success (2xx) also leaves out the
+ * successes inferred for other statuses (a `JsonResponse` built with 201 is inferred as a 200). The body is given by a resource class or by
  * a PHPDoc type (`array{id: int, name: string}`, `list<UserResource>`), never both.
  */
 #[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]

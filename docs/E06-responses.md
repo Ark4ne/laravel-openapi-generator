@@ -134,4 +134,6 @@ reconnaît l'emporte (registre `ExceptionMappers`, priorité décroissante).
 - **Exceptions** : `exceptions.map` retient la classe la plus proche ; seul `ValidationException` reçoit le corps
   `ValidationError`, tout autre 422 le corps `Error`.
 - Un paginateur sans arguments de type (ou son contrat) garde la forme de pagination, éléments sans forme.
+- **Succès déclaré (après E11).** Un `#[Response]` de statut 2xx retire aussi les succès inférés pour d'autres statuts :
+  un `JsonResponse` construit avec 201 était inféré en 200, et le document gardait ce 200 à côté du 201 déclaré.
 

@@ -124,7 +124,8 @@ Route::middleware('auth:sanctum')->group(static function (): void {
 ## Declared responses and exceptions
 
 `#[Response]` declares what the return type cannot say, one per status; it replaces the response inferred for its
-status. Each `@throws` of the action becomes an error
+status, and a declared success (2xx) leaves out the successes inferred for other statuses (a `JsonResponse` is
+inferred as a 200 whatever status it is built with). Each `@throws` of the action becomes an error
 response: the `#[Response]` of the exception class, the `exceptions.map` of the configuration, or what Laravel and
 Symfony render (`ModelNotFoundException` → 404, `AuthorizationException` → 403, `HttpException` subclasses).
 
@@ -142,19 +143,19 @@ final class SeatTakenException extends RuntimeException {}
 final class SeatController
 {
     /**
-     * Hold a seat for 15 minutes.
+     * Book a seat.
      *
      * @throws SeatTakenException
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    #[Response(200, description: 'Seat held', type: 'array{seat: string, expires_at: string}', headers: ['Retry-After' => 'int'])]
-    public function hold(string $seat): JsonResponse
+    #[Response(201, description: 'Seat booked', type: 'array{seat: string, expires_at: string}', headers: ['Location' => 'string'])]
+    public function book(string $seat): JsonResponse
     {
-        return new JsonResponse(['seat' => $seat, 'expires_at' => now()->addMinutes(15)->toAtomString()], headers: ['Retry-After' => 900]);
+        return new JsonResponse(['seat' => $seat, 'expires_at' => now()->addMinutes(15)->toAtomString()], 201, ['Location' => "/api/seats/{$seat}"]);
     }
 }
 
-Route::post('seats/{seat}/hold', [SeatController::class, 'hold'])->name('seats.hold');
+Route::post('seats/{seat}/booking', [SeatController::class, 'book'])->name('seats.book');
 ```
 
 ## Requests described by hand

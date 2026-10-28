@@ -44,7 +44,8 @@ composer require --dev opis/json-schema           # validation against the offic
    receives when it is not a model.
 4. **Declare what cannot be inferred with attributes**, never with PHPDoc tags: `#[Response]` (status, body,
    headers, pagination), `#[RequestBody]`, `#[QueryParameter]`, `#[Header]`, `#[Security]`, `#[Tag]`,
-   `#[Operation]`, `#[Exclude]`. A `#[Response]` replaces the response inferred for its status. Paginated
+   `#[Operation]`, `#[Exclude]`. A `#[Response]` replaces the response inferred for its status; a declared 2xx also replaces the
+   successes inferred for other statuses (declare `#[Response(201)]` on an action returning a `JsonResponse`). Paginated
    collections need `#[Response(resource:, paginator:)]`: the return type does not tell the paginator.
 5. **Errors come from what the action does.** Middlewares give 401, 403, 419, 429; a bound model gives 404; a form
    request gives 422; each `@throws` gives its response (`#[Response]` on the exception class, `exceptions.map`, or

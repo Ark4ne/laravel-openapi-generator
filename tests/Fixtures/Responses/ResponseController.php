@@ -176,6 +176,12 @@ final class ResponseController
         throw new LogicException();
     }
 
+    #[ResponseAttribute(201, type: 'array{id: int}')]
+    public function createdJson(): JsonResponse
+    {
+        throw new LogicException();
+    }
+
     public function destroy(): Response
     {
         throw new LogicException();

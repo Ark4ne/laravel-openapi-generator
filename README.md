@@ -99,7 +99,7 @@ All in `Ark4ne\OpenApi\Attributes`; on the controller class they apply to every 
 | --- | --- |
 | `#[Operation(summary:, description:, operationId:, tags:, deprecated:, externalDocs:)]` | Replaces the metadata given by the PHPDoc and the strategies |
 | `#[Tag('books', description:, parent:, summary:, kind:)]` | Adds and describes a tag; `parent` gives the tag groups |
-| `#[Response(201, resource:, type:, headers:, paginator:, mediaType:, description:, example:)]` | Declares the response of a status (repeatable), on an action or an exception class |
+| `#[Response(201, resource:, type:, headers:, paginator:, mediaType:, description:, example:)]` | Declares the response of a status (repeatable), on an action or an exception class; a declared 2xx replaces the successes inferred for other statuses |
 | `#[RequestBody(type:, resource:, mediaType:, description:, required:)]` | Replaces or completes the body |
 | `#[QueryParameter]`, `#[Header]`, `#[Cookie]`, `#[PathParameter]` | Adds or completes a parameter (`name`, `type`, `description`, `required`, `example`) |
 | `#[Security('sanctum', scopes: [])]` | Alternative security requirements, replacing those of the middlewares |
