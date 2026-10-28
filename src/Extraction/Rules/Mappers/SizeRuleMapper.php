@@ -41,6 +41,7 @@ final readonly class SizeRuleMapper implements RuleMapper
         return match (SchemaTypes::size($field)) {
             'number' => $field->schema($schema->minimum($min ?? $schema->minimum)->maximum($max ?? $schema->maximum)),
             'array' => $field->schema($schema->minItems(self::int($min) ?? $schema->minItems)->maxItems(self::int($max) ?? $schema->maxItems)),
+            'object' => $field->schema($schema->minProperties(self::int($min) ?? $schema->minProperties)->maxProperties(self::int($max) ?? $schema->maxProperties)),
             'string' => $field->schema($schema->minLength(self::int($min) ?? $schema->minLength)->maxLength(self::int($max) ?? $schema->maxLength)),
             default => self::kilobytes($field, $min, $max),
         };

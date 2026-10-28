@@ -7,12 +7,12 @@ namespace Ark4ne\OpenApi\Discovery;
 use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Context\Stage;
 use Ark4ne\OpenApi\Description\ParameterDescription;
+use Ark4ne\OpenApi\Support\Enums;
 use Ark4ne\OpenApiWriter\Objects\Schema;
 use BackedEnum;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Str;
-use ReflectionEnum;
 use ReflectionException;
 use ReflectionNamedType;
 use ReflectionParameter;
@@ -133,11 +133,7 @@ final readonly class PathParameterResolver
      */
     private static function enum(string $enum): Schema
     {
-        $values = array_map(static fn(BackedEnum $case): int|string => $case->value, $enum::cases());
-        $type = (new ReflectionEnum($enum))->getBackingType();
-        $schema = $type instanceof ReflectionNamedType && $type->getName() === 'int' ? Schema::integer() : Schema::string();
-
-        return $schema->enum(...$values);
+        return Schema::create()->type(Enums::type($enum))->enum(...Enums::values($enum));
     }
 
     /**

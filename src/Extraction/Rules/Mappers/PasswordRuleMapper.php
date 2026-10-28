@@ -8,7 +8,7 @@ use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Description\FieldDescription;
 use Ark4ne\OpenApi\Extraction\Rules\RuleInvocation;
 use Ark4ne\OpenApi\Extraction\Rules\RuleMapper;
-use ReflectionProperty;
+use Ark4ne\OpenApi\Support\Properties;
 
 /**
  * `Password` (and `Password::defaults()`): `format: password`, its lengths, its requirements in sentences.
@@ -29,12 +29,12 @@ final readonly class PasswordRuleMapper implements RuleMapper
             return $field->schema($schema);
         }
 
-        $min = self::property($password, 'min');
-        $max = self::property($password, 'max');
+        $min = Properties::read($password, 'min');
+        $max = Properties::read($password, 'max');
         $field = $field->schema($schema->minLength(is_int($min) ? $min : null)->maxLength(is_int($max) ? $max : null));
 
         foreach (self::REQUIREMENTS as $property => $condition) {
-            if (self::property($password, $property) === true) {
+            if (Properties::read($password, $property) === true) {
                 $field = $field->addConditions($condition);
             }
         }
@@ -49,9 +49,4 @@ final readonly class PasswordRuleMapper implements RuleMapper
         'symbols' => 'symbols',
         'uncompromised' => 'not compromised',
     ];
-
-    private static function property(object $rule, string $property): mixed
-    {
-        return property_exists($rule, $property) ? (new ReflectionProperty($rule, $property))->getValue($rule) : null;
-    }
 }

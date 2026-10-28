@@ -9,7 +9,7 @@ use Ark4ne\OpenApi\Description\FieldDescription;
 use Ark4ne\OpenApi\Extraction\Rules\RuleInvocation;
 use Ark4ne\OpenApi\Extraction\Rules\RuleMapper;
 use Ark4ne\OpenApi\Support\MimeTypes;
-use ReflectionProperty;
+use Ark4ne\OpenApi\Support\Properties;
 
 /**
  * `File::types()`, `File::image()` and their bounds in kilobytes.
@@ -44,8 +44,8 @@ final readonly class FileObjectRuleMapper implements RuleMapper
         }
 
         $field = $field->addContentTypes(...$types);
-        $min = self::property($file, 'minimumFileSize');
-        $max = self::property($file, 'maximumFileSize');
+        $min = Properties::read($file, 'minimumFileSize');
+        $max = Properties::read($file, 'maximumFileSize');
         $field = is_numeric($min) ? $field->addConditions("at least {$min} KB") : $field;
 
         return is_numeric($max) ? $field->addConditions("at most {$max} KB") : $field;
@@ -56,13 +56,8 @@ final readonly class FileObjectRuleMapper implements RuleMapper
      */
     private static function strings(object $rule, string $property): array
     {
-        $values = self::property($rule, $property);
+        $values = Properties::read($rule, $property);
 
         return is_array($values) ? array_values(array_filter($values, is_string(...))) : [];
-    }
-
-    private static function property(object $rule, string $property): mixed
-    {
-        return property_exists($rule, $property) ? (new ReflectionProperty($rule, $property))->getValue($rule) : null;
     }
 }

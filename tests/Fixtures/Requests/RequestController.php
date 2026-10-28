@@ -37,4 +37,14 @@ final class RequestController
     public function resource(Request $request): void {}
 
     public function plain(Request $request): void {}
+
+    public function throwing(ThrowingRuleRequest $request): void {}
+
+    public function describedPlain(DescribedPlainRequest $request): void {}
+
+    #[QueryParameter('locale')]
+    public function localized(SearchRequest $request): void {}
+
+    #[RequestBody(description: 'The user')]
+    public function documented(StoreUserRequest $request): void {}
 }

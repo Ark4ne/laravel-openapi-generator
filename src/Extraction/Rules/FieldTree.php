@@ -114,6 +114,8 @@ final class FieldTree
 
         $schema = $properties === [] ? $schema : $schema->properties(...array_values($properties));
 
-        return $required === [] ? $schema : $schema->addRequired(...$required);
+        $required = array_values(array_unique([...$schema->required ?? [], ...$required]));
+
+        return $required === [] ? $schema : $schema->required(...$required);
     }
 }

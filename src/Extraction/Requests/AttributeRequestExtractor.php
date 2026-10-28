@@ -64,19 +64,19 @@ final readonly class AttributeRequestExtractor implements RequestExtractor
                 }
             }
 
-            foreach ($operation->actionAttributes($attribute, $context) as $instance) {
-                $parameters[] = $this->parameter($instance, $action);
+            foreach ($operation->declaredActionAttributes($attribute, $context) as [$instance, $declaration]) {
+                $parameters[] = $this->parameter($instance, $declaration);
             }
         }
 
         $request = $request->parameters(...FieldPlacer::merge($request->parameters, $parameters));
 
-        foreach ($operation->actionAttributes(PathParameter::class, $context) as $path) {
-            $request = $request->parameters(...FieldPlacer::merge($request->parameters, [$this->path($path, $request, $action)]));
+        foreach ($operation->declaredActionAttributes(PathParameter::class, $context) as [$path, $declaration]) {
+            $request = $request->parameters(...FieldPlacer::merge($request->parameters, [$this->path($path, $request, $declaration)]));
         }
 
-        foreach ($operation->actionAttributes(RequestBody::class, $context) as $body) {
-            $request = $this->body($body, $request, $action, $operation, $context);
+        foreach ($operation->declaredActionAttributes(RequestBody::class, $context) as [$body, $declaration]) {
+            $request = $this->body($body, $request, $declaration, $operation, $context);
         }
 
         return $request;
@@ -121,11 +121,18 @@ final readonly class AttributeRequestExtractor implements RequestExtractor
             return $request;
         }
 
-        $body = ($request->body ?? BodyDescription::create())
-            ->content($attribute->mediaType ?? FieldPlacer::JSON, $this->schema($attribute->type, $action, null))
-            ->required($attribute->required);
+        $body = $request->body;
 
-        return $request->body($attribute->description === null ? $body : $body->description($attribute->description));
+        if ($attribute->type !== null) {
+            $body = ($body ?? BodyDescription::create())
+                ->content($attribute->mediaType ?? FieldPlacer::JSON, $this->schema($attribute->type, $action, null))
+                ->required($attribute->required ?? true);
+        } elseif ($body !== null && $attribute->required !== null) {
+            $body = $body->required($attribute->required);
+        }
+
+        // Without type, the attribute describes the body of the rules, if there is one.
+        return $body === null || $attribute->description === null ? $request->body($body) : $request->body($body->description($attribute->description));
     }
 
     /**

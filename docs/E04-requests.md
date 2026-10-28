@@ -102,6 +102,16 @@ DescribesRequest::describe()                                                  (R
 - **Parité v0.6** : mêmes paramètres de query et mêmes corps que `openapi-jsonresource.json` ; écarts : les champs
   obligatoires sont marqués (la v0.6 les perdait), `max:today` sur une date n'est plus écrit (ce n'est pas une
   taille).
+- **Description manuelle** : elle complète les règles (propriétés ajoutées ou remplacées par nom, clés requises
+  réunies) ; seules les règles de `rules()` rendent la requête `validated`.
+- **`querystring` (3.2)** : les paramètres `query` des attributs et de la description rejoignent son schéma, la spec
+  interdisant les deux à la fois ; l'écriture le pose en `content` (E8).
+- **Bornes** : sur un objet (`array:a,b`), `min` / `max` / `size` / `filled` donnent `minProperties` /
+  `maxProperties` ; `in` / `not_in` sur une liste s'appliquent à ses éléments.
+- **Attributs hérités** : leurs types PHPDoc sont lus dans la portée de la déclaration qui les porte.
+  `#[RequestBody]` sans `type` ne donne que la description du corps des règles, et `required` s'il est précisé.
+- **Robustesse** : tout ce qui exécute du code de l'application (`rules()`, closures de `Rule::when()`,
+  `DescribesRule`, `describe()`) est protégé ; un échec donne un avertissement.
 - `#[RequestBody(resource:)]` attend l'échantillonnage des ressources (E6) : diagnostic `Info` en attendant.
 - `symfony/mime` devient une dépendance directe (types de contenu des extensions de `mimes`, `image`, `File`).
 

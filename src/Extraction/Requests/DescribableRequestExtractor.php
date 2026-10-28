@@ -52,14 +52,18 @@ final readonly class DescribableRequestExtractor implements RequestExtractor
 
         $label = $operation->route->label();
 
+        // The description runs application code: describe(), and the rules it gives.
         try {
-            $describer = $this->requests->make($class, $operation)->describe(RequestDescriber::create());
+            return $this->describe($this->requests->make($class, $operation)->describe(RequestDescriber::create()), $request, $operation, $context, $label);
         } catch (Throwable $error) {
             $context->diagnostics->warning(Stage::Request, "cannot read the description of {$class}: {$error->getMessage()}", $label);
 
             return $request;
         }
+    }
 
+    private function describe(RequestDescriber $describer, RequestDescription $request, OperationContext $operation, GenerationContext $context, string $label): RequestDescription
+    {
         $parameters = [];
 
         foreach ($describer->headers as $entry) {

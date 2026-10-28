@@ -16,11 +16,14 @@ use Ark4ne\OpenApi\Extraction\Requests\RequestDescriber;
 use Ark4ne\OpenApi\Extraction\Requests\RequestExtractors;
 use Ark4ne\OpenApi\Extraction\Requests\RequestFactory;
 use Ark4ne\OpenApi\Extraction\Strategies\BuiltInQueryStrategy;
+use Ark4ne\OpenApi\Tests\Fixtures\Requests\ChildRequestController;
 use Ark4ne\OpenApi\Tests\Fixtures\Requests\FailingRequest;
 use Ark4ne\OpenApi\Tests\Fixtures\Requests\RequestController;
+use Ark4ne\OpenApi\Tests\Fixtures\Requests\ThrowingRuleRequest;
 use Ark4ne\OpenApi\Tests\Support\Schemas;
 use Ark4ne\OpenApi\Tests\TestCase;
 use Ark4ne\OpenApiWriter\Enums\ParameterLocation;
+use Ark4ne\OpenApiWriter\Enums\Version;
 use Ark4ne\OpenApiWriter\Objects\Schema;
 use Illuminate\Contracts\Container\Container;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -140,6 +143,7 @@ final class RequestExtractorsTest extends TestCase
         Schemas::assertSame(['type' => 'string', 'enum' => ['posts', 'comments']], $request->parameters[2]->schema);
         self::assertSame(['application/json', 'application/xml', 'text/plain'], array_keys($request->body->contents ?? []));
         Schemas::assertSame('{"type":"object","properties":{"name":{"type":"string"},"payload":{"type":"array"}},"required":["name"]}', $request->body?->contents['application/xml'] ?? Schema::create());
+        Schemas::assertSame('{"type":"object","properties":{"name":{"type":"string"},"extra":{"type":"string"}},"required":["name"]}', $request->body?->contents['application/json'] ?? Schema::create());
         Schemas::assertSame('{"type":"object","properties":{"raw":{"type":"string"}}}', $request->body?->contents['text/plain'] ?? Schema::create());
         self::assertSame('The user to store', $request->body?->description);
     }
@@ -180,6 +184,59 @@ final class RequestExtractorsTest extends TestCase
 
         self::assertNull($this->request($context)->body);
         self::assertDiagnostics(['[info] request POST /api/resource: #[RequestBody(resource:)] is described from E6, body left out'], $context);
+    }
+
+    public function test_application_code_that_fails_while_reading_the_rules_gives_a_warning(): void
+    {
+        $this->router()->post('api/throwing', [RequestController::class, 'throwing']);
+        $context = $this->context();
+
+        $request = $this->request($context);
+
+        self::assertNull($request->body);
+        self::assertDiagnostics(['[warning] request POST /api/throwing: cannot read the rules of ' . ThrowingRuleRequest::class . ': cannot describe'], $context);
+    }
+
+    public function test_a_manual_description_without_rules_is_not_validated(): void
+    {
+        $this->router()->get('api/described', [RequestController::class, 'describedPlain']);
+
+        $request = $this->request();
+
+        self::assertSame(['include'], self::names($request->parameters));
+        self::assertFalse($request->validated);
+    }
+
+    public function test_querystring_takes_the_query_parameters_of_the_attributes(): void
+    {
+        $this->router()->get('api/search', [RequestController::class, 'localized']);
+        $context = $this->context(version: Version::V3_2_0);
+        $operation = $this->operation($context);
+
+        $request = RequestExtractors::default($this->container(), new BuiltInQueryStrategy('querystring'))->extract($operation, RequestDescription::create(), $context);
+
+        self::assertSame(['query'], self::names($request->parameters));
+        self::assertSame(ParameterLocation::Querystring, $request->parameters[0]->in);
+        Schemas::assertSame('{"type":"object","properties":{"q":{"type":"string"},"page":{"type":"integer","minimum":1},"filter":{"type":"array","items":{"type":"object","properties":{"name":{"type":"string"}}}},"locale":{"type":"string"}},"required":["q"]}', $request->parameters[0]->schema);
+    }
+
+    public function test_a_request_body_without_type_keeps_the_body_of_the_rules(): void
+    {
+        $this->router()->post('api/users', [RequestController::class, 'documented']);
+
+        $body = $this->request()->body;
+        self::assertNotNull($body);
+
+        self::assertSame('The user', $body->description);
+        self::assertTrue($body->required);
+        self::assertSame(['name', 'email', 'status', 'tags'], array_keys(($body->contents['application/json'] ?? Schema::create())->properties ?? []));
+    }
+
+    public function test_the_type_of_an_inherited_attribute_is_read_in_the_scope_of_its_declaration(): void
+    {
+        $this->router()->get('api/filtered', [ChildRequestController::class, 'filtered']);
+
+        Schemas::assertSame(['type' => 'string', 'enum' => ['draft', 'published']], $this->request()->parameters[0]->schema);
     }
 
     public function test_a_plain_request_has_no_body(): void

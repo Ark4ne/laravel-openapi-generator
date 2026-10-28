@@ -8,10 +8,9 @@ use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Description\FieldDescription;
 use Ark4ne\OpenApi\Extraction\Rules\RuleInvocation;
 use Ark4ne\OpenApi\Extraction\Rules\RuleMapper;
+use Ark4ne\OpenApi\Support\Enums;
+use Ark4ne\OpenApi\Support\Properties;
 use BackedEnum;
-use ReflectionEnum;
-use ReflectionNamedType;
-use ReflectionProperty;
 
 /**
  * `Rule::enum()`: the values of the enum, `only()` and `except()` applied.
@@ -25,7 +24,7 @@ final readonly class EnumRuleMapper implements RuleMapper
 
     public function map(RuleInvocation $rule, FieldDescription $field, GenerationContext $context): FieldDescription
     {
-        $enum = self::property($rule->rule, 'type');
+        $enum = Properties::read($rule->rule, 'type');
 
         if (! is_string($enum) || ! is_subclass_of($enum, BackedEnum::class)) {
             return $field;
@@ -41,9 +40,7 @@ final readonly class EnumRuleMapper implements RuleMapper
             }
         }
 
-        $type = (new ReflectionEnum($enum))->getBackingType();
-
-        return $field->schema($field->schema->type($type instanceof ReflectionNamedType && $type->getName() === 'int' ? 'integer' : 'string')->enum(...$values));
+        return $field->schema($field->schema->type(Enums::type($enum))->enum(...$values));
     }
 
     /**
@@ -51,13 +48,8 @@ final readonly class EnumRuleMapper implements RuleMapper
      */
     private static function cases(?object $rule, string $property): array
     {
-        $cases = self::property($rule, $property);
+        $cases = Properties::read($rule, $property);
 
         return is_array($cases) ? array_values($cases) : [];
-    }
-
-    private static function property(?object $rule, string $property): mixed
-    {
-        return $rule !== null && property_exists($rule, $property) ? (new ReflectionProperty($rule, $property))->getValue($rule) : null;
     }
 }

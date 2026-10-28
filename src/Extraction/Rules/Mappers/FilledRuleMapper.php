@@ -24,6 +24,7 @@ final readonly class FilledRuleMapper implements RuleMapper
     {
         return match (SchemaTypes::size($field)) {
             'array' => $field->schema($field->schema->minItems(1)),
+            'object' => $field->schema($field->schema->minProperties(1)),
             'number', 'file' => $field,
             default => $field->schema($field->schema->minLength(1)),
         };

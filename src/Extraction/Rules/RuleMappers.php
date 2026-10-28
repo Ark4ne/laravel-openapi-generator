@@ -15,6 +15,9 @@ final class RuleMappers
     /** @var array<string, RuleMapper> rule name or class → mapper */
     private readonly array $index;
 
+    /** @var array<string, RuleMapper|null> rule → mapper found, parents and interfaces included */
+    private array $found = [];
+
     public function __construct(RuleMapper ...$mappers)
     {
         $this->mappers = array_values($mappers);
@@ -98,15 +101,21 @@ final class RuleMappers
             return $this->index[$rule];
         }
 
+        if (array_key_exists($rule, $this->found)) {
+            return $this->found[$rule];
+        }
+
         $found = null;
 
-        foreach ($this->index as $handled => $mapper) {
-            if (class_exists($rule) && (class_exists($handled) || interface_exists($handled)) && is_a($rule, $handled, true)) {
-                $found = $mapper;
+        if (class_exists($rule)) {
+            foreach ($this->index as $handled => $mapper) {
+                if (is_a($rule, $handled, true)) {
+                    $found = $mapper;
+                }
             }
         }
 
-        return $found;
+        return $this->found[$rule] = $found;
     }
 
     /**

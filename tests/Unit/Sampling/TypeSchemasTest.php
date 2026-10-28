@@ -41,6 +41,7 @@ final class TypeSchemasTest extends TestCase
         yield 'unsealed shape' => ['array{id: int, ...}', '{"type":"object","properties":{"id":{"type":"integer"}},"required":["id"]}'];
         yield 'list shape' => ['list{int, string}', '{"type":"array","prefixItems":[{"type":"integer"},{"type":"string"}],"minItems":2,"maxItems":2}'];
         yield 'literals' => ["'draft'|'published'", '{"type":"string","enum":["draft","published"]}'];
+        yield 'literals of several types' => ["'auto'|1|true", '{"enum":["auto",1,true]}'];
         yield 'literal' => ['1', '{"type":"integer","const":1}'];
         yield 'union' => ['int|string', '{"anyOf":[{"type":"integer"},{"type":"string"}]}'];
         yield 'enum' => ['\Ark4ne\OpenApi\Tests\Fixtures\Routing\Enums\Status', '{"type":"string","enum":["draft","published"]}'];

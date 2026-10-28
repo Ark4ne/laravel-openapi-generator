@@ -6,6 +6,7 @@ namespace Ark4ne\OpenApi\Tests\Unit\Extraction\Rules;
 
 use Ark4ne\OpenApi\Description\FieldDescription;
 use Ark4ne\OpenApi\Extraction\Rules\FieldsBuilder;
+use Ark4ne\OpenApi\Extraction\Rules\FieldTree;
 use Ark4ne\OpenApi\Extraction\Rules\RuleMappers;
 use Ark4ne\OpenApi\Extraction\Rules\RuleParser;
 use Ark4ne\OpenApi\Tests\Fixtures\Requests\UnknownRule;
@@ -150,6 +151,8 @@ final class RuleMappersTest extends TestCase
         yield 'string size' => ['string|size:4', ['schema' => ['type' => 'string', 'minLength' => 4, 'maxLength' => 4]]];
         yield 'file max' => ['file|max:2048', ['schema' => ['type' => 'string', 'format' => 'binary'], 'conditions' => ['at most 2048 KB']]];
         yield 'file between' => ['file|between:1,10', ['conditions' => ['between 1 and 10 KB']]];
+        yield 'object min max' => ['array:a,b|min:1|max:2', ['schema' => ['type' => 'object', 'properties' => ['a' => [], 'b' => []], 'additionalProperties' => false, 'minProperties' => 1, 'maxProperties' => 2]]];
+        yield 'filled object' => ['array:a|filled', ['schema' => ['type' => 'object', 'properties' => ['a' => []], 'additionalProperties' => false, 'minProperties' => 1]]];
         yield 'untyped max is a length' => ['max:5', ['schema' => ['maxLength' => 5]]];
         yield 'gt on integer' => ['integer|gt:5', ['schema' => ['type' => 'integer', 'exclusiveMinimum' => 5]]];
         yield 'gte on number' => ['numeric|gte:5', ['schema' => ['type' => 'number', 'minimum' => 5]]];
@@ -190,6 +193,8 @@ final class RuleMappersTest extends TestCase
         yield 'in on integer' => ['integer|in:1,2', ['schema' => ['type' => 'integer', 'enum' => [1, 2]]]];
         yield 'in on string' => ['string|in:1,2', ['schema' => ['type' => 'string', 'enum' => ['1', '2']]]];
         yield 'Rule::in' => [[Rule::in(['a', 'b,c'])], ['schema' => ['enum' => ['a', 'b,c']]]];
+        yield 'in on an array applies to its items' => [['array', Rule::in(['admin', 'user'])], ['schema' => ['type' => 'array', 'items' => ['enum' => ['admin', 'user']]]]];
+        yield 'not_in on an array' => ['array|not_in:a', ['schema' => ['type' => 'array', 'items' => ['not' => ['enum' => ['a']]]]]];
         yield 'not_in' => ['not_in:a,b', ['schema' => ['not' => ['enum' => ['a', 'b']]]]];
         yield 'Rule::notIn' => [[Rule::notIn(['a'])], ['schema' => ['not' => ['enum' => ['a']]]]];
         yield 'Rule::enum string' => [[Rule::enum(Status::class)], ['schema' => ['type' => 'string', 'enum' => ['draft', 'published']]]];
@@ -289,6 +294,13 @@ final class RuleMappersTest extends TestCase
         $fields = $this->fields(['password' => 'string|confirmed:repeat']);
 
         self::assertSame(['password', 'repeat'], array_map(static fn(FieldDescription $field): string => $field->name, $fields));
+    }
+
+    public function test_a_key_required_twice_is_written_once(): void
+    {
+        $schema = FieldTree::object($this->fields(['meta' => 'array|required_array_keys:id', 'meta.id' => 'required']));
+
+        Schemas::assertSame('{"type":"object","properties":{"meta":{"type":"object","properties":{"id":{}},"required":["id"]}}}', $schema);
     }
 
     public function test_distinct_marks_the_list_item(): void

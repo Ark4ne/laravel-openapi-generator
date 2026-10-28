@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ark4ne\OpenApi\Sampling;
 
+use Ark4ne\OpenApi\Support\Enums;
 use Ark4ne\OpenApi\Types\ArrayShapeItem;
 use Ark4ne\OpenApi\Types\ArrayShapeType;
 use Ark4ne\OpenApi\Types\GenericType;
@@ -17,8 +18,6 @@ use Ark4ne\OpenApi\Types\UnionType;
 use Ark4ne\OpenApiWriter\Objects\Schema;
 use BackedEnum;
 use DateTimeInterface;
-use ReflectionEnum;
-use ReflectionNamedType;
 use Traversable;
 
 /**
@@ -81,10 +80,7 @@ final class TypeSchemas
      */
     private static function enum(string $enum): Schema
     {
-        $type = (new ReflectionEnum($enum))->getBackingType();
-        $schema = $type instanceof ReflectionNamedType && $type->getName() === 'int' ? Schema::integer() : Schema::string();
-
-        return $schema->enum(...array_map(static fn(BackedEnum $case): int|string => $case->value, $enum::cases()));
+        return Schema::create()->type(Enums::type($enum))->enum(...Enums::values($enum));
     }
 
     private static function generic(GenericType $type): Schema
@@ -141,15 +137,27 @@ final class TypeSchemas
 
     private static function union(UnionType $union): Schema
     {
-        $literals = array_filter($union->types, static fn(Type $type): bool => $type instanceof LiteralType);
+        $values = [];
 
-        if (count($literals) === count($union->types)) {
-            $values = array_values(array_map(static fn(LiteralType $type): int|float|string|bool => $type->value, $literals));
+        foreach ($union->types as $type) {
+            $value = match (true) {
+                $type instanceof LiteralType => [$type->value],
+                $type instanceof NamedType && $type->name === 'true' => [true],
+                $type instanceof NamedType && $type->name === 'false' => [false],
+                default => null,
+            };
 
-            return self::literal($values[0])->enum(...$values);
+            if ($value === null) {
+                return Schema::create()->anyOf(...array_map(self::of(...), $union->types));
+            }
+
+            $values[] = $value[0];
         }
 
-        return Schema::create()->anyOf(...array_map(self::of(...), $union->types));
+        // One type for every value, else no type: `'auto'|1|true` accepts the three.
+        $types = array_unique(array_map(get_debug_type(...), $values));
+
+        return count($types) === 1 ? self::literal($values[0])->enum(...$values) : Schema::create()->enum(...$values);
     }
 
     private static function literal(int|float|string|bool $value): Schema

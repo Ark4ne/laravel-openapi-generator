@@ -174,14 +174,32 @@ final readonly class OperationContext
      */
     public function actionAttributes(string $attribute, GenerationContext $context): array
     {
-        $instances = [];
+        return array_map(static fn(array $declared): object => $declared[0], $this->declaredActionAttributes($attribute, $context));
+    }
+
+    /**
+     * The attributes of the declarations of the action, each with the declaration that carries it: the scope its
+     * PHPDoc types are written in.
+     *
+     * @template T of object
+     *
+     * @param class-string<T> $attribute
+     *
+     * @return list<array{T, ReflectionFunctionAbstract}>
+     */
+    public function declaredActionAttributes(string $attribute, GenerationContext $context): array
+    {
+        $declared = [];
 
         foreach ($this->actions() as $action) {
             $target = $action instanceof ReflectionMethod ? "{$action->getDeclaringClass()->getName()}::{$action->getName()}" : $this->route->label();
-            array_push($instances, ...$this->instances($action->getAttributes($attribute), $target, $context));
+
+            foreach ($this->instances($action->getAttributes($attribute), $target, $context) as $instance) {
+                $declared[] = [$instance, $action];
+            }
         }
 
-        return $instances;
+        return $declared;
     }
 
     /**

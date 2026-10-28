@@ -36,14 +36,15 @@ final class SchemaTypes
     }
 
     /**
-     * What a size (`min`, `max`, `size`…) counts for this field: `number`, `array`, `file` or `string`.
+     * What a size (`min`, `max`, `size`…) counts for this field: `number`, `array`, `object`, `file` or `string`.
      */
     public static function size(FieldDescription $field): string
     {
         return match (true) {
             $field->file => 'file',
             in_array(self::of($field->schema), ['integer', 'number'], true) => 'number',
-            in_array(self::of($field->schema), ['array', 'object'], true) => 'array',
+            self::of($field->schema) === 'array' => 'array',
+            self::of($field->schema) === 'object' => 'object',
             default => 'string',
         };
     }

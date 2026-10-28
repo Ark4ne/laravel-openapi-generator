@@ -28,6 +28,7 @@ final class DescribedRequest extends FormRequest implements DescribesRequest
             ->header('X-Tenant', 'required|uuid', 'Tenant of the request')
             ->cookie('locale', Schema::string()->enum('en', 'fr'))
             ->query(['include' => 'string|in:posts,comments'])
+            ->json(['extra' => 'string'])
             ->body(['name' => 'required|string', 'payload' => 'array'], 'application/xml')
             ->bodySchema(Schema::object()->properties(Schema::string('raw')), 'text/plain')
             ->bodyDescription('The user to store');

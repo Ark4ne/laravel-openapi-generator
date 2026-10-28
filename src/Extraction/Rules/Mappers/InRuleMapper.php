@@ -27,8 +27,15 @@ final readonly class InRuleMapper implements RuleMapper
             ? array_map(static fn(string $value): int|float|string => SchemaTypes::number($value) ?? $value, $rule->parameters)
             : $rule->parameters;
 
-        return $rule->name === 'in'
-            ? $field->schema($field->schema->enum(...$values))
-            : $field->schema($field->schema->not(Schema::create()->enum(...$values)));
+        $constraint = static fn(Schema $schema): Schema => $rule->name === 'in' ? $schema->enum(...$values) : $schema->not(Schema::create()->enum(...$values));
+
+        // Laravel checks each element of an array against the list.
+        if (SchemaTypes::of($field->schema) === 'array') {
+            $items = $field->schema->items;
+
+            return $field->schema($field->schema->items($constraint($items instanceof Schema ? $items : Schema::create())));
+        }
+
+        return $field->schema($constraint($field->schema));
     }
 }

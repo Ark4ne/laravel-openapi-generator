@@ -14,6 +14,8 @@ choisie, et rendre compte de sa validité.
 - [ ] Serveurs et variables (corrige la v0.6, qui lisait `variables` alors que la configuration écrit `variable`),
       `Server.name` (3.2)
 - [ ] `$self` (3.2) et `externalDocs` du document
+- [ ] Paramètre `querystring` (3.2) écrit en `content` `application/x-www-form-urlencoded`, avec le schéma de la
+      description
 - [ ] Chemins, opérations (méthode `query` et `additionalOperations` en 3.2), paramètres, corps et leurs encodages,
       réponses (`summary` en 3.2), en-têtes
 - [ ] Tags : `summary`, `kind` (3.2), `externalDocs` ; `externalDocs` des opérations
