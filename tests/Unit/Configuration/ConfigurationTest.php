@@ -56,7 +56,7 @@ final class ConfigurationTest extends TestCase
         self::assertSame('controller', $document->tags->by);
         self::assertNotNull($document->tags->pattern());
         self::assertNull($document->groups);
-        self::assertSame('name', $document->operationId->by);
+        self::assertSame('method_name', $document->operationId->by);
         self::assertTrue($configuration->exceptions->readThrows);
         self::assertSame(2, $configuration->sampling->collectionSize);
         self::assertSame('date', $configuration->dateFormats['Y-m-d'] ?? null);

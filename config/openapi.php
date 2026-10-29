@@ -90,7 +90,7 @@ return [
                 'summary' => ['by' => 'doc'],
                 'tags' => ['by' => 'controller', 'pattern' => '/^App\\\\Http\\\\Controllers\\\\(.+)Controller$/'],
                 'groups' => null,
-                'operation_id' => ['by' => 'name'],
+                'operation_id' => ['by' => 'method_name'],
                 'query' => ['by' => 'all'],
             ],
 

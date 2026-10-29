@@ -128,9 +128,10 @@ php artisan openapi:generate -v
   `Description\…`, `Context\…`): no `Contracts\`, `Descriptors\`, `Documentation\`, `Parsers\`, `Transformers\`,
   `Support\` namespace remains.
 - No `@oa-` tag remains; `goldspecdigital/oooas` is gone from `composer.json` unless the application uses it.
-- Clients generated from the document: `operationId` values changed (`users.index` instead of `GET:users.index`);
-  warn their owners, or keep the 0.6 identifiers for the whole document with `strategies.operation_id` set to
-  `['by' => 'method_name']` (`GET:users.index`, one per method of a route, including `Route::any()`).
+- Clients generated from the document: keep `strategies.operation_id` set to `['by' => 'method_name']`, the value
+  of the published configuration, so that the `operationId` values stay those of 0.6 (`GET:users.index`, one per
+  method of a route, including `Route::any()`); with another strategy (`name` gives `users.index`), warn their
+  owners.
 
 ## Rules
 

@@ -55,7 +55,7 @@ chosen per document.
 | `versions.<v>.name-by` (`by`, `regex`) | `documents.<v>.strategies.summary` (`by`, `pattern`) | `description` becomes `doc` |
 | `versions.<v>.tag-by` | `documents.<v>.strategies.tags` | `regex` becomes `pattern` |
 | `versions.<v>.group-by` | `documents.<v>.strategies.groups` | `Tag.parent` in 3.2, `x-tagGroups` before (with `redoc`) |
-| | `documents.<v>.strategies.operation_id` | `name`, `action`, `method_path` or `method_name`; 0.6 wrote `"<method>:<route name>"`, which is `method_name` |
+| | `documents.<v>.strategies.operation_id` | `name`, `action`, `method_path` or `method_name`; 0.6 wrote `"<method>:<route name>"`, which is `method_name`, the value of the published configuration |
 | `versions.<v>.parameters.query.flat` | `documents.<v>.strategies.query` | Same values (`all`, `last`, `none`), plus `querystring` (3.2) |
 | `versions.<v>.use-ref` | `documents.<v>.use_references` | |
 | | `documents.<v>.security_schemes`, `documents.<v>.security` | Schemes completing those of the middlewares, schemes required by default |
@@ -151,9 +151,10 @@ An extractor never throws for application code it does not understand: it adds a
 
 - The version is 3.1.2 unless you choose another one; `nullable`, `exclusiveMinimum`, several types and `const` are
   written for the version.
-- `operationId` is unique (`users.index`, deduplicated: a route with several methods, like `Route::any()`, gives
-  `users.index`, `users.index_2`…) instead of `"GET:users.index"`. Set `strategies.operation_id` to `method_name` to
-  keep the 0.6 identifiers.
+- `operationId` keeps the 0.6 form (`GET:users.index`, one per method of a route) with the published configuration
+  (`strategies.operation_id` set to `method_name`). Without that key, or with `name`, it is the route name
+  (`users.index`, deduplicated: a route with several methods, like `Route::any()`, gives `users.index`,
+  `users.index_2`…).
 - 401, 403, 404, 419, 422 and 429 responses are added from the middlewares, the bound models and the validation, as
   shared `components.responses`; the 422 has a schema.
 - Optional path parameters (`{id?}`) give one path with and one without them.

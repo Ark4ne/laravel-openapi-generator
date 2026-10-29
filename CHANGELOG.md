@@ -41,8 +41,9 @@ the version is tagged.
 - Requires PHP 8.3+ and Laravel 13.
 - Writes documents with `ark4ne/openapi-writer` instead of `goldspecdigital/oooas`.
 - Configuration: `versions` becomes `documents`, keys in `snake_case`, every key validated when a command runs.
-- `operationId` is unique (`users.index`) instead of `"<method>:<route name>"`; the strategy `method_name` writes
-  the 0.6 identifiers back (`GET:users.index`).
+- `operationId` comes from a strategy: the published configuration uses `method_name`, which keeps the 0.6
+  identifiers (`GET:users.index`); `name` (the default when the key is missing), `action` and `method_path` write
+  unique identifiers (`users.index`).
 - Components are named after their class (`User`), not `resource-<hash>-user-resource`.
 - PHPDoc types are read with `phpstan/phpdoc-parser` (generics, array shapes, conditional types).
 

@@ -54,7 +54,8 @@ naming the key: the 0.6 file cannot be kept. Publish the 1.0 file, then carry ea
 
 New keys worth setting during the upgrade: `documents.<v>.openapi` (`'3.0.4'` keeps a 3.0 document for tools that
 do not read 3.1), `documents.<v>.vendor_extensions` (`'redoc'` keeps the `x-tagGroups` of 0.6 before 3.2),
-`documents.<v>.strategies.operation_id` (`method_name` keeps the `GET:users.index` of 0.6), `security_schemes`,
+`documents.<v>.strategies.operation_id` (`method_name`, the value of the published configuration, keeps the
+`GET:users.index` of 0.6; `name`, the default when the key is missing, writes `users.index`), `security_schemes`,
 `exceptions.map`.
 
 A converted file, 0.6:
@@ -109,7 +110,7 @@ return [
                 'summary' => ['by' => 'doc'],
                 'tags' => ['by' => 'controller', 'pattern' => '/^App\\\\Http\\\\Controllers\\\\(\w+)Controller/'],
                 'groups' => ['by' => 'uri', 'pattern' => '/^api\/v1\/(\w+)/'],
-                'operation_id' => ['by' => 'name'],
+                'operation_id' => ['by' => 'method_name'],
                 'query' => ['by' => 'last'],
             ],
             'use_references' => true,
@@ -221,8 +222,9 @@ Expected differences when comparing the 0.6 document with the 1.0 one. They are 
 - `openapi` is `3.1.2` (unless `documents.<v>.openapi` says otherwise): `nullable: true` becomes `type: [x, 'null']`,
   `exclusiveMinimum` a number.
 - `info.version` is the configured version, not the document key.
-- `operationId` is the route name (`users.index`), deduplicated (`users.index_2`… for a route with several methods),
-  instead of `GET:users.index`. `strategies.operation_id.by: 'method_name'` writes the 0.6 form back.
+- `operationId` keeps the 0.6 form (`GET:users.index`) when `strategies.operation_id.by` is `'method_name'`, the
+  value of the published configuration. Without that key, or with `'name'`, it is the route name (`users.index`),
+  deduplicated (`users.index_2`… for a route with several methods).
 - Summaries and descriptions moved: see [Summaries and descriptions](#summaries-and-descriptions).
 - Component names: `User` instead of `resource-<hash>-user-resource`.
 - Error responses are added: 401 (`auth`), 403 (`can`, `authorize()`, abilities), 404 (bound models), 419 (CSRF),
