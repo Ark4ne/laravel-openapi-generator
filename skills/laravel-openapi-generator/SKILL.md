@@ -20,6 +20,9 @@ Files of this skill:
 The source is the final authority: `vendor/ark4ne/laravel-openapi-generator/src/` (`Attributes/` for the attributes,
 `config/openapi.php` for the configuration, documented key by key).
 
+Upgrading an application from 0.6 (`versions` in `config/openapi.php`, `@oa-*` tags, `DescribableRequest`): use the
+`laravel-openapi-generator-upgrade` skill (`vendor/ark4ne/laravel-openapi-generator/skills/laravel-openapi-generator-upgrade/`).
+
 ## Install
 
 ```bash

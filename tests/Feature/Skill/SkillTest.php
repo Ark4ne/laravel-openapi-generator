@@ -5,14 +5,7 @@ declare(strict_types=1);
 namespace Ark4ne\OpenApi\Tests\Feature\Skill;
 
 use Ark4ne\OpenApi\Configuration\Configuration;
-use Ark4ne\OpenApi\Laravel\GeneratorFactory;
-use Ark4ne\OpenApi\Output\DocumentValidator;
-use Ark4ne\OpenApi\Tests\Feature\Laravel\LaravelTestCase;
 use Ark4ne\OpenApi\Tests\Support\Schemas;
-use Ark4ne\OpenApiWriter\Enums\Version;
-use Ark4ne\OpenApiWriter\Validation\OpisJsonSchemaValidator;
-use Illuminate\Contracts\Config\Repository;
-use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
 use ReflectionClass;
@@ -23,37 +16,16 @@ use ReflectionClass;
  * every attribute, every configuration key and every extension point.
  */
 #[CoversNothing]
-final class SkillTest extends LaravelTestCase
+final class SkillTest extends SkillTestCase
 {
-    private const DIRECTORY = __DIR__ . '/../../../skills/laravel-openapi-generator/';
-
-    public function test_the_skill_declares_its_name_and_when_to_use_it(): void
+    protected static function skill(): string
     {
-        self::assertSame(1, preg_match('/\A---\nname: laravel-openapi-generator\ndescription: (.+)\n---\n/', self::read('SKILL.md'), $matches));
-        self::assertLessThanOrEqual(1024, strlen($matches[1]));
-        self::assertStringContainsString('Ark4ne\OpenApi', $matches[1]);
+        return 'laravel-openapi-generator';
     }
 
-    public function test_every_link_between_the_files_of_the_skill_resolves(): void
+    protected static function files(): array
     {
-        foreach (['SKILL.md', 'reference.md', 'recipes.md'] as $file) {
-            preg_match_all('/\]\(([^)\s]+)\)/', self::read($file), $links);
-
-            foreach ($links[1] as $link) {
-                if (preg_match('#^[a-z]+://#', $link) === 1) {
-                    continue;
-                }
-
-                [$path, $anchor] = array_pad(explode('#', $link, 2), 2, null);
-                $target = $path === '' ? self::DIRECTORY . $file : self::DIRECTORY . $path;
-
-                self::assertFileExists($target, "{$file}: {$link}");
-
-                if ($anchor !== null) {
-                    self::assertContains($anchor, self::anchors((string) file_get_contents($target)), "{$file}: {$link}");
-                }
-            }
-        }
+        return ['SKILL.md', 'reference.md', 'recipes.md'];
     }
 
     public function test_the_reference_names_every_attribute_and_its_parameters(): void
@@ -94,7 +66,7 @@ final class SkillTest extends LaravelTestCase
         self::assertSame(['data', 'links', 'meta'], array_keys((array) Schemas::at($document, 'paths', '/api/books', 'get', 'responses', '200', 'content', 'application/json', 'schema', 'properties')));
         self::assertSame([201, 401, 422], array_keys((array) Schemas::at($document, 'paths', '/api/books', 'post', 'responses')));
         self::assertSame([204, 401, 404], array_keys((array) Schemas::at($document, 'paths', '/api/books/{book}', 'delete', 'responses')));
-        self::assertStringNotContainsString('#[Response(204)]', self::code('CRUD resource'));
+        self::assertStringNotContainsString('#[Response(204)]', self::code('recipes.md', 'CRUD resource'));
         self::assertSame('book', Schemas::at($document, 'paths', '/api/books/{book}', 'parameters', '0', 'name'));
         self::assertSame(['id', 'title', 'price', 'published_at'], array_keys((array) Schemas::at($document, 'components', 'schemas', 'Book', 'properties')));
     }
@@ -160,67 +132,11 @@ final class SkillTest extends LaravelTestCase
     }
 
     /**
-     * The anchors GitHub gives to the headings of a Markdown file.
-     *
-     * @return list<string>
-     */
-    private static function anchors(string $markdown): array
-    {
-        preg_match_all('/^#{1,6} (.+)$/m', $markdown, $headings);
-
-        return array_map(static fn(string $heading): string => str_replace(' ', '-', (string) preg_replace('/[^a-z0-9 _-]/', '', strtolower($heading))), $headings[1]);
-    }
-
-    /**
-     * Runs the block of a recipe as `routes/api.php` (its routes under the `api` prefix), then generates and validates
-     * its document in each line with the published configuration; returns the 3.1 one.
-     *
      * @return array<array-key, mixed>
      */
     private function recipe(string $title): array
     {
-        $code = self::code($title);
-        Route::prefix('api')->group(static function () use ($code): void {
-            eval($code);
-        });
-        $config = $this->app?->make(Repository::class);
-        self::assertInstanceOf(Repository::class, $config);
-        // Written in 3.0 too: what 3.0 cannot write (webhooks) is dropped instead of failing.
-        $config->set('openapi.documents.v1.strict', false);
-        $config->set('openapi.sampling.transactions', false);
-        $written = [];
-
-        foreach (['3.0' => Version::V3_0_4, '3.1' => Version::V3_1_2, '3.2' => Version::V3_2_0] as $line => $version) {
-            $config->set('openapi.documents.v1.openapi', $version->value);
-            $settings = $config->get('openapi');
-            self::assertIsArray($settings);
-            $configuration = Configuration::fromArray($settings);
-            $factory = $this->app?->make(GeneratorFactory::class);
-            self::assertInstanceOf(GeneratorFactory::class, $factory);
-            $generated = $factory->make($configuration)->generate($configuration, 'v1');
-            $violations = (new DocumentValidator(new OpisJsonSchemaValidator()))->validate($generated->openApi, $generated->context);
-
-            self::assertSame([], array_map(strval(...), $violations->errors()), "{$title} ({$line})");
-            $written[$line] = $generated->openApi;
-        }
-
-        return $written['3.1']->toArray(Version::V3_1_2);
-    }
-
-    /**
-     * The `php` block of a recipe, without its `skip` blocks.
-     */
-    private static function code(string $title): string
-    {
-        $sections = preg_split('/^## /m', self::read('recipes.md'));
-
-        foreach ($sections === false ? [] : $sections as $section) {
-            if (str_starts_with($section, "{$title}\n") && preg_match('/^```php\n(.*?)^```$/ms', $section, $block) === 1) {
-                return $block[1];
-            }
-        }
-
-        self::fail("recipes.md has no runnable block for {$title}.");
+        return $this->example('recipes.md', $title);
     }
 
     /**
@@ -239,10 +155,5 @@ final class SkillTest extends LaravelTestCase
         }
 
         self::fail("reference.md has no section for #[{$attribute}].");
-    }
-
-    private static function read(string $file): string
-    {
-        return (string) file_get_contents(self::DIRECTORY . $file);
     }
 }

@@ -33,7 +33,8 @@ the version is tagged.
 - `openapi:generate` (`--document`, `--strict`, `--dry-run`, `--format`, `--stdout`, documented exit codes) and
   `openapi:inspect {route}`; diagnostics grouped by route; `about` entry.
 - One document per language (`languages`), JSON or YAML output, `{document}` and `{locale}` in the file name.
-- An agent skill in `skills/laravel-openapi-generator/`.
+- Agent skills: `skills/laravel-openapi-generator/` (usage) and `skills/laravel-openapi-generator-upgrade/`
+  (migration from 0.6).
 
 ### Changed
 

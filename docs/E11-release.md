@@ -19,6 +19,8 @@ pour les agents.
 - [x] `README.md` réécrit : installation, configuration, attributs, extensions, FAQ
 - [x] Skill pour agents `skills/laravel-openapi-generator/` (en anglais, livré dans le paquet, exemples testés),
       sur le modèle de celui du writer
+- [x] Skill de migration `skills/laravel-openapi-generator-upgrade/` : procédure v0.6 → V1, correspondance complète,
+      portages testés
 - [x] `CHANGELOG.md` de la 1.0.0
 
 ### Qualité
@@ -42,8 +44,8 @@ pour les agents.
   Laravel 14 n'est pas sorti au 29/10/2026 (dernière version : 13.39).
 - **`UPGRADE.md`.**
   - Il reprend la table de configuration de l'E1, en anglais.
-  - Il couvre aussi la seule balise de la v0.6 (`@oa-response-status`) et les arguments de son `#[Response]`, avec
-    leurs remplaçants.
+  - Il couvre aussi les quatre balises de la v0.6 (`@oa-description`, `@oa-response-*`) et les arguments de son
+    `#[Response]`, avec leurs remplaçants.
   - Il traite `DescribableRequest` → `DescribesRequest`, `CustomRuleParser` → `DescribesRule`, les parsers et
     transformateurs → les points d'extension, et ce qui change dans les documents.
 - **README.** Il est réécrit : ce que le générateur lit et écrit, attributs, requêtes, erreurs, webhooks (et comment
@@ -57,6 +59,17 @@ pour les agents.
   - les liens entre fichiers se résolvent, ancres comprises.
   - Les recettes s'exécutent comme `routes/api.php` (préfixe `api`) avec la configuration publiée : ce qui ne serait pas
     documenté par défaut fait échouer le test.
+- **Skill de migration.** `skills/laravel-openapi-generator-upgrade/` : `SKILL.md` (procédure en dix étapes, de la
+  référence v0.6 à la comparaison des documents), `mapping.md` (chaque clé, balise, attribut, classe et clé de
+  traduction de la v0.6), `examples.md` (code v0.6 et son portage). `tests/Feature/Skill/UpgradeSkillTest.php`
+  exécute chaque portage en 3.0, 3.1 et 3.2 et vérifie que la correspondance nomme tout ce que la v0.6 exposait ; les
+  aides communes aux deux skills sont dans `SkillTestCase`.
+  - La relecture de la v0.6 a corrigé `UPGRADE.md` : la v0.6 lisait quatre balises (`@oa-description`,
+    `@oa-response-status`, `@oa-response-paginate`, `@oa-response-header`), pas une seule ; son résumé venait de la
+    stratégie `name-by` et sa description de la première ligne de la PHPDoc ; ses clés de traduction fixes
+    (`openapi.requests.*`) ne sont plus lues.
+  - Pièges notés : une balise `@oa-*` restante est ignorée sans avertissement ; un `#[Response(<statut>)]` sans
+    `resource:` ni `type:` n'a pas de corps quand rien n'est inféré pour ce statut.
 - **Webhooks.** Leurs routes doivent correspondre à `routes.include` et être protégées par un middleware qui refuse
   toute requête. Les enregistrer seulement en console ne suffit pas : `route:cache` s'exécute aussi en console.
 - **Couverture.** 92,37 % des lignes. Depuis PHPUnit 12, seules les classes déclarées par `#[CoversClass]` /

@@ -3,6 +3,9 @@
 1.0 is a rewrite. The configuration, the PHPDoc tags, the parser classes and the middleware transformers of 0.6 are
 replaced; the documented behaviour is kept and extended. Plan to regenerate your documents and review the diff.
 
+Coding agents: the package ships a migration skill, [`skills/laravel-openapi-generator-upgrade/`](skills/laravel-openapi-generator-upgrade/SKILL.md),
+with a step-by-step procedure, the complete mapping and tested before/after examples.
+
 ## Requirements
 
 | | 0.6 | 1.0 |
@@ -72,12 +75,18 @@ chosen per document.
 
 ## PHPDoc tags and attributes
 
-The summary and the description are still read from the PHPDoc of the action (first line, then the rest), and
-`@deprecated` deprecates the operation. Every other piece of metadata is a PHP attribute of `Ark4ne\OpenApi\Attributes`.
+The PHPDoc of the action still gives the texts, but not the same ones: 0.6 took the summary from the `name-by`
+strategy (the route name by default) and the description from the first line of the PHPDoc; 1.0 takes the summary
+from the first line (strategy `doc`) and the description from the rest. `@deprecated` deprecates the operation.
+Every other piece of metadata is a PHP attribute of `Ark4ne\OpenApi\Attributes`; 1.0 ignores the `@oa-*` tags
+without a warning, so remove each one.
 
 | 0.6 | 1.0 |
 | --- | --- |
-| `@oa-response-status 204` | `#[Response(204)]` |
+| `@oa-description <key>` | `#[Operation(description: 'openapi.requests.descriptions.<key>')]` (a translation key is translated) |
+| `@oa-response-status 204` | `#[Response(204)]` (a `POST` returning a resource is already a 201) |
+| `@oa-response-paginate [Paginator class]` | `#[Response(resource: UserResource::class, paginator: LengthAwarePaginator::class)]` |
+| `@oa-response-header X-Id 1` | `#[Response(headers: ['X-Id' => 'int'])]` |
 | `#[Response(statusCode: 201)]` | `#[Response(201)]` (the argument is `status`; it is repeatable, one per status) |
 | `#[Response(statusText: 'Created')]` | `#[Response(201, description: 'Created')]` (0.6 wrote a 200 there) |
 | `#[Response(headers: ['X-Id' => '…'])]` | `#[Response(headers: ['X-Id' => 'int'])]` (values are PHPDoc types) |
@@ -89,6 +98,14 @@ The summary and the description are still read from the PHPDoc of the action (fi
 Attributes may be put on the controller class (they apply to every action) and on the action (it overrides them).
 The `@return` type of the action is read in full (`AnonymousResourceCollection<UserResource>`,
 `CatResource|DogResource`, array shapes) and drives the responses.
+
+## Translations
+
+0.6 looked up fixed keys: `openapi.requests.<route name>.name` and `.description`, `openapi.requests.descriptions.<key>`
+and `openapi.requests.parameters.<field>`. 1.0 translates the texts themselves: a summary, a description or a tag
+that is a translation key is translated in each language of `languages`. Write the key where the text goes
+(`#[Operation(summary: 'openapi.requests.users.index.name')]`), or keep the 0.6 keys with two small extractors (see
+the upgrade skill below).
 
 ## Requests
 

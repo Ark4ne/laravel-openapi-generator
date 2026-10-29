@@ -284,6 +284,9 @@ The package ships a skill for coding agents in [`skills/laravel-openapi-generato
 the rules, the reference of every attribute, configuration key and extension point, and tested recipes. Point your
 agent to `vendor/ark4ne/laravel-openapi-generator/skills/laravel-openapi-generator/`.
 
+A second skill, [`skills/laravel-openapi-generator-upgrade/`](skills/laravel-openapi-generator-upgrade/SKILL.md),
+migrates an application from 0.6: procedure, mapping of every 0.6 key, tag, attribute and class, and tested ports.
+
 ## FAQ
 
 **A route is missing from the document.** It is not matched by `routes.include` (`api/*` by default), or it is
