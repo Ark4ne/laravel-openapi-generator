@@ -84,6 +84,21 @@ final class GenerateCommandTest extends LaravelTestCase
         Storage::disk('docs')->assertMissing('openapi/v1.json');
     }
 
+    public function test_a_route_with_several_methods_gets_one_operation_id_per_method(): void
+    {
+        $this->config()->set('openapi.documents.v1.strategies.operation_id', ['by' => 'method_name']);
+        $this->config()->set('openapi.documents.v1.routes.ignored_methods', ['HEAD', 'OPTIONS']);
+        $this->router()->match(['GET', 'POST'], 'api/hook', [UntypedController::class, 'ping'])->name('hook');
+
+        $this->command('openapi:generate', ['--document' => ['v1']])
+            ->doesntExpectOutputToContain('already used')
+            ->assertExitCode(0);
+
+        $document = (string) Storage::disk('docs')->get('openapi/v1.json');
+        self::assertStringContainsString('"operationId": "GET:hook"', $document);
+        self::assertStringContainsString('"operationId": "POST:hook"', $document);
+    }
+
     public function test_the_standard_output_takes_one_document_only(): void
     {
         $this->command('openapi:generate', ['--stdout' => true])

@@ -54,7 +54,8 @@ naming the key: the 0.6 file cannot be kept. Publish the 1.0 file, then carry ea
 
 New keys worth setting during the upgrade: `documents.<v>.openapi` (`'3.0.4'` keeps a 3.0 document for tools that
 do not read 3.1), `documents.<v>.vendor_extensions` (`'redoc'` keeps the `x-tagGroups` of 0.6 before 3.2),
-`documents.<v>.strategies.operation_id`, `security_schemes`, `exceptions.map`.
+`documents.<v>.strategies.operation_id` (`method_name` keeps the `GET:users.index` of 0.6), `security_schemes`,
+`exceptions.map`.
 
 A converted file, 0.6:
 
@@ -220,7 +221,8 @@ Expected differences when comparing the 0.6 document with the 1.0 one. They are 
 - `openapi` is `3.1.2` (unless `documents.<v>.openapi` says otherwise): `nullable: true` becomes `type: [x, 'null']`,
   `exclusiveMinimum` a number.
 - `info.version` is the configured version, not the document key.
-- `operationId` is the route name (`users.index`), deduplicated, instead of `GET:users.index`.
+- `operationId` is the route name (`users.index`), deduplicated (`users.index_2`… for a route with several methods),
+  instead of `GET:users.index`. `strategies.operation_id.by: 'method_name'` writes the 0.6 form back.
 - Summaries and descriptions moved: see [Summaries and descriptions](#summaries-and-descriptions).
 - Component names: `User` instead of `resource-<hash>-user-resource`.
 - Error responses are added: 401 (`auth`), 403 (`can`, `authorize()`, abilities), 404 (bound models), 419 (CSRF),

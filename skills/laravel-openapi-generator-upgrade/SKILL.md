@@ -129,7 +129,8 @@ php artisan openapi:generate -v
   `Support\` namespace remains.
 - No `@oa-` tag remains; `goldspecdigital/oooas` is gone from `composer.json` unless the application uses it.
 - Clients generated from the document: `operationId` values changed (`users.index` instead of `GET:users.index`);
-  warn their owners, or keep the old ids with `#[Operation(operationId: 'GET:users.index')]` where it matters.
+  warn their owners, or keep the 0.6 identifiers for the whole document with `strategies.operation_id` set to
+  `['by' => 'method_name']` (`GET:users.index`, one per method of a route, including `Route::any()`).
 
 ## Rules
 

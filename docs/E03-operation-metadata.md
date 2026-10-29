@@ -68,8 +68,9 @@ attributs et sa PHPDoc, et en tirer résumé, description, tags, `operationId`, 
   (100), attributs (200), traduction (1000). Le résumé PHPDoc passe par la stratégie `doc` ; le texte qui suit est
   toujours la description, quelle que soit la stratégie.
 - **Repli des identifiants** : `name` sans nom de route et `action` sur une closure donnent `method_path`
-  (`getApiUsersByUser`). Plusieurs méthodes d'une route partagent son nom : la passe `operationId` d'E7 les rend
-  uniques.
+  (`getApiUsersByUser`). `method_name` écrit `GET:users.index` (format de la v0.6) : un identifiant par méthode d'une
+  route `any`. Avec `name` ou `action`, plusieurs méthodes d'une route partagent son nom : la passe `operationId`
+  d'E7 les rend uniques (`users.index_2`…).
 - **Tags par défaut** : sans `pattern`, `controller` donne le nom court sans `Controller` (`User`), `uri` et `name`
   le premier segment hors `api` et version (`users`). Le `pattern` de la configuration par défaut cible
   `App\Http\Controllers\…Controller`, et garde le sous-espace de noms (`Admin\User`).

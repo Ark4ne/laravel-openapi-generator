@@ -133,6 +133,9 @@ final class BuiltInStrategiesTest extends TestCase
         yield 'name' => ['name', self::operation(), 'api.users.index'];
         yield 'action' => ['action', self::operation(), 'UserController.index'];
         yield 'method and path' => ['method_path', self::operation(), 'getApiV1UsersByUser'];
+        yield 'method and name' => ['method_name', self::operation(), 'GET:api.users.index'];
+        yield 'method and name of another method' => ['method_name', self::operation(method: 'PURGE'), 'PURGE:api.users.index'];
+        yield 'method and name without name' => ['method_name', self::operation(name: null), 'getApiV1UsersByUser'];
         yield 'name without name' => ['name', self::operation(name: null), 'getApiV1UsersByUser'];
         yield 'action of a closure' => ['action', self::operation(controller: null), 'getApiV1UsersByUser'];
         yield 'another method' => ['method_path', self::operation(method: 'PURGE', path: '/cache'), 'purgeCache'];
