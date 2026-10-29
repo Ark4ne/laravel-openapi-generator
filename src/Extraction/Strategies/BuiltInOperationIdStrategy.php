@@ -13,7 +13,7 @@ use Illuminate\Support\Str;
  * (the route name prefixed by the method, as 0.6 wrote it: one identifier per method of a route that has several).
  *
  * `name`, `action` and `method_name` fall back to `method_path` when the route has no name or no controller. Several methods of
- * one route share its name: the OperationIdPass (E7) makes the identifiers unique.
+ * one route share its name: the OperationIdPass makes the identifiers unique.
  */
 final readonly class BuiltInOperationIdStrategy implements OperationIdStrategy
 {

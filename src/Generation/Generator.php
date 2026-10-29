@@ -30,8 +30,8 @@ use Illuminate\Contracts\Translation\Translator;
 use Illuminate\Routing\Router;
 
 /**
- * Generates the documents of the configuration: for each document and each language, the routes (E2), their
- * metadata, requests and responses (E3 to E6) inside one sampling session, the passes (E7), then the writer's object.
+ * Generates the documents of the configuration: for each document and each language, the routes, their
+ * metadata, requests and responses inside one sampling session, the passes, then the writer's object.
  *
  * The available integrations add their resource formats and rule mappers, and the last one that has error bodies
  * replaces Laravel's; the extensions of the application join the registries, and its strategy classes come from the

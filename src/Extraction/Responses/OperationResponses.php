@@ -26,7 +26,7 @@ use ReflectionFunctionAbstract;
 
 /**
  * Every response of an operation: inferred from each member of the return type, replaced by `#[Response]` for its
- * status, then those of the declared exceptions (merged with the other error responses in E7). A declared success
+ * status, then those of the declared exceptions (merged with the error responses of the passes). A declared success
  * (2xx) also leaves out the successes inferred for other statuses.
  *
  * Several members with one status (`CatResource|DogResource`) give one response whose body is `oneOf` them, with a

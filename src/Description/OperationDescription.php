@@ -19,7 +19,7 @@ final readonly class OperationDescription extends Description
      * @param list<string> $middlewares resolved middlewares of the route
      * @param list<string> $tags
      * @param list<TagDescription> $declaredTags tags declared with their details (`#[Tag]`), gathered in the
-     *        document by the TagPass (E7)
+     *        document by the TagPass
      * @param list<ResponseDescription> $responses
      * @param list<SecurityDescription>|null $security `null` inherits the document security
      * @param array{url: string, description?: string}|null $externalDocs

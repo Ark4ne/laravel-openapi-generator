@@ -7,16 +7,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 `ark4ne/laravel-openapi-generator` is a **Laravel package** that introspects an application (routes, controllers,
 form requests, validation rules, resources) and writes OpenAPI documents via `php artisan openapi:generate`.
 
-Branch `v1.0` is a **full rewrite** of v0.6. The v0.6 code lives only on branch `v0.6` (`git show v0.6:<path>`); it is
-a functional reference — never copy it as is.
-
 - **Architecture, patterns and conventions: `docs/architecture.md` — read it before writing any code.**
-- Roadmap and progress: `docs/README.md`, one document per epic in `docs/E*.md`.
-- What v0.6 does and what V1 keeps, rewrites or drops: `docs/legacy-inventory.md`.
-- OpenAPI objects are built **only** with `ark4ne/openapi-writer` (sibling folder `../openapi-writer`, installed
-  through a Composer `path` repository until it is on Packagist; it replaces `goldspecdigital/oooas`). Its public API is described by its agent skill:
-  `../openapi-writer/skills/openapi-writer/SKILL.md` (then `vendor/ark4ne/openapi-writer/skills/…`). Read it before
-  using the writer. Never add OpenAPI model classes to this package: writer changes go to the writer project.
+- Migration from 0.6: `UPGRADE.md` and the agent skill `skills/laravel-openapi-generator-upgrade/`. The 0.6 code lives
+  on branch `v0.6` (`git show v0.6:<path>`); it is a functional reference only — never copy it as is.
+- OpenAPI objects are built **only** with `ark4ne/openapi-writer`. Its public API is described by its agent skill:
+  `vendor/ark4ne/openapi-writer/skills/openapi-writer/SKILL.md`. Read it before using the writer. Never add OpenAPI
+  model classes to this package: writer changes go to the writer project.
 
 Targets: PHP `^8.3`, Laravel `^13.0` (Laravel 14 as soon as it is released). Nothing obsolete or unmaintained.
 
@@ -27,7 +23,6 @@ composer test            # whole PHPUnit suite (Unit, Feature, Architecture)
 composer test:coverage   # coverage, fails under 90% of lines
 composer stan            # PHPStan max + Larastan + phpat architecture rules
 composer cs              # code style check (PER-CS); composer cs:fix to fix
-composer progress        # rebuild the progress table of docs/README.md
 composer fixtures:update # rewrite expected documents from the current output (review the diff)
 composer benchmark       # a document of 500 routes: time and peak memory
 composer ci              # every blocking check except coverage and mutation
@@ -37,10 +32,11 @@ vendor/bin/phpunit --filter test_name
 
 ## Workflow
 
-Epics run in the order of `docs/README.md`. Each epic follows the writer's cycle: **contract** (signatures and
-PHPDoc, neutral bodies) → **red tests** → **implementation**. Never implement behaviour that has no test yet.
-When a deliverable is done, tick it (`- [x]`) in its `docs/E*.md`, run `composer progress`, and commit both;
-the CI fails when `docs/README.md` is out of sync.
+Every change follows the same cycle: **contract** (signatures and PHPDoc, neutral bodies) → **red tests** →
+**implementation**. Never implement behaviour that has no test yet.
+
+Every public change is documented in `CHANGELOG.md`, in the agent skills (`skills/`) and, when it introduces a new
+rule, in `docs/architecture.md`.
 
 ## Architecture (details in `docs/architecture.md`)
 
@@ -69,6 +65,6 @@ writer **writes**.
   writer's `Validator` before comparison.
 - Tests use SQLite in memory. Test names are sentences (`test_max_rule_on_string_sets_max_length`).
 
-## Languages
+## Language
 
-Code, identifiers, comments, README, UPGRADE and CHANGELOG are in English. `docs/` is written in French.
+Everything is in English, `docs/` included.

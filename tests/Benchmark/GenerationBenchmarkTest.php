@@ -19,7 +19,7 @@ use PHPUnit\Framework\Attributes\Group;
 
 /**
  * `composer benchmark`: one document of 500 routes, generated, validated and written; the time and the peak memory
- * are printed, to be recorded in the decisions of docs/README.md.
+ * are printed.
  */
 #[CoversNothing]
 #[Group('benchmark')]

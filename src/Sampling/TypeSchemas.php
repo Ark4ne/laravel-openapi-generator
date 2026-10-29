@@ -23,7 +23,7 @@ use Traversable;
 /**
  * The schema of a declared PHP type, without any sample: scalars, literals, lists, maps, shapes, enums, dates.
  *
- * A class that is neither an enum, a date nor a collection is an object; resources are described by sampling (E6).
+ * A class that is neither an enum, a date nor a collection is an object; resources are described by sampling.
  */
 final class TypeSchemas
 {

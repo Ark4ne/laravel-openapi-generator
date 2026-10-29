@@ -25,7 +25,7 @@ use Throwable;
  *   `whereUlid` and any other expression → `pattern`;
  * - a bound model (implicit binding) → the type of its route key (`{post:slug}` → the `slug` column), from the key
  *   type, the casts and `HasUuids` / `HasUlids`; `boundTo` is the model;
- * - a bound backed enum → `enum` of its values; `boundTo` is the enum (made a component by E7);
+ * - a bound backed enum → `enum` of its values; `boundTo` is the enum (made a component by the ComponentExtractionPass);
  * - a scalar argument (`int $page`) → its type.
  *
  * The action is reflected through the route; when that fails, the parameter stays a string and a diagnostic is added.

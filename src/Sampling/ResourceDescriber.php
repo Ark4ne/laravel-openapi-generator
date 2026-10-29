@@ -9,7 +9,7 @@ use Ark4ne\OpenApiWriter\Objects\Schema;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * Describes a resource met in a sampled value, so that a nested resource is described as a returned one (E6).
+ * Describes a resource met in a sampled value, so that a nested resource is described as a returned one.
  */
 interface ResourceDescriber
 {

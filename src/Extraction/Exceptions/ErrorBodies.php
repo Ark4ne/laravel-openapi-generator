@@ -9,7 +9,7 @@ use Ark4ne\OpenApiWriter\Objects\Schema;
 
 /**
  * The bodies of the error responses, those of the declared exceptions and those the passes add: replaced by an
- * integration whose errors have another shape (JSON:API in E9).
+ * integration whose errors have another shape (JSON:API).
  */
 interface ErrorBodies
 {

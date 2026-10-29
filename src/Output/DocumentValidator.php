@@ -24,7 +24,7 @@ use JsonException;
  *
  * What the version cannot express is reported by the writing (DocumentWriter), not here: the writer's Validator
  * stops at such features, while a lenient document is written without them and must still be valid. The violations
- * become diagnostics; `--strict` fails on them (E10).
+ * become diagnostics; `--strict` fails on them.
  */
 final readonly class DocumentValidator
 {
