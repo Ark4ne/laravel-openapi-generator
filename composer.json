@@ -45,18 +45,6 @@
         "opis/json-schema": "Validates the generated documents against the official OpenAPI schemas.",
         "symfony/yaml": "Writes the generated documents as YAML."
     },
-    "repositories": [
-        {
-            "type": "path",
-            "url": "../openapi-writer",
-            "options": {
-                "symlink": true,
-                "versions": {
-                    "ark4ne/openapi-writer": "1.0.0"
-                }
-            }
-        }
-    ],
     "autoload": {
         "psr-4": {
             "Ark4ne\\OpenApi\\": "src/"
@@ -80,12 +68,10 @@
         "mutation": "infection --threads=max --show-mutations",
         "ci": [
             "@composer validate --strict",
-            "php bin/progress.php --check",
             "@cs",
             "@stan",
             "@test"
         ],
-        "progress": "php bin/progress.php",
         "fixtures:update": [
             "@putenv OPENAPI_GENERATOR_UPDATE_FIXTURES=1",
             "phpunit --testsuite Feature"
@@ -100,7 +86,6 @@
         "cs:fix": "Fix the code style (PER-CS).",
         "mutation": "Run mutation testing (requires infection to be installed globally).",
         "ci": "Run every blocking check of the CI locally.",
-        "progress": "Rebuild the progress table of docs/README.md from the epic checklists.",
         "fixtures:update": "Rewrite the expected documents of the Feature scenarios from the current output (review the diff).",
         "benchmark": "Generate a document of 500 routes and print the time and the peak memory."
     },

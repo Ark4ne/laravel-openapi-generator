@@ -1,6 +1,12 @@
 Laravel OpenAPI Generator
 =========================
 
+[![CI](https://github.com/Ark4ne/laravel-openapi-generator/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/Ark4ne/laravel-openapi-generator/actions/workflows/ci.yml)
+[![Coverage](https://codecov.io/gh/Ark4ne/laravel-openapi-generator/graph/badge.svg)](https://codecov.io/gh/Ark4ne/laravel-openapi-generator)
+[![Latest version](https://img.shields.io/packagist/v/ark4ne/laravel-openapi-generator)](https://packagist.org/packages/ark4ne/laravel-openapi-generator)
+[![PHP version](https://img.shields.io/packagist/dependency-v/ark4ne/laravel-openapi-generator/php)](https://packagist.org/packages/ark4ne/laravel-openapi-generator)
+[![License](https://img.shields.io/packagist/l/ark4ne/laravel-openapi-generator)](LICENSE)
+
 Generates OpenAPI 3.0, 3.1 and 3.2 documents from a Laravel application: routes, controllers, form requests,
 validation rules and API resources. It reads what the application already declares, runs the resources on sampled
 models, and writes each document in the OpenAPI version you choose with
