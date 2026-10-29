@@ -1,44 +1,104 @@
 {
-  "name": "ark4ne/laravel-openapi-generator",
-  "description": "OpenApi - Laravel Documentation Generator",
-  "keywords": [
-    "laravel",
-    "openapi",
-    "documentation",
-    "generator"
-  ],
-  "type": "library",
-  "require": {
-    "php": "^8.1",
-    "laravel/framework": "^10.0|^11.0|^12.0|^13.0",
-    "goldspecdigital/oooas": "^2.10",
-    "phpdocumentor/reflection-docblock": "^5.3|^6.0|^7.0",
-    "phpdocumentor/type-resolver": "^1.6|2.0",
-    "justinrainbow/json-schema": "^6.0"
-  },
-  "require-dev": {
-    "ark4ne/laravel-json-api": "^1.3|^1.4|^1.5|^1.6|^1.7|^1.8|^1.9",
-    "orchestra/testbench": "^7.5|^8.0|^9.0|^10.0|^11.0",
-    "phpstan/phpstan": "^1.9",
-    "phpunit/phpunit": "^9.0|^10.0|^11.0|^12.0|^13.0"
-  },
-  "license": "MIT",
-  "autoload": {
-    "psr-4": {
-      "Ark4ne\\OpenApi\\": "src/"
-    }
-  },
-  "autoload-dev": {
-    "psr-4": {
-      "Test\\": "tests/"
-    }
-  },
-  "extra": {
-    "laravel": {
-      "providers": [
-        "Ark4ne\\OpenApi\\Providers\\LaravelOpenApiProvider"
-      ]
-    }
-  },
-  "minimum-stability": "stable"
+    "name": "ark4ne/laravel-openapi-generator",
+    "description": "Generates OpenAPI 3.0, 3.1 and 3.2 documents from a Laravel application: routes, form requests, validation rules and resources.",
+    "keywords": [
+        "laravel",
+        "openapi",
+        "oas",
+        "swagger",
+        "documentation",
+        "generator"
+    ],
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.3",
+        "ext-json": "*",
+        "ark4ne/openapi-writer": "^1.0",
+        "illuminate/console": "^13.0",
+        "illuminate/contracts": "^13.0",
+        "illuminate/database": "^13.0",
+        "illuminate/filesystem": "^13.0",
+        "illuminate/http": "^13.0",
+        "illuminate/routing": "^13.0",
+        "illuminate/support": "^13.0",
+        "illuminate/validation": "^13.0",
+        "phpstan/phpdoc-parser": "^2.3",
+        "symfony/mime": "^7.4 || ^8.0"
+    },
+    "require-dev": {
+        "ark4ne/laravel-json-api": "^1.9",
+        "friendsofphp/php-cs-fixer": "^3.95",
+        "larastan/larastan": "^3.13",
+        "opis/json-schema": "^2.6",
+        "orchestra/testbench": "^11.0",
+        "phpat/phpat": "^0.12.5",
+        "phpstan/phpstan": "^2.1",
+        "phpstan/phpstan-phpunit": "^2.0",
+        "phpstan/phpstan-strict-rules": "^2.0",
+        "phpunit/phpunit": "^12.5 || ^13.0",
+        "spaze/phpstan-disallowed-calls": "^4.15",
+        "symfony/yaml": "^7.4 || ^8.0"
+    },
+    "suggest": {
+        "ark4ne/laravel-json-api": "Documents JSON:API resources, collections and requests (^1.9).",
+        "opis/json-schema": "Validates the generated documents against the official OpenAPI schemas.",
+        "symfony/yaml": "Writes the generated documents as YAML."
+    },
+    "autoload": {
+        "psr-4": {
+            "Ark4ne\\OpenApi\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Ark4ne\\OpenApi\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "test:coverage": [
+            "@putenv XDEBUG_MODE=coverage",
+            "phpunit --coverage-clover=build/coverage/clover.xml",
+            "php bin/coverage-check.php build/coverage/clover.xml 90"
+        ],
+        "stan": "phpstan analyse --memory-limit=1G",
+        "cs": "php-cs-fixer fix --dry-run --diff",
+        "cs:fix": "php-cs-fixer fix",
+        "mutation": "infection --threads=max --show-mutations",
+        "ci": [
+            "@composer validate --strict",
+            "@cs",
+            "@stan",
+            "@test"
+        ],
+        "fixtures:update": [
+            "@putenv OPENAPI_GENERATOR_UPDATE_FIXTURES=1",
+            "phpunit --testsuite Feature"
+        ],
+        "benchmark": "phpunit --testsuite Benchmark --group benchmark"
+    },
+    "scripts-descriptions": {
+        "test": "Run the whole PHPUnit suite.",
+        "test:coverage": "Run the tests with line coverage and fail under 90%.",
+        "stan": "Run PHPStan at max level with Larastan, the phpat architecture rules and the disallowed calls.",
+        "cs": "Check the code style (PER-CS).",
+        "cs:fix": "Fix the code style (PER-CS).",
+        "mutation": "Run mutation testing (requires infection to be installed globally).",
+        "ci": "Run every blocking check of the CI locally.",
+        "fixtures:update": "Rewrite the expected documents of the Feature scenarios from the current output (review the diff).",
+        "benchmark": "Generate a document of 500 routes and print the time and the peak memory."
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Ark4ne\\OpenApi\\Laravel\\OpenApiServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
 }

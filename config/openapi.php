@@ -1,309 +1,206 @@
 <?php
 
-use Ark4ne\OpenApi\{Contracts, Documentation, Parsers};
-use Illuminate\Http;
-use Symfony\Component\HttpFoundation;
+declare(strict_types=1);
 
 return [
     /*
-    |------------------------------------------------------------------
-    | Output-disk
-    |------------------------------------------------------------------
+    |--------------------------------------------------------------------------
+    | Documents
+    |--------------------------------------------------------------------------
     |
-    | Output disk.
+    | One entry per OpenAPI document to generate. The key is the document
+    | name: `php artisan openapi:generate --document=v1`, `{document}` in the
+    | output file name.
     |
     */
-    'output-disk' => null,
+    'documents' => [
+        'v1' => [
+            /*
+            | OpenAPI version written: 3.0.0 → 3.0.4, 3.1.0 → 3.1.2 or 3.2.0.
+            | The features a version cannot express are converted when
+            | possible, otherwise rejected (`strict`) or dropped with a warning.
+            */
+            'openapi' => '3.1.2',
+            'strict' => true,
 
-    /*
-    |------------------------------------------------------------------
-    | Output-dir
-    |------------------------------------------------------------------
-    |
-    | Output directory.
-    |
-    */
-    'output-dir' => 'public/openapi',
+            /*
+            | Vendor extensions for what an older version cannot express:
+            | `none` (the specification only) or `redoc` (`x-webhooks` before
+            | 3.1, `x-tagGroups` for the tag groups before 3.2).
+            */
+            'vendor_extensions' => 'none',
+
+            'info' => [
+                'title' => env('APP_NAME', 'API'),
+                'version' => '1.0.0',
+                'summary' => null,
+                'description' => null,
+                'terms_of_service' => null,
+                'contact' => [
+                    // 'name' => '', 'url' => '', 'email' => '',
+                ],
+                'license' => [
+                    // 'name' => 'MIT', 'identifier' => 'MIT',
+                ],
+            ],
+
+            /*
+            | Public URI of the generated document (`$self`, written from 3.2)
+            | and its external documentation.
+            */
+            'self' => null,
+            'external_docs' => null, // ['url' => 'https://…', 'description' => '…']
+
+            /*
+            | Servers of the document; the global `servers` when empty.
+            */
+            'servers' => [],
+
+            /*
+            | Routes of the document. `include` and `exclude` take shell masks
+            | on the URI (`['api/*']`), or a map of masks by `uri`, `name`,
+            | `domain` and `middleware` (declared name or class): a route
+            | matches when one mask matches it. An empty `include` keeps every
+            | route. `internal` lists the URIs of Laravel and of common
+            | packages that are never documented. Redirects, views and the
+            | fallback route are always left out, like `#[Exclude]`.
+            |
+            | order: registration | path
+            */
+            'routes' => [
+                'include' => ['api/*'],
+                'exclude' => [],
+                'ignored_methods' => ['HEAD'],
+                'internal' => Ark4ne\OpenApi\Configuration\RouteFilterConfiguration::INTERNAL,
+                'order' => 'registration',
+            ],
+
+            /*
+            | Naming strategies. `by` is a built-in strategy or a class
+            | implementing the matching interface of
+            | Ark4ne\OpenApi\Extraction\Strategies.
+            |
+            | summary:      doc | name | uri | controller
+            | tags:         controller | uri | name (with an optional `pattern`)
+            | groups:       null, or like tags (`Tag.parent` in 3.2, `x-tagGroups` before)
+            | operation_id: name | action | method_path | method_name
+            | query:        all | last | none (how nested query fields are written)
+            */
+            'strategies' => [
+                'summary' => ['by' => 'doc'],
+                'tags' => ['by' => 'controller', 'pattern' => '/^App\\\\Http\\\\Controllers\\\\(.+)Controller$/'],
+                'groups' => null,
+                'operation_id' => ['by' => 'method_name'],
+                'query' => ['by' => 'all'],
+            ],
+
+            /*
+            | Security schemes completing or replacing those inferred from
+            | the middlewares: OAuth2 flows and URLs (Passport), OpenID
+            | Connect, and the 3.2 fields (deviceAuthorization flow,
+            | oauth2MetadataUrl, deprecated). Each scheme is written as an
+            | OpenAPI Security Scheme Object: its keys are the OpenAPI field
+            | names, in camelCase, unlike the rest of this file.
+            |
+            | 'passport' => ['type' => 'oauth2', 'flows' => ['authorizationCode' => [
+            |     'authorizationUrl' => '/oauth/authorize', 'tokenUrl' => '/oauth/token']]],
+            | 'oidc' => ['type' => 'openIdConnect', 'openIdConnectUrl' => 'https://…'],
+            */
+            'security_schemes' => [],
+
+            /*
+            | Security schemes required by default on every operation (their
+            | names), on top of those the middlewares give.
+            */
+            'security' => [],
+
+            /*
+            | Resources and enums as `components.schemas` referenced by `$ref`
+            | (true), or written inline (false).
+            */
+            'use_references' => true,
+
+            /*
+            | Overrides of the global `output`.
+            */
+            'output' => [
+                'file' => 'openapi-{document}.json',
+            ],
+
+            /*
+            | `x-*` extensions of the document.
+            */
+            'extensions' => [],
+        ],
+    ],
 
     /*
     |--------------------------------------------------------------------------
     | Servers
     |--------------------------------------------------------------------------
     |
-    | Here you can specify global server configuration.
-    | You can define multiple server configuration.
+    | Default servers of every document. Parts of the URL can be variables:
+    | `https://{env}.example.com` with `'variables' => ['env' => ['default' =>
+    | 'production', 'enum' => ['staging', 'production']]]`.
     |
-    | Any part of the server URL – scheme, host name or its parts, port, subpath
-    | can be parameterized using variables.
-    | Variables are indicated by {curly braces} in the server url.
-    |
-    | eg:
-    |   [
-    |       'url' => 'https://{env}.myapp.com',
-    |       'description' =>  config('app.name'),
-    |       'variable' => [
-    |           'env' => [
-    |               'enum' => ['development', 'staging', 'production'],
-    |               'default' => config('app.env')
-    |           ]
-    |       ],
-    |   ],
     */
     'servers' => [
         [
-            'url' => config('app.url'),
-            'description' =>  config('app.name'),
-            'variable' => [
-                'env' => [
-                    'enum' => ['development', 'staging', 'production'],
-                    'default' => config('app.env')
-                ]
-            ],
+            'url' => env('APP_URL', 'http://localhost'),
+            'description' => env('APP_NAME'),
+            'name' => null, // written from 3.2
+            'variables' => [],
         ],
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | Versions
+    | Output
     |--------------------------------------------------------------------------
     |
-    | Here you can specify multiple configurations for each version of your API.
+    | Disk (null: the default disk), directory and file of the documents.
+    | `{document}` and `{locale}` are replaced in the file name. The format is
+    | `json` or `yaml` (needs symfony/yaml).
     |
     */
-    'versions' => [
-        'v1' => [
-            /*
-            |------------------------------------------------------------------
-            | Servers
-            |------------------------------------------------------------------
-            |
-            | Override global servers configuration.
-            |
-            */
-            // 'servers' => [],
-
-            /*
-            |------------------------------------------------------------------
-            | Output-file
-            |------------------------------------------------------------------
-            |
-            | Output file name.
-            |
-            */
-            'output-file' => 'openapi-v1.json',
-
-            /*
-            |------------------------------------------------------------------
-            | Title
-            |------------------------------------------------------------------
-            |
-            | Document Title.
-            |
-            */
-            'title' => '',
-
-            /*
-            |------------------------------------------------------------------
-            | Description
-            |------------------------------------------------------------------
-            |
-            | Document description.
-            |
-            */
-            'description' => '',
-
-            /*
-            |------------------------------------------------------------------
-            | Routes
-            |------------------------------------------------------------------
-            |
-            | Define which routes will be processed.
-            | The pattern must be a shell mask.
-            |
-            */
-            'routes' => [
-                'api/*'
-            ],
-
-            /*
-            |------------------------------------------------------------------
-            | Name by
-            |------------------------------------------------------------------
-            |
-            | Name your api routes.
-            |
-            | You can define name by according to :
-            | (WIP) - description : The description block from action method.
-            | - controller : The route controller class
-            | - uri : The route uri
-            | - name : The route name
-            |
-            | You will also need to define a regex that will retrieve the name
-            | of the group.
-            */
-            'name-by' => [
-                'by' => 'name', // 'description', 'controller', 'uri, 'name'
-                'regex' => '/(.+)/'
-            ],
-
-            /*
-            |------------------------------------------------------------------
-            | Tag by
-            |------------------------------------------------------------------
-            |
-            | Used to group API routes.
-            | You can define a tag by according to :
-            | - controller : The route controller class
-            | - uri : The route uri
-            | - name : The route name
-            |
-            | You will also need to define a regex that will retrieve the name
-            | of the group.
-            |
-            */
-            'tag-by' => [
-                'by' => 'controller', // 'controller', 'uri, 'name'
-                'regex' => '/^App\\\\Http\\\\(\w+)Controller/'
-            ],
-
-            /*
-            |------------------------------------------------------------------
-            | Group by (optional)
-            |------------------------------------------------------------------
-            |
-            | Used to group Tags and create upper level.
-            |
-            | Use the openapi extension "x-tagGroups".
-            |
-            | You can define a group by according to :
-            | - controller : The route controller class
-            | - uri : The route uri
-            | - name : The route name
-            |
-            | You will also need to define a regex that will retrieve the name
-            | of the group.
-            |
-            */
-            'group-by' => [
-                'by' => 'controller', // 'controller', 'uri, 'name'
-                'regex' => '/^App\\\\Http\\\\(\w+)/'
-            ],
-
-            /*
-            |------------------------------------------------------------------
-            | Ignore verbs
-            |------------------------------------------------------------------
-            |
-            | HTTP verbs to ignore
-            |
-            */
-            'ignore-verbs' => [
-                'HEAD'
-            ],
-
-            /*
-            |------------------------------------------------------------------
-            | Parameters configuration render
-            |------------------------------------------------------------------
-            |
-            | Parameters configuration render
-            |
-            */
-            'parameters' => [
-                'query' => [
-                    /*
-                    |----------------------------------------------------------
-                    | Flat mode
-                    |----------------------------------------------------------
-                    |
-                    | all: flat all parameters.
-                    |      ex: [filter.*.name.*: string] => filter[][name][]: string
-                    | last: flat last parameters.
-                    |      ex: [filter.*.name.*: string] => filter[][name]: array<string>
-                    | none:
-                    |      ex: [filter.*.name.*: string] => filter: array<object{name:array<string>}>
-                    */
-                    'flat' => 'all'
-                ],
-            ],
-
-            /*
-            |------------------------------------------------------------------
-            | Use ref
-            |------------------------------------------------------------------
-            |
-            | Use ref to describe resources.
-            | If set to true, the parser will use the ref to describe resources.
-            | If set to false, the parser will use the object definition.
-            |
-             */
-            'use-ref' => true,
-        ],
+    'output' => [
+        'disk' => null,
+        'directory' => 'openapi',
+        'file' => '{document}.json',
+        'format' => 'json',
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | Parses
+    | Sampling
     |--------------------------------------------------------------------------
     |
-    | Define all parser used for documentate a specific class.
-    |
-    | For each object, only one parser will be used.
-    | For instance :
-    | ```
-    | class MyResourceCollection extends ResourceCollection {}
-    | ```
-    | ResourceCollectionParser and JsonResourceParser are eligible, because
-    | MyResourceCollection extends from ResourceCollection which extends from JsonResource.
-    |
-    | The order of the parsers will define which parser we will use:
-    | 1st eligible => parser used.
-    |
-    | For MyResourceCollection we will therefore use ResourceCollection.
+    | Resources are documented by running them on sampled models. With
+    | `transactions`, models are created by their factories inside a
+    | transaction rolled back at the end of the generation, on the connections
+    | whose driver is listed; otherwise they are only made, never saved.
     |
     */
-    'parsers' => [
-        /*
-        | Requests
-        */
-        'requests' => [
-            Contracts\Documentation\DescribableRequest::class => Parsers\Requests\DescribedRequestParser::class,
-            Http\Request::class => Parsers\Requests\RequestParser::class,
-        ],
+    'sampling' => [
+        'transactions' => true,
+        'connections' => ['mariadb', 'mysql', 'pgsql', 'sqlite', 'sqlsrv'],
+        'collection_size' => 2,
+        'seed' => 1,
+        'examples' => true,
+    ],
 
-        /*
-        | Requests Rules
-        */
-        'rules' => [
-            /*
-            | JsonApi Rules
-            */
-            Ark4ne\JsonApi\Requests\Rules\Includes::class => Parsers\Rules\IncludesRuleParsers::class,
-            Ark4ne\JsonApi\Requests\Rules\Fields::class => Parsers\Rules\FieldsRuleParsers::class
-        ],
-
-        'responses' => [
-            /*
-            | JsonApi Resources & Collections
-            */
-            Ark4ne\JsonApi\Resources\JsonApiCollection::class => Parsers\Responses\JsonApiCollectionParser::class,
-            Ark4ne\JsonApi\Resources\JsonApiResource::class => Parsers\Responses\JsonApiResourceParser::class,
-
-            /*
-            | Laravel Responses
-            */
-            Http\Resources\Json\ResourceCollection::class => Parsers\Responses\ResourceCollectionParser::class,
-            Http\Resources\Json\JsonResource::class => Parsers\Responses\JsonResourceParser::class,
-            Http\JsonResponse::class => Parsers\Responses\JsonResponseParser::class,
-            Http\RedirectResponse::class => Parsers\Responses\RedirectResponseParser::class,
-            Http\Response::class => Parsers\Responses\ResponseParser::class,
-
-            /*
-            | Symfony Responses
-            */
-            HttpFoundation\BinaryFileResponse::class => Parsers\Responses\BinaryFileResponseParser::class,
-            HttpFoundation\StreamedResponse::class => Parsers\Responses\StreamedResponseParser::class,
-        ],
+    /*
+    |--------------------------------------------------------------------------
+    | Date formats
+    |--------------------------------------------------------------------------
+    |
+    | PHP date formats of the validation rules → OpenAPI string formats.
+    |
+    */
+    'date_formats' => [
+        'Y-m-d' => 'date',
+        'Y-m-d H:i:s' => 'date-time',
+        DateTimeInterface::ATOM => 'date-time',
     ],
 
     /*
@@ -311,65 +208,66 @@ return [
     | Middlewares
     |--------------------------------------------------------------------------
     |
-    | Apply transformers for given middlewares.
+    | Middleware (name or class) → middleware mappers adding security, headers
+    | or error responses to the operations that use it. Merged with the
+    | built-in mappers (auth, auth:sanctum, signed, throttle, can…).
     |
     */
-    'middlewares' => [
-        // 'auth:sanctum' => [
-        //     \Ark4ne\OpenApi\Transformers\Middlewares\ApplyBearerTokenSecurity::class,
-        //     \Ark4ne\OpenApi\Transformers\Middlewares\ApplyXsrfSecurity::class,
-        // ],
-        // \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class => [
-        //     \Ark4ne\OpenApi\Transformers\Middlewares\ApplyCsrfSecurity::class,
-        // ]
+    'middlewares' => [],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Extensions
+    |--------------------------------------------------------------------------
+    |
+    | Classes added to the registries of the generator, resolved through the
+    | container. Each one declares its priority.
+    |
+    */
+    'extensions' => [
+        'operation_extractors' => [],
+        'request_extractors' => [],
+        'rule_mappers' => [],
+        'response_extractors' => [],
+        'samplers' => [],
+        'passes' => [],
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | Format
+    | Integrations
     |--------------------------------------------------------------------------
     |
-    | Defines how date formats will be understood.
+    | Packages documented when they are installed. `json_api`
+    | (ark4ne/laravel-json-api): resources in `application/vnd.api+json`,
+    | `include` and `fields[type]` parameters; `errors` writes the error
+    | responses as JSON:API error documents, for an application that renders
+    | its errors so (the package itself leaves Laravel's errors as they are).
     |
     */
-    'format' => [
-        'date' => [
-            'Y-m-d' => Documentation\Request\Parameter::FORMAT_DATE,
-            'Y-m-d H:i:s' => Documentation\Request\Parameter::FORMAT_DATETIME,
-            DateTimeInterface::ATOM => Documentation\Request\Parameter::FORMAT_DATETIME,
+    'integrations' => [
+        'json_api' => [
+            'errors' => false,
         ],
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | Connections
+    | Exceptions
     |--------------------------------------------------------------------------
     |
-    | Defines whether to use transactions on different database connections.
+    | `read_throws` reads the `@throws` of the actions. Each exception becomes
+    | a response: `#[Response]` on the exception class, else `map`, else what
+    | Laravel and Symfony do with it. `map` covers the exceptions you cannot
+    | annotate, and those `bootstrap/app.php` renders through closures:
     |
-    | Using transaction will create and save models via factories. The saved
-    | models will be deleted at the end of the generation via a rollback.
-    |
-    | Without transactions, models will be created but not saved, which can
-    | lead to errors during generation.
-    |
-    | use-transaction : Enable or disable transactions globally.
-    |
-    | on-connections : List of connection driver names on which transactions
-    |                  should be applied. Only connections whose driver matches
-    |                  one of these values will be wrapped in a transaction.
-    |                  Connections not in this list are left untouched.
+    | PaymentRequiredException::class => 402,
+    | SeatTakenException::class => ['status' => 409, 'description' => 'Seat taken'],
     |
     */
-    'connections' => [
-        'use-transaction' => true,
-        'on-connections' => [
-            'mariadb',
-            'mysql',
-            'pgsql',
-            'sqlsrv',
-            'sqlite',
-        ]
+    'exceptions' => [
+        'read_throws' => true,
+        'map' => [],
     ],
 
     /*
@@ -377,10 +275,9 @@ return [
     | Languages
     |--------------------------------------------------------------------------
     |
-    | Defines in which languages the documentation will be generated.
+    | One document per locale; summaries, descriptions and tags may be
+    | translation keys. Empty: one document in the application locale.
     |
     */
-    'languages' => [
-        // 'en',
-    ]
+    'languages' => [],
 ];

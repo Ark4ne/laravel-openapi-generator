@@ -1,0 +1,257 @@
+{
+    "openapi": "3.0.4",
+    "info": {
+        "title": "Scenario",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/users": {
+            "get": {
+                "tags": [
+                    "User",
+                    "users"
+                ],
+                "summary": "List the users.",
+                "description": "Sorted by name.",
+                "operationId": "users.index",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "accounts",
+                    "users",
+                    "admin"
+                ],
+                "summary": "Store a user.",
+                "description": "Default description of the controller",
+                "operationId": "users.store",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/users/{user}": {
+            "get": {
+                "tags": [
+                    "User",
+                    "users"
+                ],
+                "summary": "Show one user",
+                "description": "Default description of the controller",
+                "externalDocs": {
+                    "description": "Users guide",
+                    "url": "https://example.com/users"
+                },
+                "operationId": "users.find",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "data"
+                                    ],
+                                    "properties": {
+                                        "data": {
+                                            "oneOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/User"
+                                                },
+                                                {
+                                                    "$ref": "#/components/schemas/Post"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found (ModelNotFoundException)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "deprecated": true
+            },
+            "parameters": [
+                {
+                    "name": "user",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ]
+        },
+        "/api/users/legacy": {
+            "get": {
+                "tags": [
+                    "User",
+                    "users"
+                ],
+                "description": "Default description of the controller",
+                "operationId": "getApiUsersLegacy",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "deprecated": true
+            }
+        },
+        "/api/users/{user}/restore": {
+            "post": {
+                "tags": [
+                    "User",
+                    "users"
+                ],
+                "summary": "Restored.",
+                "description": "Default description of the controller",
+                "operationId": "postApiUsersByUserRestore",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "user",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "/api/admin/reports": {
+            "get": {
+                "tags": [
+                    "Report"
+                ],
+                "operationId": "admin.reports.index",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/api/ping": {
+            "get": {
+                "summary": "Ping the API.",
+                "operationId": "getApiPing",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "text/html": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "User": {
+                "type": "object",
+                "required": [
+                    "id"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "Post": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "position",
+                    "rating",
+                    "featured",
+                    "status"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "position": {
+                        "type": "integer"
+                    },
+                    "rating": {
+                        "type": "number"
+                    },
+                    "featured": {
+                        "type": "boolean"
+                    },
+                    "status": {
+                        "type": "string"
+                    }
+                }
+            },
+            "Error": {
+                "type": "object",
+                "required": [
+                    "message"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "User"
+        },
+        {
+            "name": "users",
+            "description": "Users of the API"
+        },
+        {
+            "name": "accounts"
+        },
+        {
+            "name": "admin",
+            "externalDocs": {
+                "url": "https://example.com/admin"
+            }
+        },
+        {
+            "name": "Report"
+        }
+    ]
+}
