@@ -4,10 +4,9 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.0] - 2026-10-29
 
-1.0.0, a rewrite: see [UPGRADE.md](UPGRADE.md) to migrate from 0.6. This section becomes `## [1.0.0] - <date>` when
-the version is tagged.
+A rewrite: see [UPGRADE.md](UPGRADE.md) to migrate from 0.6.
 
 ### Added
 
@@ -59,3 +58,5 @@ the version is tagged.
 
 - `#[Response(statusText: 'Created')]` wrote a 200; the 422 had no schema; optional path parameters (`{id?}`) were
   ignored; state was shared between the documents of one run.
+
+[1.0.0]: https://github.com/Ark4ne/laravel-openapi-generator/compare/v0.6.1...v1.0.0
