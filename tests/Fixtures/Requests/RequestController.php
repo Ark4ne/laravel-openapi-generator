@@ -62,6 +62,11 @@ final class RequestController
     #[QueryParameter('page', type: 'int')]
     public function folded(SearchRequest $request): void {}
 
+    #[QueryParameter('page', required: true)]
+    #[QueryParameter('q', deprecated: true)]
+    #[QueryParameter('q', description: 'Words to search', deprecated: false)]
+    public function reordered(SearchRequest $request): void {}
+
     #[Header('x-tenant', description: 'Owner of the data')]
     public function tenant(DescribedRequest $request): void {}
 }

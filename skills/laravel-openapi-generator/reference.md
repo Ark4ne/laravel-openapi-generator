@@ -88,7 +88,8 @@ On the action: replaces or completes the body given by the rules.
 Repeatable. `#[PathParameter]` on the action only, the others on the controller, the request class or the action.
 Each completes the parameter of the same name and location given by the rules or by the one before: `type` replaces
 its schema, and a parameter left `null` keeps its value (`#[QueryParameter('page', description: '…')]` keeps the
-schema and the `required` of the `page` rule). A header is matched whatever the case of its name.
+schema and the `required` of the `page` rule). A header is matched whatever the case of its name, and keeps the
+name it was first declared with.
 
 | Parameter | Effect |
 | --- | --- |

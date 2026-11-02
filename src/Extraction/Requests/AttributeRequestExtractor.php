@@ -18,7 +18,6 @@ use Ark4ne\OpenApi\Extraction\OperationContext;
 use Ark4ne\OpenApi\Extraction\Responses\ResourceSchemas;
 use Ark4ne\OpenApi\Sampling\TypeSchemas;
 use Ark4ne\OpenApi\Types\TypeResolver;
-use Ark4ne\OpenApiWriter\Enums\ParameterLocation;
 use Ark4ne\OpenApiWriter\Objects\Schema;
 use Illuminate\Http\Resources\Json\JsonResource;
 use ReflectionClass;
@@ -61,9 +60,12 @@ final readonly class AttributeRequestExtractor implements RequestExtractor
             return $request;
         }
 
+        $class = RequestClass::of($operation);
+        $reflection = $class === null ? null : new ReflectionClass($class);
+
         foreach ([QueryParameter::class, Header::class, Cookie::class] as $attribute) {
-            foreach ($this->declared($attribute, $operation, $context) as [$instance, $scope]) {
-                $request = $request->parameters(...self::place($request->parameters, $this->parameter($instance, $scope, $request->parameters)));
+            foreach ($this->declared($attribute, $reflection, $operation, $context) as [$instance, $scope]) {
+                $request = $request->parameters(...FieldPlacer::complete($request->parameters, $this->parameter($instance, $scope, $request->parameters)));
             }
         }
 
@@ -92,8 +94,8 @@ final readonly class AttributeRequestExtractor implements RequestExtractor
             $attribute instanceof Header => ParameterDescription::header($attribute->name),
             default => ParameterDescription::cookie($attribute->name),
         };
-        $parameter = self::existing($parameter, $parameters) ?? $parameter;
-        $schema = $attribute->type === null ? $parameter->schema : $this->schema($attribute->type, $scope, null);
+        $parameter = FieldPlacer::find($parameter, $parameters) ?? $parameter;
+        $schema = $attribute->type === null ? $parameter->schema : $this->schema($attribute->type, $scope);
         $parameter = $parameter
             ->schema($attribute->example === null ? $schema : $schema->example($attribute->example))
             ->description($attribute->description ?? $parameter->description);
@@ -109,101 +111,29 @@ final readonly class AttributeRequestExtractor implements RequestExtractor
      * @template T of QueryParameter|Header|Cookie
      *
      * @param class-string<T> $attribute
+     * @param ReflectionClass<covariant object>|null $request
      *
      * @return list<array{T, ReflectionClass<covariant object>|ReflectionFunctionAbstract}>
      */
-    private function declared(string $attribute, OperationContext $operation, GenerationContext $context): array
+    private function declared(string $attribute, ?ReflectionClass $request, OperationContext $operation, GenerationContext $context): array
     {
-        $class = RequestClass::of($operation);
         $declared = $operation->declaredClassAttributes($attribute, $context);
 
-        if ($class !== null) {
-            $reflection = new ReflectionClass($class);
-
-            foreach ($this->instances($reflection, $attribute, $operation, $context) as $instance) {
-                $declared[] = [$instance, $reflection];
+        if ($request !== null) {
+            foreach ($this->instances($request, $attribute, $operation, $context) as $instance) {
+                $declared[] = [$instance, $request];
             }
         }
 
         return [...$declared, ...$operation->declaredActionAttributes($attribute, $context)];
     }
 
-    /**
-     * The parameter of the same name and location (a header whatever its case), or the property of the `querystring`
-     * a query parameter is folded into.
-     *
-     * @param list<ParameterDescription> $parameters
-     */
-    private static function existing(ParameterDescription $parameter, array $parameters): ?ParameterDescription
-    {
-        foreach ($parameters as $existing) {
-            if ($existing->in === $parameter->in && ($existing->name === $parameter->name || ($existing->in === ParameterLocation::Header && strcasecmp($existing->name, $parameter->name) === 0))) {
-                return $existing;
-            }
-        }
-
-        $querystring = self::querystring($parameter, $parameters);
-        $property = $querystring?->schema->properties[$parameter->name] ?? null;
-
-        if ($querystring === null || ! $property instanceof Schema) {
-            return null;
-        }
-
-        return $parameter
-            ->schema($property)
-            ->description($property->description)
-            ->required(in_array($parameter->name, $querystring->schema->required ?? [], true))
-            ->deprecated($property->deprecated ?? false);
-    }
-
-    /**
-     * The parameters with the parameter of an attribute, which replaces the one it completes; a query parameter is
-     * written as a property of the `querystring`, with its description, its deprecation and its requirement.
-     *
-     * @param list<ParameterDescription> $parameters
-     *
-     * @return list<ParameterDescription>
-     */
-    private static function place(array $parameters, ParameterDescription $parameter): array
-    {
-        $querystring = self::querystring($parameter, $parameters);
-
-        if ($querystring === null) {
-            return FieldPlacer::merge($parameters, [$parameter]);
-        }
-
-        $property = $parameter->schema->objectId($parameter->name)->description($parameter->description);
-        $property = $parameter->deprecated ? $property->deprecated() : $property->without('deprecated');
-        $schema = $querystring->schema->properties(...array_values([...$querystring->schema->properties ?? [], $parameter->name => $property]));
-        $required = array_values(array_diff($schema->required ?? [], [$parameter->name]));
-        $required = $parameter->required ? [...$required, $parameter->name] : $required;
-        $schema = $required === [] ? $schema->without('required') : $schema->required(...$required);
-
-        return array_map(static fn(ParameterDescription $existing): ParameterDescription => $existing === $querystring ? $existing->schema($schema) : $existing, $parameters);
-    }
-
-    /**
-     * The `querystring` a query parameter is folded into, if there is one.
-     *
-     * @param list<ParameterDescription> $parameters
-     */
-    private static function querystring(ParameterDescription $parameter, array $parameters): ?ParameterDescription
-    {
-        foreach ($parameters as $existing) {
-            if ($parameter->in === ParameterLocation::Query && $existing->in === ParameterLocation::Querystring) {
-                return $existing;
-            }
-        }
-
-        return null;
-    }
-
     private function path(PathParameter $attribute, RequestDescription $request, ReflectionFunctionAbstract $action): ParameterDescription
     {
         $existing = ParameterDescription::path($attribute->name);
-        $existing = self::existing($existing, $request->parameters) ?? $existing;
+        $existing = FieldPlacer::find($existing, $request->parameters) ?? $existing;
 
-        $schema = $attribute->type === null ? $existing->schema : $this->schema($attribute->type, $action, null);
+        $schema = $attribute->type === null ? $existing->schema : $this->schema($attribute->type, $action);
         $schema = $attribute->example === null ? $schema : $schema->example($attribute->example);
 
         return $existing->schema($schema)->description($attribute->description ?? $existing->description);
@@ -222,7 +152,7 @@ final readonly class AttributeRequestExtractor implements RequestExtractor
         $body = $request->body;
         $schema = match (true) {
             $resource !== null => $this->resources->request($resource, $context),
-            $attribute->type !== null => $this->schema($attribute->type, $action, null),
+            $attribute->type !== null => $this->schema($attribute->type, $action),
             default => null,
         };
 
@@ -241,11 +171,9 @@ final readonly class AttributeRequestExtractor implements RequestExtractor
     /**
      * @param ReflectionClass<covariant object>|ReflectionFunctionAbstract $scope
      */
-    private function schema(?string $type, ReflectionClass|ReflectionFunctionAbstract $scope, mixed $example): Schema
+    private function schema(string $type, ReflectionClass|ReflectionFunctionAbstract $scope): Schema
     {
-        $schema = $type === null ? Schema::string() : TypeSchemas::of($this->types->parse($type, $scope));
-
-        return $example === null ? $schema : $schema->example($example);
+        return TypeSchemas::of($this->types->parse($type, $scope));
     }
 
     /**

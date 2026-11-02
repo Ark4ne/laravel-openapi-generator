@@ -9,14 +9,21 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ### Fixed
 
 - `#[Response]`, `#[QueryParameter]`, `#[Header]` and `#[Cookie]` on a controller class were ignored: they now apply
-  to each of its actions, which replace them for the same status or the same parameter; a success declared or
-  inferred for the action leaves out the successes of the controller for other statuses
+  to each of its actions: the action replaces a response of the same status and completes a parameter of the same
+  name; a success declared or inferred for the action leaves out the successes of the controller for other statuses
   ([#44](https://github.com/Ark4ne/laravel-openapi-generator/issues/44)).
 - A `#[Response]` without body replaced the error body of the `@throws` of its status: it now keeps it.
 - `#[QueryParameter]`, `#[Header]` and `#[Cookie]` replaced the parameter of the same name given by the rules (or by
   an attribute of the controller or the request): they now complete it. `type` replaces the schema, and `required` and
-  `deprecated` are `?bool`, `null` keeping the value already described. A header is completed whatever the case of
-  its name, and a query parameter folded into a `querystring` (3.2) keeps its requirement, description and deprecation
+  `deprecated` are `?bool`, `null` keeping the value already described
+  ([#46](https://github.com/Ark4ne/laravel-openapi-generator/issues/46)).
+- A header declared again in another case (`x-tenant` after `X-Tenant`, or the `X-CSRF-TOKEN` of the `csrf`
+  middleware) was a second parameter: header names are case-insensitive, so it now completes the first one, under its
+  first name. Its schema replaces the first one, its description, style and explode too when it has them, and the
+  header is required or deprecated when either declaration is
+  ([#46](https://github.com/Ark4ne/laravel-openapi-generator/issues/46)).
+- A query parameter folded into a `querystring` (3.2) lost its deprecation: the property now keeps it. An attribute
+  completing such a property keeps the place of its name in `required`
   ([#46](https://github.com/Ark4ne/laravel-openapi-generator/issues/46)).
 
 ## [1.0.0] - 2026-10-29
