@@ -7,8 +7,9 @@ namespace Ark4ne\OpenApi\Attributes;
 use Attribute;
 
 /**
- * Declares one response of an action; repeat it for each status. On an exception class, it describes the response
- * Laravel renders for the exception.
+ * Declares one response of an action; repeat it for each status. On a controller, it is a response of each of its
+ * actions, which replace it for the same status; a success of the action leaves out those of the controller for other
+ * statuses. On an exception class, it describes the response Laravel renders for the exception.
  *
  * For its status, it takes precedence over what the generator infers; a declared success (2xx) also leaves out the
  * successes inferred for other statuses (a `JsonResponse` built with 201 is inferred as a 200). The body is given by a resource class or by

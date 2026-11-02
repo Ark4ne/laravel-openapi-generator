@@ -25,6 +25,7 @@ use Ark4ne\OpenApi\Sampling\Samplers;
 use Ark4ne\OpenApi\Sampling\SchemaInferrer;
 use Ark4ne\OpenApi\Tests\Fixtures\Integrations\TestResourceFormat;
 use Ark4ne\OpenApi\Tests\Fixtures\Requests\ChildRequestController;
+use Ark4ne\OpenApi\Tests\Fixtures\Requests\ControllerParameterController;
 use Ark4ne\OpenApi\Tests\Fixtures\Requests\FailingRequest;
 use Ark4ne\OpenApi\Tests\Fixtures\Requests\RequestController;
 use Ark4ne\OpenApi\Tests\Fixtures\Requests\ThrowingRuleRequest;
@@ -171,6 +172,21 @@ final class RequestExtractorsTest extends TestCase
         self::assertTrue($request->parameters[1]->required);
         self::assertSame(ParameterLocation::Cookie, $request->parameters[2]->in);
         Schemas::assertSame(['type' => 'string'], $request->parameters[2]->schema);
+    }
+
+    public function test_the_attributes_of_the_controller_add_parameters_replaced_by_those_of_the_request_and_of_the_action(): void
+    {
+        $this->router()->get('api/shared', [ControllerParameterController::class, 'shared']);
+
+        $request = $this->request();
+
+        self::assertSame(['page', 'locale', 'X-Tenant', 'X-Api-Version', 'session'], self::names($request->parameters));
+        Schemas::assertSame(['type' => 'integer', 'minimum' => 1], $request->parameters[0]->schema);
+        self::assertTrue($request->parameters[2]->required);
+        self::assertNull($request->parameters[3]->description);
+        Schemas::assertSame(['type' => 'integer', 'example' => 2], $request->parameters[3]->schema);
+        self::assertTrue($request->parameters[4]->required);
+        self::assertNull($request->parameters[4]->description);
     }
 
     public function test_path_parameter_and_request_body_attributes(): void

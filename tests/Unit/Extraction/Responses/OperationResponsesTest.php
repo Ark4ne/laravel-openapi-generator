@@ -15,10 +15,12 @@ use Ark4ne\OpenApi\Extraction\Responses\OperationResponses;
 use Ark4ne\OpenApi\Sampling\RelationLoader;
 use Ark4ne\OpenApi\Sampling\Samplers;
 use Ark4ne\OpenApi\Tests\Fixtures\Responses\ChildResponseController;
+use Ark4ne\OpenApi\Tests\Fixtures\Responses\ControllerResponseController;
 use Ark4ne\OpenApi\Tests\Fixtures\Responses\Exceptions\PaymentRequiredException;
 use Ark4ne\OpenApi\Tests\Fixtures\Responses\Exceptions\UnknownException;
 use Ark4ne\OpenApi\Tests\Fixtures\Responses\ResponseController;
 use Ark4ne\OpenApi\Tests\Fixtures\Types\Signatures;
+use Ark4ne\OpenApi\Tests\Fixtures\Types\UntypedResponseController;
 use Ark4ne\OpenApi\Tests\Support\Schemas;
 use Ark4ne\OpenApi\Tests\Unit\Sampling\SamplingTestCase;
 use Ark4ne\OpenApi\Types\TypeResolver;
@@ -316,6 +318,63 @@ final class OperationResponsesTest extends SamplingTestCase
         Schemas::assertSame('{"type":"object","properties":{"data":{"$ref":"#/components/schemas/Author"}},"required":["data"]}', $this->jsonSchema($response));
     }
 
+    public function test_responses_declared_on_the_controller_apply_to_each_action(): void
+    {
+        $this->router()->get('api/plain', [ControllerResponseController::class, 'plain']);
+
+        $responses = $this->keyed($this->describe());
+
+        self::assertSame([200, 401], array_keys($responses));
+        self::assertSame(['Shared success', 'Unauthenticated'], [$responses[200]->description, $responses[401]->description]);
+        Schemas::assertSame('{"type":"object","properties":{"id":{"type":"integer"}},"required":["id"],"additionalProperties":false}', $this->jsonSchema($responses[200]));
+        self::assertSame(ResponseOrigin::Declared, $responses[401]->origin);
+    }
+
+    public function test_a_response_of_the_action_replaces_the_one_of_the_controller_for_its_status(): void
+    {
+        $this->router()->get('api/overridden', [ControllerResponseController::class, 'overridden']);
+
+        $responses = $this->keyed($this->describe());
+
+        self::assertSame([200, 401], array_keys($responses));
+        self::assertSame('Token expired', $responses[401]->description);
+    }
+
+    public function test_a_response_of_the_action_without_body_keeps_the_body_of_the_controller(): void
+    {
+        $this->router()->get('api/described', [ControllerResponseController::class, 'described']);
+
+        $responses = $this->keyed($this->describe());
+
+        self::assertSame('Fetched', $responses[200]->description);
+        Schemas::assertSame('{"type":"object","properties":{"id":{"type":"integer"}},"required":["id"],"additionalProperties":false}', $this->jsonSchema($responses[200]));
+    }
+
+    public function test_a_success_declared_by_the_action_leaves_out_the_successes_of_the_controller(): void
+    {
+        $this->router()->post('api/created', [ControllerResponseController::class, 'created']);
+
+        self::assertSame([201, 401], array_map(static fn(ResponseDescription $response): int|string => $response->status, $this->describe()));
+    }
+
+    public function test_a_success_inferred_for_the_action_leaves_out_the_successes_of_the_controller(): void
+    {
+        $this->router()->post('api/articles', [ControllerResponseController::class, 'store']);
+
+        $responses = $this->keyed($this->describe());
+
+        self::assertSame([201, 401], array_keys($responses));
+        self::assertSame(ResponseOrigin::Inferred, $responses[201]->origin);
+    }
+
+    public function test_responses_declared_on_the_controller_describe_an_action_without_return_type(): void
+    {
+        $this->router()->get('api/untyped', [UntypedResponseController::class, 'nothing']);
+
+        self::assertSame([401], array_keys($this->keyed($this->describe())));
+        self::assertDiagnostics([], $this->ctx());
+    }
+
     public function test_two_bodies_declared_for_one_status_are_one_of_them(): void
     {
         $this->router()->get('api/two-bodies', [ChildResponseController::class, 'twoBodies']);
@@ -344,9 +403,19 @@ final class OperationResponsesTest extends SamplingTestCase
      */
     private function responses(string $method, string $uri, string $action): array
     {
+        return $this->keyed($this->describe($method, $uri, $action));
+    }
+
+    /**
+     * @param list<ResponseDescription> $responses
+     *
+     * @return array<int|string, ResponseDescription>
+     */
+    private function keyed(array $responses): array
+    {
         $keyed = [];
 
-        foreach ($this->describe($method, $uri, $action) as $response) {
+        foreach ($responses as $response) {
             $keyed[$response->status] = $response;
         }
 

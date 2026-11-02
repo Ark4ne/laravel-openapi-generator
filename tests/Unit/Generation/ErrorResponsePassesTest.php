@@ -67,6 +67,19 @@ final class ErrorResponsePassesTest extends TestCase
         self::assertSame(['OK', 'No such user'], array_map(static fn(ResponseDescription $r): ?string => $r->description, $responses));
     }
 
+    public function test_a_declared_response_without_body_keeps_the_body_of_the_exceptions_of_its_status(): void
+    {
+        $operation = Descriptions::operation()->addResponses(
+            ResponseDescription::create(404)->description('Not Found (ModelNotFoundException)')->content('application/json', Schema::ref('Error'))->origin(ResponseOrigin::Exception),
+            ResponseDescription::create(404)->description('No such user')->origin(ResponseOrigin::Declared),
+        );
+
+        $responses = $this->process(new ThrownExceptionResponsePass(), $operation)->operations[0]->responses;
+
+        self::assertSame('No such user', $responses[1]->description);
+        Schemas::assertSame(['$ref' => '#/components/schemas/Error'], $responses[1]->contents['application/json'] ?? Schema::create());
+    }
+
     public function test_validated_requests_answer_422_with_the_shared_response(): void
     {
         $operation = Descriptions::operation(HttpMethod::Post)->request(RequestDescription::create()->validated());

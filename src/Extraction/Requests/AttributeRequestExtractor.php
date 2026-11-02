@@ -25,7 +25,8 @@ use ReflectionFunctionAbstract;
 use Throwable;
 
 /**
- * `#[QueryParameter]`, `#[Header]`, `#[Cookie]` on the request class or the action (the action's win),
+ * `#[QueryParameter]`, `#[Header]`, `#[Cookie]` on the controller, the request class or the action (each replacing
+ * the parameter of the same name and location of the one before),
  * `#[PathParameter]` and `#[RequestBody]` on the action. Types are PHPDoc types, read in the scope of the class or
  * of the action that carries the attribute.
  */
@@ -64,6 +65,10 @@ final readonly class AttributeRequestExtractor implements RequestExtractor
         $parameters = [];
 
         foreach ([QueryParameter::class, Header::class, Cookie::class] as $attribute) {
+            foreach ($operation->declaredClassAttributes($attribute, $context) as [$instance, $declaration]) {
+                $parameters[] = $this->parameter($instance, $declaration);
+            }
+
             if ($reflection !== null) {
                 foreach ($this->instances($reflection, $attribute, $operation, $context) as $instance) {
                     $parameters[] = $this->parameter($instance, $reflection);

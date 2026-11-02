@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Ark4ne\OpenApi\Extraction\Responses;
 
-use Ark4ne\OpenApi\Attributes\Response;
 use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Context\Stage;
 use Ark4ne\OpenApi\Description\ResponseDescription;
@@ -22,12 +21,14 @@ use Ark4ne\OpenApi\Sampling\SchemaInferrer;
 use Ark4ne\OpenApi\Types\TypeResolver;
 use Ark4ne\OpenApiWriter\Objects\Discriminator;
 use Ark4ne\OpenApiWriter\Objects\Schema;
+use ReflectionClass;
 use ReflectionFunctionAbstract;
 
 /**
  * Every response of an operation: inferred from each member of the return type, replaced by `#[Response]` for its
- * status, then those of the declared exceptions (merged with the error responses of the passes). A declared success
- * (2xx) also leaves out the successes inferred for other statuses.
+ * status (those of the controller, then those of the action), then those of the declared exceptions (merged with the
+ * error responses of the passes). A success (2xx) declared by the action also leaves out the successes inferred for
+ * other statuses; one declared or inferred for the action, those of the controller for other statuses.
  *
  * Several members with one status (`CatResource|DogResource`) give one response whose body is `oneOf` them, with a
  * `discriminator` when a common property takes a different value in each sample.
@@ -78,10 +79,6 @@ final readonly class OperationResponses
      */
     public function describe(OperationContext $operation, GenerationContext $context): array
     {
-        if ($operation->returnType === null && $operation->actionAttributes(Response::class, $context) === []) {
-            $context->diagnostics->info(Stage::Response, 'no return type, declare the responses with #[Response]', $operation->route->label());
-        }
-
         /** @var array<int|string, non-empty-list<ResponseDescription>> $byStatus */
         $byStatus = [];
 
@@ -94,6 +91,12 @@ final readonly class OperationResponses
         $responses = array_map(fn(array $responses): ResponseDescription => $this->merge($responses, $context), $byStatus);
 
         $entries = $this->declared->describe($operation, $context);
+        $shared = $this->declared->controller($operation, $context);
+
+        if ($operation->returnType === null && $entries === [] && $shared === []) {
+            $context->diagnostics->info(Stage::Response, 'no return type, declare the responses with #[Response]', $operation->route->label());
+        }
+
         $declaredStatuses = array_map(static fn(array $entry): int|string => $entry[0]->status, $entries);
 
         // A declared success describes the successes: those inferred for other statuses are left out (a
@@ -102,12 +105,23 @@ final readonly class OperationResponses
             $responses = array_filter($responses, static fn(ResponseDescription $response): bool => ! self::success($response->status) || in_array($response->status, $declaredStatuses, true));
         }
 
-        /** @var array<int|string, ReflectionFunctionAbstract> $declarations status → declaration of its last declared body */
+        // The statuses of the action, listed before those it takes from the controller.
+        $own = array_values(array_unique([...array_keys($responses), ...$declaredStatuses]));
+        $successes = array_filter($own, self::success(...));
+
+        // The successes of the controller are those of an action without its own: a success declared or inferred for
+        // the action leaves out those of the controller for other statuses.
+        if ($successes !== []) {
+            $shared = array_filter($shared, static fn(array $entry): bool => ! self::success($entry[0]->status) || in_array($entry[0]->status, $successes, true));
+        }
+
+        /** @var array<int|string, ReflectionFunctionAbstract|ReflectionClass<object>> $declarations status → declaration of its last declared body */
         $declarations = [];
 
-        // From the parent declaration down: a body replaces the one of a parent, adds up with one of the same
-        // declaration (`oneOf`); a response without body changes only the description, the summary and the headers.
-        foreach ($entries as [$declared, $declaration]) {
+        // From the controller to the action, each from the parent declaration down: a body replaces the one of a
+        // parent, adds up with one of the same declaration (`oneOf`); a response without body changes only the
+        // description, the summary and the headers.
+        foreach ([...$shared, ...$entries] as [$declared, $declaration]) {
             $status = $declared->status;
             $previous = $responses[$status] ?? null;
             $hasBody = $declared->contents !== [] || $declared->itemContents !== [];
@@ -124,6 +138,8 @@ final readonly class OperationResponses
                 $declarations[$status] = $declaration;
             }
         }
+
+        $responses = array_intersect_key($responses, array_flip($own)) + array_diff_key($responses, array_flip($own));
 
         return [...array_values($responses), ...$this->exceptions->describe($operation, $context)];
     }

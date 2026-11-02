@@ -125,7 +125,8 @@ Route::middleware('auth:sanctum')->group(static function (): void {
 
 `#[Response]` declares what the return type cannot say, one per status; it replaces the response inferred for its
 status, and a declared success (2xx) leaves out the successes inferred for other statuses (a `JsonResponse` is
-inferred as a 200 whatever status it is built with). Each `@throws` of the action becomes an error
+inferred as a 200 whatever status it is built with). On the controller, it is shared by every action, which replaces
+it for the same status. Each `@throws` of the action becomes an error
 response: the `#[Response]` of the exception class, the `exceptions.map` of the configuration, or what Laravel and
 Symfony render (`ModelNotFoundException` → 404, `AuthorizationException` → 403, `HttpException` subclasses).
 
@@ -140,6 +141,7 @@ use RuntimeException;
 #[Response(409, description: 'The seat is already taken')]
 final class SeatTakenException extends RuntimeException {}
 
+#[Response(401, description: 'Unauthenticated')]
 final class SeatController
 {
     /**
@@ -161,7 +163,8 @@ Route::post('seats/{seat}/booking', [SeatController::class, 'book'])->name('seat
 ## Requests described by hand
 
 `DescribesRequest` completes the rules (headers, cookies, query, other media types); `#[QueryParameter]`, `#[Header]`
-and `#[PathParameter]` do the same on the action; a rule of the application describes itself with `DescribesRule`.
+and `#[Cookie]` do the same on the controller, the request class or the action, `#[PathParameter]` on the action; a
+rule of the application describes itself with `DescribesRule`.
 
 ```php
 namespace App\Search;
