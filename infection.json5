@@ -10,6 +10,10 @@
         "summary": "build/infection/summary.log"
     },
     "tmpDir": "build/infection",
+    // Not looked up through `composer config bin-dir`, whose output deprecation notices can break.
+    "phpUnit": {
+        "customPath": "vendor/bin/phpunit"
+    },
     "minMsi": 80,
     "minCoveredMsi": 80,
     "mutators": {
