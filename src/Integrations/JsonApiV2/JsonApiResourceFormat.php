@@ -48,9 +48,12 @@ final class JsonApiResourceFormat implements ResourceFormat
     /** @var WeakMap<GenerationContext, array<string, array<array-key, mixed>>> resource → document rendered on a sample, per context */
     private WeakMap $rendered;
 
-    public function __construct()
+    /**
+     * @param ResourceDefinitions $definitions shared with the rule mappers of the integration
+     */
+    public function __construct(ResourceDefinitions $definitions = new ResourceDefinitions())
     {
-        $this->definitions = new ResourceDefinitions();
+        $this->definitions = $definitions;
         $this->rendered = new WeakMap();
     }
 

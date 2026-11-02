@@ -5,6 +5,11 @@ declare(strict_types=1);
 namespace Ark4ne\OpenApi\Tests\Unit\Integrations\JsonApiV2;
 
 use Ark4ne\JsonApi\Configuration\JsonApiObject;
+use Ark4ne\JsonApi\Http\Rules\Fields;
+use Ark4ne\JsonApi\Http\Rules\Includes;
+use Ark4ne\OpenApi\Context\Diagnostic;
+use Ark4ne\OpenApi\Description\FieldDescription;
+use Ark4ne\OpenApi\Extraction\Rules\RuleInvocation;
 use Ark4ne\OpenApi\Integrations\BuiltInIntegrations;
 use Ark4ne\OpenApi\Integrations\JsonApi\JsonApiIntegration;
 use Ark4ne\OpenApi\Integrations\JsonApiV2\FieldsRuleMapper;
@@ -14,6 +19,7 @@ use Ark4ne\OpenApi\Integrations\JsonApiV2\JsonApiObjects;
 use Ark4ne\OpenApi\Integrations\JsonApiV2\JsonApiResourceFormat;
 use Ark4ne\OpenApi\Integrations\JsonApiV2\JsonApiV2Integration;
 use Ark4ne\OpenApi\Integrations\JsonApiV2\ResourceDefinitions;
+use Ark4ne\OpenApi\Tests\Fixtures\JsonApiV2\Types\RenamedHookResource;
 use Ark4ne\OpenApi\Tests\Support\Schemas;
 use Ark4ne\OpenApi\Tests\TestCase;
 use Ark4ne\OpenApiWriter\Objects\Schema;
@@ -34,6 +40,25 @@ final class JsonApiV2IntegrationTest extends TestCase
         self::assertTrue($integration->available());
         self::assertEquals([new JsonApiResourceFormat()], $integration->resourceFormats());
         self::assertEquals([new IncludesRuleMapper(), new FieldsRuleMapper()], $integration->ruleMappers());
+    }
+
+    public function test_its_format_and_rule_mappers_read_each_definition_once_per_context(): void
+    {
+        $context = $this->context();
+        $integration = new JsonApiV2Integration();
+        $rules = [new Includes(RenamedHookResource::class), new Includes(RenamedHookResource::class), new Fields(RenamedHookResource::class)];
+
+        foreach ($rules as $rule) {
+            foreach ($integration->ruleMappers() as $mapper) {
+                if (in_array($rule::class, $mapper->handles(), true)) {
+                    $mapper->map(new RuleInvocation('filter', $rule::class, [], $rule), FieldDescription::create('filter'), $context);
+                }
+            }
+        }
+
+        $read = array_filter($context->diagnostics->all(), static fn(Diagnostic $diagnostic): bool => str_contains($diagnostic->message, 'cannot read the definition of ' . RenamedHookResource::class));
+
+        self::assertCount(1, $read);
     }
 
     public function test_the_1_x_integration_is_not_available_with_2_x(): void

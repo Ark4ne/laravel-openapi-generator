@@ -23,6 +23,13 @@ final readonly class FieldsRuleMapper implements RuleMapper
 {
     public const RULE = 'Ark4ne\JsonApi\Http\Rules\Fields';
 
+    /**
+     * @param ResourceDefinitions $definitions shared with the format and the other mapper of the integration
+     */
+    public function __construct(
+        private ResourceDefinitions $definitions = new ResourceDefinitions(),
+    ) {}
+
     public function handles(): array
     {
         return [self::RULE];
@@ -30,7 +37,7 @@ final readonly class FieldsRuleMapper implements RuleMapper
 
     public function map(RuleInvocation $rule, FieldDescription $field, GenerationContext $context): FieldDescription
     {
-        $definitions = new ResourceDefinitions();
+        $definitions = $this->definitions;
         $resource = $rule->rule instanceof Fields ? $rule->rule->resource() : null;
 
         if ($resource === null) {

@@ -20,11 +20,18 @@ final readonly class JsonApiV2Integration implements Integration
     public const PACKAGE_CLASS = 'Ark4ne\JsonApi\Resources\JsonApiResource';
 
     /**
+     * The definitions its format and its rule mappers read: each one once per context, its findings relayed once.
+     */
+    private ResourceDefinitions $definitions;
+
+    /**
      * @param bool $errors the error responses are JSON:API error documents (`errors[]`)
      */
     public function __construct(
         private bool $errors = false,
-    ) {}
+    ) {
+        $this->definitions = new ResourceDefinitions();
+    }
 
     /**
      * Installed in 2.x: its resources expose their definition (`definition()`), which 1.x does not.
@@ -36,12 +43,12 @@ final readonly class JsonApiV2Integration implements Integration
 
     public function resourceFormats(): array
     {
-        return [new JsonApiResourceFormat()];
+        return [new JsonApiResourceFormat($this->definitions)];
     }
 
     public function ruleMappers(): array
     {
-        return [new IncludesRuleMapper(), new FieldsRuleMapper()];
+        return [new IncludesRuleMapper($this->definitions), new FieldsRuleMapper($this->definitions)];
     }
 
     public function errorBodies(): ?ErrorBodies

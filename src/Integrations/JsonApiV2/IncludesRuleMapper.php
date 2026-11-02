@@ -22,6 +22,13 @@ final readonly class IncludesRuleMapper implements RuleMapper
 {
     public const RULE = 'Ark4ne\JsonApi\Http\Rules\Includes';
 
+    /**
+     * @param ResourceDefinitions $definitions shared with the format and the other mapper of the integration
+     */
+    public function __construct(
+        private ResourceDefinitions $definitions = new ResourceDefinitions(),
+    ) {}
+
     public function handles(): array
     {
         return [self::RULE];
@@ -30,7 +37,7 @@ final readonly class IncludesRuleMapper implements RuleMapper
     public function map(RuleInvocation $rule, FieldDescription $field, GenerationContext $context): FieldDescription
     {
         $schema = $field->schema->type('string');
-        $definitions = new ResourceDefinitions();
+        $definitions = $this->definitions;
         $resource = $rule->rule instanceof Includes ? $rule->rule->resource() : null;
         $definition = $resource === null ? self::unknown($rule, $context) : $definitions->of($resource, $context, Stage::Request, $rule->field);
         $paths = $definition === null ? [] : self::paths($definition, [$definition->class], $definitions, $context, $rule->field);
