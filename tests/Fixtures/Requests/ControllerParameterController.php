@@ -19,4 +19,7 @@ final class ControllerParameterController
 {
     #[Cookie('session', required: true)]
     public function shared(AttributedRequest $request): void {}
+
+    #[Header('X-Tenant', required: false)]
+    public function anonymous(): void {}
 }

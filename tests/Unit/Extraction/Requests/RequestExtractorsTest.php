@@ -189,6 +189,17 @@ final class RequestExtractorsTest extends TestCase
         self::assertSame('From the controller', $request->parameters[4]->description);
     }
 
+    public function test_an_attribute_of_the_action_makes_optional_a_parameter_required_by_the_controller(): void
+    {
+        $this->router()->get('api/anonymous', [ControllerParameterController::class, 'anonymous']);
+
+        $request = $this->request();
+
+        self::assertSame(['page', 'X-Tenant', 'X-Api-Version', 'session'], self::names($request->parameters));
+        self::assertFalse($request->parameters[1]->required);
+        Schemas::assertSame(['type' => 'integer'], $request->parameters[1]->schema);
+    }
+
     public function test_an_attribute_completes_the_parameter_of_the_rules(): void
     {
         $this->router()->get('api/search', [RequestController::class, 'completed']);
@@ -233,6 +244,17 @@ final class RequestExtractorsTest extends TestCase
         $request = RequestExtractors::default($this->container(), new BuiltInQueryStrategy('querystring'))->extract($operation, RequestDescription::create(), $context);
 
         Schemas::assertSame('{"type":"object","properties":{"q":{"type":"string","minLength":1,"deprecated":true},"page":{"type":"integer","description":"Page of the results"},"filter":{"type":"array","items":{"type":"object","properties":{"name":{"type":"string"}}}}}}', $request->parameters[0]->schema);
+    }
+
+    public function test_querystring_keeps_the_place_of_a_completed_name_in_required_and_lets_an_attribute_undo_a_deprecation(): void
+    {
+        $this->router()->get('api/search', [RequestController::class, 'reordered']);
+        $context = $this->context(version: Version::V3_2_0);
+        $operation = $this->operation($context);
+
+        $request = RequestExtractors::default($this->container(), new BuiltInQueryStrategy('querystring'))->extract($operation, RequestDescription::create(), $context);
+
+        Schemas::assertSame('{"type":"object","properties":{"q":{"type":"string","description":"Words to search"},"page":{"type":"integer","minimum":1},"filter":{"type":"array","items":{"type":"object","properties":{"name":{"type":"string"}}}}},"required":["q","page"]}', $request->parameters[0]->schema);
     }
 
     public function test_a_header_attribute_completes_the_header_of_any_case_described_by_the_request(): void

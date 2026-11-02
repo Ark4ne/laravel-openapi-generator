@@ -23,7 +23,8 @@ use Ark4ne\OpenApiWriter\Objects\Schema;
  * files give the encodings of the multipart body, by top-level property (`photos.*` → `photos`).
  *
  * Fields placed again (a manual description after the rules) complete the schema already there: their properties
- * are added, replacing those of the same name, and their required keys too.
+ * are added, replacing those of the same name, and their required keys too. Query parameters next to a `querystring`
+ * (3.2) become its properties, with their description, their deprecation and their requirement.
  */
 final readonly class FieldPlacer
 {
@@ -72,7 +73,9 @@ final readonly class FieldPlacer
     }
 
     /**
-     * The parameters with others, each replacing the one of the same name and location.
+     * The parameters with others, each replacing the one of the same name and location. A header, whatever the case
+     * of its name, completes the one already there instead, under its first name: its schema replaces the first
+     * one, its description, style and explode too when it has them, and it is required or deprecated when either is.
      *
      * @param list<ParameterDescription> $parameters
      * @param list<ParameterDescription> $others
@@ -85,8 +88,12 @@ final readonly class FieldPlacer
             $replaced = false;
 
             foreach ($parameters as $index => $parameter) {
-                if ($parameter->name === $other->name && $parameter->in === $other->in) {
-                    $parameters[$index] = $other->in === ParameterLocation::Querystring ? $other->schema(self::combine($parameter->schema, $other->schema)) : $other;
+                if (self::same($parameter, $other)) {
+                    $parameters[$index] = match ($other->in) {
+                        ParameterLocation::Querystring => $other->schema(self::combine($parameter->schema, $other->schema)),
+                        ParameterLocation::Header => self::header($parameter, $other),
+                        default => $other,
+                    };
                     $replaced = true;
                 }
             }
@@ -97,6 +104,74 @@ final readonly class FieldPlacer
         }
 
         return self::fold($parameters);
+    }
+
+    /**
+     * The parameter of the same name and location (a header whatever the case of its name), or the property of the
+     * `querystring` a query parameter is folded into, as a query parameter.
+     *
+     * @param list<ParameterDescription> $parameters
+     */
+    public static function find(ParameterDescription $parameter, array $parameters): ?ParameterDescription
+    {
+        foreach ($parameters as $existing) {
+            if (self::same($existing, $parameter)) {
+                return $existing;
+            }
+        }
+
+        $index = $parameter->in === ParameterLocation::Query ? self::querystring($parameters) : null;
+        $querystring = $index === null ? null : $parameters[$index];
+        $property = $querystring?->schema->properties[$parameter->name] ?? null;
+
+        if ($querystring === null || ! $property instanceof Schema) {
+            return null;
+        }
+
+        return $parameter
+            ->schema($property)
+            ->description($property->description)
+            ->required(in_array($parameter->name, $querystring->schema->required ?? [], true))
+            ->deprecated($property->deprecated ?? false);
+    }
+
+    /**
+     * The parameters with a parameter completed from the one `find()` gave, its requirement and its deprecation
+     * stated: it replaces the parameter of the same name and location (a header whatever the case of its name), or
+     * the property of the `querystring` it is folded into, its name kept at its place in `required` or left out.
+     *
+     * @param list<ParameterDescription> $parameters
+     *
+     * @return list<ParameterDescription>
+     */
+    public static function complete(array $parameters, ParameterDescription $parameter): array
+    {
+        $replaced = false;
+        $completed = [];
+
+        // Every parameter it matches gives way to it, at the place of the first one.
+        foreach ($parameters as $existing) {
+            if (! self::same($existing, $parameter)) {
+                $completed[] = $existing;
+            } elseif (! $replaced) {
+                $completed[] = $parameter;
+                $replaced = true;
+            }
+        }
+
+        if ($replaced) {
+            return $completed;
+        }
+
+        $index = $parameter->in === ParameterLocation::Query ? self::querystring($parameters) : null;
+
+        if ($index === null) {
+            return self::merge($parameters, [$parameter]);
+        }
+
+        $parameters[$index] = $parameters[$index]->schema(self::property($parameters[$index]->schema, $parameter, true));
+
+        return array_values($parameters);
     }
 
     /**
@@ -122,13 +197,7 @@ final readonly class FieldPlacer
      */
     private static function fold(array $parameters): array
     {
-        $index = null;
-
-        foreach ($parameters as $candidate => $found) {
-            if ($found->in === ParameterLocation::Querystring) {
-                $index = $candidate;
-            }
-        }
+        $index = self::querystring($parameters);
 
         if ($index === null) {
             return $parameters;
@@ -144,15 +213,76 @@ final readonly class FieldPlacer
                 continue;
             }
 
-            $property = $parameter->schema->objectId($parameter->name);
-            $property = $parameter->description === null ? $property : $property->description($parameter->description);
-            $object = Schema::object()->properties($property);
-            $querystring = $querystring->schema(self::combine($querystring->schema, $parameter->required ? $object->required($parameter->name) : $object));
+            $querystring = $querystring->schema(self::property($querystring->schema, $parameter, false));
         }
 
         $kept[$index] = $querystring;
 
         return array_values($kept);
+    }
+
+    /**
+     * The schema of a `querystring` with a query parameter as its property, replacing the one of the same name, with
+     * its description and its deprecation. A required parameter puts its name in `required` (at its place when it
+     * already is); a parameter whose requirement and deprecation are stated also leaves them out when it has none.
+     */
+    private static function property(Schema $schema, ParameterDescription $parameter, bool $stated): Schema
+    {
+        $name = $parameter->name;
+        $property = $parameter->schema->objectId($name);
+        $property = $parameter->description === null ? $property : $property->description($parameter->description);
+        $property = match (true) {
+            $parameter->deprecated => $property->deprecated(),
+            $stated => $property->without('deprecated'),
+            default => $property,
+        };
+        $schema = $schema->properties(...array_values([...$schema->properties ?? [], $name => $property]));
+        $required = $schema->required ?? [];
+        $required = match (true) {
+            $parameter->required => in_array($name, $required, true) ? $required : [...$required, $name],
+            $stated => array_values(array_diff($required, [$name])),
+            default => $required,
+        };
+
+        return $required === [] ? $schema->without('required') : $schema->required(...$required);
+    }
+
+    /**
+     * The index of the `querystring` the query parameters are folded into: the last one.
+     *
+     * @param list<ParameterDescription> $parameters
+     */
+    private static function querystring(array $parameters): ?int
+    {
+        $index = null;
+
+        foreach ($parameters as $candidate => $found) {
+            if ($found->in === ParameterLocation::Querystring) {
+                $index = $candidate;
+            }
+        }
+
+        return $index;
+    }
+
+    /**
+     * A header completed by a later declaration of it, under its first name.
+     */
+    private static function header(ParameterDescription $header, ParameterDescription $other): ParameterDescription
+    {
+        return $header
+            ->schema($other->schema)
+            ->description($other->description ?? $header->description)
+            ->required($header->required || $other->required)
+            ->deprecated($header->deprecated || $other->deprecated)
+            ->style($other->style ?? $header->style)
+            ->explode($other->explode ?? $header->explode);
+    }
+
+    private static function same(ParameterDescription $parameter, ParameterDescription $other): bool
+    {
+        return $parameter->in === $other->in
+            && ($parameter->name === $other->name || ($parameter->in === ParameterLocation::Header && strcasecmp($parameter->name, $other->name) === 0));
     }
 
     /**
