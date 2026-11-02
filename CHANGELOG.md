@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-11-02
+
 ### Fixed
 
 - `#[Response]`, `#[QueryParameter]`, `#[Header]` and `#[Cookie]` on a controller class were ignored: they now apply
@@ -81,5 +83,6 @@ A rewrite: see [UPGRADE.md](UPGRADE.md) to migrate from 0.6.
 - `#[Response(statusText: 'Created')]` wrote a 200; the 422 had no schema; optional path parameters (`{id?}`) were
   ignored; state was shared between the documents of one run.
 
-[Unreleased]: https://github.com/Ark4ne/laravel-openapi-generator/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/Ark4ne/laravel-openapi-generator/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/Ark4ne/laravel-openapi-generator/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/Ark4ne/laravel-openapi-generator/compare/v0.6.1...v1.0.0
