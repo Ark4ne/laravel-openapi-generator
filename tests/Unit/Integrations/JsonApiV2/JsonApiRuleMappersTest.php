@@ -85,7 +85,10 @@ final class JsonApiRuleMappersTest extends TestCase
         $showcase = $this->map(new FieldsRuleMapper(), new Fields(ShowcaseResource::class), 'fields')->schema;
         $holder = $this->map(new FieldsRuleMapper(), new Fields(UntypedNativeHolderResource::class), 'fields')->schema;
 
-        Schemas::assertSame(['type' => 'string', 'description' => 'Fields of `native_authors`, separated by commas.'], $showcase->properties['native_authors'] ?? Schema::create());
+        $native = $showcase->properties['native_authors'] ?? null;
+
+        self::assertInstanceOf(Schema::class, $native);
+        Schemas::assertSame(['type' => 'string', 'description' => 'Fields of `native_authors`, separated by commas.'], $native);
         self::assertFalse($showcase->additionalProperties);
         Schemas::assertSame([
             'type' => 'object',

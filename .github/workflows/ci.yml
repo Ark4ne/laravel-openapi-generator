@@ -52,8 +52,33 @@ jobs:
         run: composer remove --dev ark4ne/laravel-json-api --no-interaction
 
       - name: PHPUnit without the JSON:API tests
-        # The integration loads none of the classes of the package: everything else works without it.
-        run: vendor/bin/phpunit --exclude-group json-api
+        # The integrations load none of the classes of the package: everything else works without it. Groups given
+        # here replace those phpunit.xml.dist excludes.
+        run: vendor/bin/phpunit --exclude-group json-api --exclude-group json-api-v2 --exclude-group benchmark
+
+  json-api-v2:
+    name: Tests with ark4ne/laravel-json-api 2.x
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_sqlite
+          coverage: none
+
+      - uses: ramsey/composer-install@v3
+
+      - name: Install the JSON:API package 2.x
+        # The 2.0 branch until 2.0.0 is tagged.
+        run: composer require --dev "ark4ne/laravel-json-api:2.0.x-dev@dev" --with-all-dependencies --no-interaction
+
+      - name: PHPUnit without the 1.x tests
+        run: vendor/bin/phpunit --exclude-group json-api --exclude-group benchmark
+
+      - name: PHPStan
+        run: vendor/bin/phpstan analyse -c phpstan-json-api-v2.neon.dist --memory-limit=1G --no-progress
 
   static:
     name: Static analysis & code style
@@ -78,8 +103,19 @@ jobs:
         run: vendor/bin/php-cs-fixer fix --dry-run --diff
 
   coverage:
-    name: Coverage (minimum 90%)
+    name: Coverage with ark4ne/laravel-json-api ${{ matrix.json-api }} (minimum 90%)
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Each line leaves out the integration of the other, which it cannot run.
+          - json-api: '1.x'
+            groups: '--exclude-group json-api-v2 --exclude-group benchmark'
+            excluded: src/Integrations/JsonApiV2
+          - json-api: '2.x'
+            groups: '--exclude-group json-api --exclude-group benchmark'
+            excluded: src/Integrations/JsonApi
     steps:
       - uses: actions/checkout@v4
 
@@ -91,24 +127,37 @@ jobs:
 
       - uses: ramsey/composer-install@v3
 
+      - name: Install the JSON:API package 2.x
+        if: matrix.json-api == '2.x'
+        run: composer require --dev "ark4ne/laravel-json-api:2.0.x-dev@dev" --with-all-dependencies --no-interaction
+
       - name: PHPUnit with coverage
-        run: vendor/bin/phpunit --coverage-clover=build/coverage/clover.xml
+        run: vendor/bin/phpunit ${{ matrix.groups }} --coverage-clover=build/coverage/clover.xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
           files: build/coverage/clover.xml
+          flags: json-api-${{ matrix.json-api }}
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
 
       - name: Minimum coverage
-        run: php bin/coverage-check.php build/coverage/clover.xml 90
+        run: php bin/coverage-check.php build/coverage/clover.xml 90 ${{ matrix.excluded }}
 
   mutation:
-    name: Mutation testing (minimum 80% MSI)
+    name: Mutation testing with ark4ne/laravel-json-api ${{ matrix.json-api }} (minimum 80% MSI)
     runs-on: ubuntu-latest
     # Blocking on master, informative on other branches.
     continue-on-error: ${{ github.ref != 'refs/heads/master' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - json-api: '1.x'
+            configuration: infection.json5
+          - json-api: '2.x'
+            configuration: infection-json-api-v2.json5
     steps:
       - uses: actions/checkout@v4
 
@@ -121,8 +170,12 @@ jobs:
 
       - uses: ramsey/composer-install@v3
 
+      - name: Install the JSON:API package 2.x
+        if: matrix.json-api == '2.x'
+        run: composer require --dev "ark4ne/laravel-json-api:2.0.x-dev@dev" --with-all-dependencies --no-interaction
+
       - name: Infection
-        run: infection --threads=max --no-progress --show-mutations
+        run: infection --configuration=${{ matrix.configuration }} --threads=max --no-progress --show-mutations
 
   audit:
     name: Dependency audit

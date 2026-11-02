@@ -48,7 +48,7 @@ Support ← Types ← Attributes ← Configuration ← Description ← Context �
 | Extraction | `src/Extraction/` | Extractor registries: `Operations/`, `Requests/`, `Rules/`, `Responses/` |
 | Generation | `src/Generation/` | `Generator` (facade), `Pass` + `Passes/`, `DocumentBuilder` |
 | Output | `src/Output/` | `DocumentWriter` (disk, JSON / YAML), validation report |
-| Integrations | `src/Integrations/` | `JsonApi/` (`ark4ne/laravel-json-api`), `Sanctum/`…: shipped extensions |
+| Integrations | `src/Integrations/` | `JsonApi/` (`ark4ne/laravel-json-api` 1.x), `JsonApiV2/` (2.x), `Sanctum/`…: shipped extensions |
 | Laravel | `src/Laravel/` | `OpenApiServiceProvider`, Artisan commands, configuration loading |
 | Exceptions | `src/Exceptions/` | Single exception hierarchy |
 
@@ -63,8 +63,13 @@ Support ← Types ← Attributes ← Configuration ← Description ← Context �
 - `Integrations` is never a dependency of the core: an integration is registered by the configuration or by the
   service provider, and its third-party package stays in `suggest`. It implements `Generation\Integration`
   (resource formats, rule mappers, error bodies). The `Generator` keeps only the available integrations: an
-  integration whose package is missing loads none of its classes. Only `Integrations\JsonApi` depends on
-  `Ark4ne\JsonApi` (`phpat`), and the CI runs the suite without that package.
+  integration whose package is missing loads none of its classes. Only `Integrations\JsonApi` (1.x) and
+  `Integrations\JsonApiV2` (2.x) depend on `Ark4ne\JsonApi`, neither on the other (`phpat`), and the CI runs the
+  suite without that package.
+- Each line of `ark4ne/laravel-json-api` is checked with its own package installed, the integration of the other
+  left out: 1.x, the dev dependency, by `phpstan.neon.dist`, the `json-api` test group and `infection.json5`; 2.x by
+  `phpstan-json-api-v2.neon.dist`, the `json-api-v2` group and `infection-json-api-v2.json5`. The coverage of each
+  line leaves out the other integration (`bin/coverage-check.php`).
 
 ## 3. The description model
 

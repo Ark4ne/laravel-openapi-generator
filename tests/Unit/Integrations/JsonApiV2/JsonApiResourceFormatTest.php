@@ -248,9 +248,11 @@ final class JsonApiResourceFormatTest extends JsonApiTestCase
     {
         $resources = $this->resources();
         $included = self::at($resources->envelope(ShowcaseResource::class, $resources->schema(ShowcaseResource::class, $this->ctx()), $this->ctx()), 'included');
-        $members = $included->items->oneOf ?? [];
+        $items = $included->items;
+        self::assertInstanceOf(Schema::class, $items);
+        $members = $items->oneOf ?? [];
 
-        self::assertNull($included->items?->discriminator);
+        self::assertNull($items->discriminator);
         self::assertCount(4, $members);
         Schemas::assertSame([
             'type' => 'object',

@@ -1,0 +1,22 @@
+# With ark4ne/laravel-json-api 2.x installed (the `json-api-v2` CI job):
+#   composer require --dev "ark4ne/laravel-json-api:2.0.x-dev@dev" -W
+#   vendor/bin/phpstan analyse -c phpstan-json-api-v2.neon.dist
+includes:
+    - phpstan.base.neon.dist
+
+parameters:
+    excludePaths:
+        # ark4ne/laravel-json-api 1.x: analysed by phpstan.neon.dist.
+        - src/Integrations/JsonApi/*
+        - tests/Unit/Integrations/JsonApi/*
+        - tests/Feature/JsonApi/*
+        - tests/Fixtures/JsonApi/Controllers/*
+        - tests/Fixtures/JsonApi/Requests/*
+        - tests/Fixtures/JsonApi/Resources/*
+        # Deliberately loose resources read by the integration tests (no generics, untyped values).
+        - tests/Fixtures/JsonApiV2/Types/*
+    ignoreErrors:
+        # Always true with 2.x installed: the check tells 2.x from 1.x.
+        -
+            identifier: function.alreadyNarrowedType
+            path: src/Integrations/JsonApiV2/JsonApiV2Integration.php

@@ -17,8 +17,8 @@ use Ark4ne\OpenApiWriter\Objects\Discriminator;
 use Ark4ne\OpenApiWriter\Objects\Schema;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Throwable;
 use WeakMap;
 
@@ -66,13 +66,13 @@ final class JsonApiResourceFormat implements ResourceFormat
 
     public function component(string $resource, ResourceSchemas $resources, GenerationContext $context): Schema
     {
-        $definition = $this->definitions->of($resource, $context, Stage::Response, $resource);
+        $definition = is_subclass_of($resource, JsonApiResource::class) ? $this->definitions->of($resource, $context, Stage::Response, $resource) : null;
         $members = [
             'type' => $definition === null ? Schema::string() : Schema::string()->const($definition->type),
             'id' => Schema::string(),
         ];
 
-        if ($definition !== null) {
+        if ($definition !== null && is_subclass_of($resource, JsonApiResource::class)) {
             $values = $this->values($resource, $resources, $context);
             $members += [
                 'attributes' => $values('data.attributes')->members($definition->attributes),
@@ -119,20 +119,20 @@ final class JsonApiResourceFormat implements ResourceFormat
      * A top-level document: `jsonapi`, its members, `included`, and the `meta` of `toDocumentMeta()` (joined with the
      * pagination's).
      *
-     * @param class-string<\Illuminate\Http\Resources\Json\JsonResource> $resource
+     * @param class-string<JsonResource> $resource
      * @param array<string, Schema> $members
      * @param list<string> $required
      */
     private function body(string $resource, array $members, array $required, ResourceSchemas $resources, GenerationContext $context): Schema
     {
         $jsonapi = JsonApiObjects::schema(ResourceDefinitions::jsonApiObject(), $context);
-        $definition = $this->supports($resource) ? $this->definitions->of($resource, $context, Stage::Response, $resource) : null;
+        $definition = is_subclass_of($resource, JsonApiResource::class) ? $this->definitions->of($resource, $context, Stage::Response, $resource) : null;
 
         if ($jsonapi !== null) {
             [$members, $required] = [['jsonapi' => $jsonapi, ...$members], ['jsonapi', ...$required]];
         }
 
-        if ($definition !== null) {
+        if ($definition !== null && is_subclass_of($resource, JsonApiResource::class)) {
             $included = $this->included($resource, $definition, $resources, $context);
             $meta = $this->values($resource, $resources, $context)('meta')->members($definition->documentMeta);
             $members = $included === null ? $members : [...$members, 'included' => $included];
@@ -198,6 +198,10 @@ final class JsonApiResourceFormat implements ResourceFormat
         $discriminated = $context->document->useReferences && $natives === [];
 
         foreach ($reached as $related => $known) {
+            if (! is_subclass_of($related, JsonResource::class)) {
+                continue;
+            }
+
             $members[] = $resources->schema($related, $context);
 
             if (isset($typed[$known->type])) {
@@ -345,7 +349,7 @@ final class JsonApiResourceFormat implements ResourceFormat
         if ($sample !== null) {
             try {
                 $response = (new $resource(self::identified($sample)))->toResponse(Request::create('/'));
-                $data = $response instanceof JsonResponse ? $response->getData(true) : null;
+                $data = $response->getData(true);
                 $document = is_array($data) ? $data : [];
             } catch (Throwable $error) {
                 $context->diagnostics->warning(Stage::Response, "cannot render {$resource} on a sample: {$error->getMessage()}");

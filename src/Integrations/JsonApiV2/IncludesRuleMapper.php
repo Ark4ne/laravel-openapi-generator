@@ -80,6 +80,6 @@ final readonly class IncludesRuleMapper implements RuleMapper
             }
         }
 
-        return array_values($paths);
+        return $paths;
     }
 }

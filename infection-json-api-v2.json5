@@ -1,0 +1,20 @@
+{
+    "$schema": "https://raw.githubusercontent.com/infection/infection/master/resources/schema.json",
+    "source": {
+        "directories": ["src"],
+        // ark4ne/laravel-json-api 1.x: mutated by infection.json5.
+        "excludes": ["Integrations/JsonApi"]
+    },
+    "logs": {
+        "text": "build/infection-json-api-v2/infection.log",
+        "summary": "build/infection-json-api-v2/summary.log"
+    },
+    "tmpDir": "build/infection-json-api-v2",
+    "minMsi": 80,
+    "minCoveredMsi": 80,
+    // The tests of 2.x, without those of 1.x.
+    "testFrameworkOptions": "--exclude-group=json-api --exclude-group=benchmark",
+    "mutators": {
+        "@default": true
+    }
+}

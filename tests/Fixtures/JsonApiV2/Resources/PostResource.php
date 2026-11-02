@@ -31,7 +31,7 @@ final class PostResource extends JsonApiResource
 
     protected function toLinks(Request $request): iterable
     {
-        return ['self' => fn(): string => "https://api.example.com/posts/{$this->resource->id}"];
+        return ['self' => "https://api.example.com/posts/{$this->resource->id}"];
     }
 
     protected function toRelationships(Request $request): iterable

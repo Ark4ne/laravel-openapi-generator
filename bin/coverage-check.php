@@ -3,16 +3,18 @@
 declare(strict_types=1);
 
 /*
- * Fails when the line coverage of a Clover report is below the given threshold.
+ * Fails when the line coverage of a Clover report is below the given threshold. The files under the excluded paths
+ * are left out: the integration of the ark4ne/laravel-json-api line that is not installed.
  *
- * Usage: php bin/coverage-check.php <clover.xml> <minimum percentage>
+ * Usage: php bin/coverage-check.php <clover.xml> <minimum percentage> [<excluded path>...]
  */
 
 $file = $argv[1] ?? null;
 $threshold = $argv[2] ?? null;
+$excluded = array_slice($argv ?? [], 3);
 
 if ($threshold === null || !is_numeric($threshold)) {
-    fwrite(STDERR, 'Usage: php bin/coverage-check.php <clover.xml> <minimum percentage>' . PHP_EOL);
+    fwrite(STDERR, 'Usage: php bin/coverage-check.php <clover.xml> <minimum percentage> [<excluded path>...]' . PHP_EOL);
     exit(1);
 }
 
@@ -29,9 +31,36 @@ if ($xml === false) {
     exit(1);
 }
 
-$metrics = $xml->project->metrics;
-$statements = (int) $metrics['statements'];
-$covered = (int) $metrics['coveredstatements'];
+$prefixes = [];
+
+foreach ($excluded as $path) {
+    $real = realpath($path);
+
+    if ($real === false) {
+        fwrite(STDERR, "Excluded path not found: {$path}" . PHP_EOL);
+        exit(1);
+    }
+
+    $prefixes[] = $real . DIRECTORY_SEPARATOR;
+}
+
+$statements = 0;
+$covered = 0;
+
+$sources = $xml->xpath('//file');
+
+foreach (is_array($sources) ? $sources : [] as $source) {
+    $name = (string) $source['name'];
+
+    foreach ($prefixes as $prefix) {
+        if (str_starts_with($name, $prefix)) {
+            continue 2;
+        }
+    }
+
+    $statements += (int) $source->metrics['statements'];
+    $covered += (int) $source->metrics['coveredstatements'];
+}
 
 if ($statements === 0) {
     fwrite(STDERR, "No executable line in {$file}: is the coverage filter right?" . PHP_EOL);

@@ -60,7 +60,7 @@
         "test:coverage": [
             "@putenv XDEBUG_MODE=coverage",
             "phpunit --coverage-clover=build/coverage/clover.xml",
-            "php bin/coverage-check.php build/coverage/clover.xml 90"
+            "php bin/coverage-check.php build/coverage/clover.xml 90 src/Integrations/JsonApiV2"
         ],
         "stan": "phpstan analyse --memory-limit=1G",
         "cs": "php-cs-fixer fix --dry-run --diff",
