@@ -13,6 +13,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   inferred for the action leaves out the successes of the controller for other statuses
   ([#44](https://github.com/Ark4ne/laravel-openapi-generator/issues/44)).
 - A `#[Response]` without body replaced the error body of the `@throws` of its status: it now keeps it.
+- `#[QueryParameter]`, `#[Header]` and `#[Cookie]` replaced the parameter of the same name given by the rules (or by
+  an attribute of the controller or the request): they now complete it. `type` replaces the schema, and `required` and
+  `deprecated` are `?bool`, `null` keeping the value already described. A header is completed whatever the case of
+  its name, and a query parameter folded into a `querystring` (3.2) keeps its requirement, description and deprecation
+  ([#46](https://github.com/Ark4ne/laravel-openapi-generator/issues/46)).
 
 ## [1.0.0] - 2026-10-29
 

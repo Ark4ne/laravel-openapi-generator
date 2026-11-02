@@ -85,17 +85,18 @@ On the action: replaces or completes the body given by the rules.
 
 ### `#[QueryParameter]`, `#[Header]`, `#[Cookie]`, `#[PathParameter]`
 
-Repeatable. `#[PathParameter]` on the action only, the others on the controller, the request class or the action,
-each replacing the parameter of the same name and location of the one before. A parameter of the same name given by
-the rules is completed.
+Repeatable. `#[PathParameter]` on the action only, the others on the controller, the request class or the action.
+Each completes the parameter of the same name and location given by the rules or by the one before: `type` replaces
+its schema, and a parameter left `null` keeps its value (`#[QueryParameter('page', description: '…')]` keeps the
+schema and the `required` of the `page` rule). A header is matched whatever the case of its name.
 
 | Parameter | Effect |
 | --- | --- |
 | `name` | name of the parameter |
-| `type` | PHPDoc type (`string` by default) |
+| `type` | PHPDoc type; `null`: the schema already described, else `string` |
 | `description` | description |
-| `required` | required (not for `#[PathParameter]`, always required) |
-| `deprecated` | deprecated (`#[QueryParameter]` only) |
+| `required` | required; `null`: unchanged, else not required (not for `#[PathParameter]`, always required) |
+| `deprecated` | deprecated (`#[QueryParameter]` only); `null`: unchanged, else not deprecated |
 | `example` | example value |
 
 ### `#[Security]`

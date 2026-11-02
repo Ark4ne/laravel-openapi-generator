@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Ark4ne\OpenApi\Tests\Fixtures\Requests;
 
 use Ark4ne\OpenApi\Attributes\Cookie;
+use Ark4ne\OpenApi\Attributes\Header;
 use Ark4ne\OpenApi\Attributes\PathParameter;
 use Ark4ne\OpenApi\Attributes\QueryParameter;
 use Ark4ne\OpenApi\Attributes\RequestBody;
@@ -48,4 +49,19 @@ final class RequestController
 
     #[RequestBody(description: 'The user')]
     public function documented(StoreUserRequest $request): void {}
+
+    #[QueryParameter('q', description: 'Words to search')]
+    #[QueryParameter('page', example: 3)]
+    public function completed(SearchRequest $request): void {}
+
+    #[QueryParameter('q', type: 'non-empty-string', required: false)]
+    public function optional(SearchRequest $request): void {}
+
+    #[QueryParameter('q', type: 'non-empty-string', required: false, deprecated: true)]
+    #[QueryParameter('page', description: 'Page of the results')]
+    #[QueryParameter('page', type: 'int')]
+    public function folded(SearchRequest $request): void {}
+
+    #[Header('x-tenant', description: 'Owner of the data')]
+    public function tenant(DescribedRequest $request): void {}
 }

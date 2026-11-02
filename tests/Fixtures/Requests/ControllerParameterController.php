@@ -9,7 +9,7 @@ use Ark4ne\OpenApi\Attributes\Header;
 use Ark4ne\OpenApi\Attributes\QueryParameter;
 
 /**
- * Parameters declared on the controller, shared by its actions; the request and the action replace them.
+ * Parameters declared on the controller, shared by its actions; the request and the action complete them.
  */
 #[QueryParameter('page', type: 'positive-int')]
 #[Header('X-Tenant', type: 'int', required: true)]

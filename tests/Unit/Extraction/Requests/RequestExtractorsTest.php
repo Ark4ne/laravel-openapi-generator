@@ -174,7 +174,7 @@ final class RequestExtractorsTest extends TestCase
         Schemas::assertSame(['type' => 'string'], $request->parameters[2]->schema);
     }
 
-    public function test_the_attributes_of_the_controller_add_parameters_replaced_by_those_of_the_request_and_of_the_action(): void
+    public function test_the_attributes_of_the_controller_add_parameters_completed_by_those_of_the_request_and_of_the_action(): void
     {
         $this->router()->get('api/shared', [ControllerParameterController::class, 'shared']);
 
@@ -183,10 +183,68 @@ final class RequestExtractorsTest extends TestCase
         self::assertSame(['page', 'locale', 'X-Tenant', 'X-Api-Version', 'session'], self::names($request->parameters));
         Schemas::assertSame(['type' => 'integer', 'minimum' => 1], $request->parameters[0]->schema);
         self::assertTrue($request->parameters[2]->required);
-        self::assertNull($request->parameters[3]->description);
+        self::assertSame('From the controller', $request->parameters[3]->description);
         Schemas::assertSame(['type' => 'integer', 'example' => 2], $request->parameters[3]->schema);
         self::assertTrue($request->parameters[4]->required);
-        self::assertNull($request->parameters[4]->description);
+        self::assertSame('From the controller', $request->parameters[4]->description);
+    }
+
+    public function test_an_attribute_completes_the_parameter_of_the_rules(): void
+    {
+        $this->router()->get('api/search', [RequestController::class, 'completed']);
+
+        $request = $this->request();
+
+        self::assertSame(['q', 'page', 'filter[][name]'], self::names($request->parameters));
+        self::assertTrue($request->parameters[0]->required);
+        self::assertSame('Words to search', $request->parameters[0]->description);
+        Schemas::assertSame(['type' => 'string'], $request->parameters[0]->schema);
+        Schemas::assertSame(['type' => 'integer', 'minimum' => 1, 'example' => 3], $request->parameters[1]->schema);
+    }
+
+    public function test_an_attribute_replaces_the_schema_with_its_type_and_what_it_states(): void
+    {
+        $this->router()->get('api/search', [RequestController::class, 'optional']);
+
+        $request = $this->request();
+
+        self::assertFalse($request->parameters[0]->required);
+        Schemas::assertSame(['type' => 'string', 'minLength' => 1], $request->parameters[0]->schema);
+    }
+
+    public function test_querystring_completes_the_property_of_the_rules(): void
+    {
+        $this->router()->get('api/search', [RequestController::class, 'completed']);
+        $context = $this->context(version: Version::V3_2_0);
+        $operation = $this->operation($context);
+
+        $request = RequestExtractors::default($this->container(), new BuiltInQueryStrategy('querystring'))->extract($operation, RequestDescription::create(), $context);
+
+        self::assertSame(['query'], self::names($request->parameters));
+        Schemas::assertSame('{"type":"object","properties":{"q":{"type":"string","description":"Words to search"},"page":{"type":"integer","minimum":1,"example":3},"filter":{"type":"array","items":{"type":"object","properties":{"name":{"type":"string"}}}}},"required":["q"]}', $request->parameters[0]->schema);
+    }
+
+    public function test_querystring_takes_the_requirement_the_deprecation_and_the_type_of_an_attribute(): void
+    {
+        $this->router()->get('api/search', [RequestController::class, 'folded']);
+        $context = $this->context(version: Version::V3_2_0);
+        $operation = $this->operation($context);
+
+        $request = RequestExtractors::default($this->container(), new BuiltInQueryStrategy('querystring'))->extract($operation, RequestDescription::create(), $context);
+
+        Schemas::assertSame('{"type":"object","properties":{"q":{"type":"string","minLength":1,"deprecated":true},"page":{"type":"integer","description":"Page of the results"},"filter":{"type":"array","items":{"type":"object","properties":{"name":{"type":"string"}}}}}}', $request->parameters[0]->schema);
+    }
+
+    public function test_a_header_attribute_completes_the_header_of_any_case_described_by_the_request(): void
+    {
+        $this->router()->post('api/described', [RequestController::class, 'tenant']);
+
+        $request = $this->request();
+
+        self::assertSame(['X-Tenant', 'locale', 'include'], self::names($request->parameters));
+        self::assertSame('Owner of the data', $request->parameters[0]->description);
+        self::assertTrue($request->parameters[0]->required);
+        Schemas::assertSame(['type' => 'string', 'format' => 'uuid'], $request->parameters[0]->schema);
     }
 
     public function test_path_parameter_and_request_body_attributes(): void
