@@ -172,13 +172,30 @@ final readonly class OperationContext
      */
     public function classAttributes(string $attribute, GenerationContext $context): array
     {
-        $instances = [];
+        return array_map(static fn(array $declared): object => $declared[0], $this->declaredClassAttributes($attribute, $context));
+    }
+
+    /**
+     * The attributes of the controllers, from the highest parent down, each with the class that carries it: the scope
+     * its PHPDoc types are written in.
+     *
+     * @template T of object
+     *
+     * @param class-string<T> $attribute
+     *
+     * @return list<array{T, ReflectionClass<object>}>
+     */
+    public function declaredClassAttributes(string $attribute, GenerationContext $context): array
+    {
+        $declared = [];
 
         foreach ($this->controllers() as $class) {
-            array_push($instances, ...$this->instances($class->getAttributes($attribute), $class->getName(), $context));
+            foreach ($this->instances($class->getAttributes($attribute), $class->getName(), $context) as $instance) {
+                $declared[] = [$instance, $class];
+            }
         }
 
-        return $instances;
+        return $declared;
     }
 
     /**

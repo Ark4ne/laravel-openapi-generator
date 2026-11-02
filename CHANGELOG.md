@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- `#[Response]`, `#[QueryParameter]`, `#[Header]` and `#[Cookie]` on a controller class were ignored: they now apply
+  to each of its actions, which replace them for the same status or the same parameter; a success declared or
+  inferred for the action leaves out the successes of the controller for other statuses
+  ([#44](https://github.com/Ark4ne/laravel-openapi-generator/issues/44)).
+- A `#[Response]` without body replaced the error body of the `@throws` of its status: it now keeps it.
+
 ## [1.0.0] - 2026-10-29
 
 A rewrite: see [UPGRADE.md](UPGRADE.md) to migrate from 0.6.
@@ -59,4 +69,5 @@ A rewrite: see [UPGRADE.md](UPGRADE.md) to migrate from 0.6.
 - `#[Response(statusText: 'Created')]` wrote a 200; the 422 had no schema; optional path parameters (`{id?}`) were
   ignored; state was shared between the documents of one run.
 
+[Unreleased]: https://github.com/Ark4ne/laravel-openapi-generator/compare/v1.0.0...HEAD
 [1.0.0]: https://github.com/Ark4ne/laravel-openapi-generator/compare/v0.6.1...v1.0.0

@@ -14,7 +14,7 @@ use Ark4ne\OpenApiWriter\Objects\Schema;
 
 /**
  * Responses of one status (several exceptions, or an exception and an inferred response) as one: a declared response
- * wins; otherwise the descriptions are put together (the causes) and different bodies become `oneOf`.
+ * wins, with the body of the others when it has none; otherwise the descriptions are put together (the causes) and different bodies become `oneOf`.
  */
 final readonly class ThrownExceptionResponsePass implements Pass
 {
@@ -42,7 +42,7 @@ final readonly class ThrownExceptionResponsePass implements Pass
     {
         foreach ($responses as $response) {
             if ($response->origin === ResponseOrigin::Declared) {
-                return $response;
+                return self::declared($response, $responses);
             }
         }
 
@@ -67,5 +67,25 @@ final readonly class ThrownExceptionResponsePass implements Pass
         }
 
         return $merged->description(implode("\n", $descriptions));
+    }
+
+    /**
+     * A declared response without body takes the body of the others of its status.
+     *
+     * @param non-empty-list<ResponseDescription> $responses
+     */
+    private static function declared(ResponseDescription $declared, array $responses): ResponseDescription
+    {
+        $others = array_values(array_filter($responses, static fn(ResponseDescription $response): bool => $response->origin !== ResponseOrigin::Declared));
+
+        if ($declared->contents !== [] || $declared->itemContents !== [] || $others === []) {
+            return $declared;
+        }
+
+        foreach (self::merge($others)->contents as $mediaType => $schema) {
+            $declared = $declared->content($mediaType, $schema);
+        }
+
+        return $declared;
     }
 }

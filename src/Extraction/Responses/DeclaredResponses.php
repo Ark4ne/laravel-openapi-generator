@@ -20,7 +20,7 @@ use ReflectionFunctionAbstract;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
 /**
- * The `#[Response]` of the action, each read in the scope of the declaration that carries it.
+ * The `#[Response]` of the controller and of the action, each read in the scope of the declaration that carries it.
  *
  * The body is the resource (paginated with `paginator`) or the PHPDoc type; `text/event-stream` makes the type the
  * schema of one event. A response declared without body keeps the content the generator inferred for its status.
@@ -34,7 +34,7 @@ final readonly class DeclaredResponses
     ) {}
 
     /**
-     * Each response with the declaration that carries it, from the parent declaration down.
+     * Each response of the action with the declaration that carries it, from the parent declaration down.
      *
      * @return list<array{ResponseDescription, ReflectionFunctionAbstract}>
      */
@@ -44,6 +44,22 @@ final readonly class DeclaredResponses
 
         foreach ($operation->declaredActionAttributes(Response::class, $context) as [$attribute, $declaration]) {
             $responses[] = [$this->response($attribute, $declaration, $context), $declaration];
+        }
+
+        return $responses;
+    }
+
+    /**
+     * Each response of the controller, shared by its actions, with the class that carries it, from the parent down.
+     *
+     * @return list<array{ResponseDescription, ReflectionClass<object>}>
+     */
+    public function controller(OperationContext $operation, GenerationContext $context): array
+    {
+        $responses = [];
+
+        foreach ($operation->declaredClassAttributes(Response::class, $context) as [$attribute, $class]) {
+            $responses[] = [$this->response($attribute, $class, $context), $class];
         }
 
         return $responses;

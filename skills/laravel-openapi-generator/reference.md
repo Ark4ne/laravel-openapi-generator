@@ -18,8 +18,8 @@ authority: `vendor/ark4ne/laravel-openapi-generator/src/` (`Attributes/`, `Confi
 ## Attributes
 
 All are in `Ark4ne\OpenApi\Attributes`. Those that accept the controller class apply to each of its actions; the
-action overrides them, and the attributes of a parent class or of a parent method are merged under those of the
-child. Types are PHPDoc types (`int`, `positive-int`, `list<string>`, `'a'|'b'`, `array{id: int}`, a class).
+action overrides them (`#[Response]` status by status, the parameters name by name), and the attributes of a parent
+class or of a parent method are merged under those of the child. Types are PHPDoc types (`int`, `positive-int`, `list<string>`, `'a'|'b'`, `array{id: int}`, a class).
 
 ### `#[Operation]`
 
@@ -53,8 +53,11 @@ Repeatable, on the controller or the action: adds a tag to the operation and des
 
 Repeatable, on the controller, the action or an exception class. Replaces the response inferred for its status, and
 a declared success (2xx) leaves out the successes inferred for other statuses (`#[Response(201)]` on an action
-returning a `JsonResponse`, inferred as a 200, gives the 201 only). On an exception class, it is the response of the
-actions that declare `@throws` with it.
+returning a `JsonResponse`, inferred as a 200, gives the 201 only). On the controller, it is a response of each of
+its actions, listed after theirs: one of the action replaces it for its status, and a success declared or inferred
+for the action leaves out the successes of the controller for other statuses (a `#[Response(401)]` of the controller
+stays, its 200 gives way to the 201 of an action). On an exception class, it is the response of the actions that
+declare `@throws` with it. Without body, it keeps the body inferred or given by the exceptions of its status.
 
 | Parameter | Effect |
 | --- | --- |
@@ -82,8 +85,9 @@ On the action: replaces or completes the body given by the rules.
 
 ### `#[QueryParameter]`, `#[Header]`, `#[Cookie]`, `#[PathParameter]`
 
-Repeatable. `#[PathParameter]` on the action only, the others on the controller or the action. A parameter of the
-same name given by the rules is completed.
+Repeatable. `#[PathParameter]` on the action only, the others on the controller, the request class or the action,
+each replacing the parameter of the same name and location of the one before. A parameter of the same name given by
+the rules is completed.
 
 | Parameter | Effect |
 | --- | --- |
