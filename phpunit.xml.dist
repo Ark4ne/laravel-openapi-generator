@@ -34,6 +34,8 @@
     <groups>
         <exclude>
             <group>benchmark</group>
+            <!-- ark4ne/laravel-json-api 2.x: run by the CI job that installs it (.github/workflows/ci.yml). -->
+            <group>json-api-v2</group>
         </exclude>
     </groups>
     <source>

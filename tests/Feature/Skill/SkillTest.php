@@ -131,6 +131,17 @@ final class SkillTest extends SkillTestCase
         self::assertSame(['include', 'fields'], array_map(static fn(mixed $parameter): mixed => is_array($parameter) ? $parameter['name'] ?? null : null, (array) Schemas::at($operation, 'parameters')));
     }
 
+    #[Group('json-api-v2')]
+    public function test_the_json_api_2_x_recipe(): void
+    {
+        $operation = Schemas::at($this->recipe('JSON:API resources (2.x)'), 'paths', '/api/articles/{article}', 'get');
+        self::assertIsArray($operation);
+
+        self::assertSame(['application/vnd.api+json'], array_keys((array) Schemas::at($operation, 'responses', '200', 'content')));
+        self::assertSame(['include', 'fields'], array_map(static fn(mixed $parameter): mixed => is_array($parameter) ? $parameter['name'] ?? null : null, (array) Schemas::at($operation, 'parameters')));
+        self::assertSame(['jsonapi', 'data', 'included'], array_keys((array) Schemas::at($operation, 'responses', '200', 'content', 'application/vnd.api+json', 'schema', 'properties')));
+    }
+
     /**
      * @return array<array-key, mixed>
      */

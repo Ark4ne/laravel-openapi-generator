@@ -9,8 +9,8 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * The `users`, `posts` and `comments` tables of the JSON:API fixtures; the tests carry the group `json-api`, left out
- * when the package is not installed.
+ * The `users`, `posts` and `comments` tables of the JSON:API fixtures; the tests carry the group `json-api` (1.x) or
+ * `json-api-v2` (2.x), left out when the package is not installed in that version.
  */
 abstract class JsonApiTestCase extends SamplingTestCase
 {

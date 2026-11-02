@@ -184,7 +184,7 @@ unknown top-level key or an invalid value fails the command with the key, the ex
 | `date_formats` | | PHP date format → OpenAPI format (`date`, `date-time`), for `date_format:` and the sampled values |
 | `middlewares` | `[]` | Middleware name or class → classes implementing `MiddlewareMapper`, replacing the built-in ones of that middleware |
 | `extensions` | `[]` | `operation_extractors`, `request_extractors`, `rule_mappers`, `response_extractors`, `samplers`, `passes`: classes or bound interfaces, built through the container |
-| `integrations` | | `json_api.errors` (`false`): error responses as JSON:API error documents |
+| `integrations` | | `json_api.errors` (`false`): error responses as JSON:API error documents (`ark4ne/laravel-json-api` 1.x or 2.x) |
 | `exceptions` | | `read_throws` (`true`): read the `@throws` of the actions; `map`: exception class → status, or `['status' => …, 'description' => …]` |
 | `languages` | `[]` | One document per locale; summaries, descriptions and tags may be translation keys |
 
@@ -219,6 +219,6 @@ application code it does not understand: it adds a diagnostic (`$context->diagno
 | --- | --- |
 | `openapi:generate` | Every document, in each language. `--document=*`, `--strict` (fail on a warning), `--dry-run`, `--format=json\|yaml`, `--stdout` (one document; diagnostics on the error output). Exit 0 written, 1 a document failed, 2 invalid configuration or options |
 | `openapi:inspect {route}` | What the generator understood of a route (its name, its URI, or its method and URI): the operation after the passes and all its diagnostics. `--document=` |
-| `about` | Version, documents, JSON:API integration |
+| `about` | Version, documents, JSON:API integration (and the major version of `ark4ne/laravel-json-api`) |
 
 Diagnostics are grouped by route: warnings by default, infos with `-v`, only errors with `-q`.

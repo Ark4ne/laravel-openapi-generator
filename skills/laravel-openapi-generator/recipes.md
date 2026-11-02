@@ -380,9 +380,10 @@ The same extensions in the configuration of the application:
 
 ## JSON:API resources
 
-With `ark4ne/laravel-json-api` installed, its resources are written in `application/vnd.api+json` as resource
+With `ark4ne/laravel-json-api` 1.x installed, its resources are written in `application/vnd.api+json` as resource
 objects (`id`, `type`, `attributes`, `relationships`), the descriptors (`$this->string()`, `$this->date()`…) give the
-types of the attributes, and the `Includes` and `Fields` rules give the `include` and `fields[type]` parameters.
+types of the attributes, and the `Includes` and `Fields` rules give the `include` and `fields[type]` parameters. With
+2.x, see the next recipe.
 
 ```php
 namespace App\Blog;
@@ -420,6 +421,82 @@ final class ArticleResource extends JsonApiResource
         return [
             'title' => $this->string(),
             'published_at' => $this->date(),
+        ];
+    }
+
+    protected function toRelationships(Request $request): iterable
+    {
+        return ['author' => $this->one(AuthorResource::class)];
+    }
+}
+
+final class ShowArticleRequest extends FormRequest
+{
+    public function rules(): array
+    {
+        return ['include' => [new Includes(ArticleResource::class)], 'fields' => [new Fields(ArticleResource::class)]];
+    }
+}
+
+final class ArticleController
+{
+    /**
+     * Show one article.
+     */
+    public function show(ShowArticleRequest $request, Article $article): ArticleResource
+    {
+        return new ArticleResource($article);
+    }
+}
+
+Route::get('articles/{article}', [ArticleController::class, 'show'])->name('articles.show');
+```
+
+## JSON:API resources (2.x)
+
+With `ark4ne/laravel-json-api` 2.x installed, the generator reads the definition the package compiles
+(`ArticleResource::definition()`): the `ValueType` of each value gives its type, the `related` resources of each
+relationship its identifiers and the `included` resources, `id` is a string and the documents carry the `jsonapi`
+member. A value without descriptor (a closure) is typed by rendering the resource on a sample of its model. The rules
+are those of `Ark4ne\JsonApi\Http\Rules`; `integrations.json_api.errors` writes the error documents of
+`JsonApi::renderErrors()`.
+
+```php
+namespace App\BlogV2;
+
+use Ark4ne\JsonApi\Http\Rules\Fields;
+use Ark4ne\JsonApi\Http\Rules\Includes;
+use Ark4ne\JsonApi\Resources\JsonApiResource;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
+final class Author extends Model {}
+
+final class Article extends Model {}
+
+/**
+ * @extends JsonApiResource<Author>
+ */
+final class AuthorResource extends JsonApiResource
+{
+    public function toAttributes(Request $request): iterable
+    {
+        return ['name' => $this->string()];
+    }
+}
+
+/**
+ * @extends JsonApiResource<Article>
+ */
+final class ArticleResource extends JsonApiResource
+{
+    public function toAttributes(Request $request): iterable
+    {
+        return [
+            'title' => $this->string(),
+            'published_at' => $this->datetime(),
         ];
     }
 
