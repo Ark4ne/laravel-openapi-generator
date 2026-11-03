@@ -30,7 +30,7 @@ Optional:
 
 - `opis/json-schema` to validate the generated documents against the official OpenAPI schemas (recommended)
 - `symfony/yaml` to write YAML
-- `ark4ne/laravel-json-api` ^1.9 to document JSON:API resources
+- `ark4ne/laravel-json-api` ^1.9 or ^2.0 to document JSON:API resources
 
 Upgrading from 0.6? See [UPGRADE.md](UPGRADE.md).
 
@@ -192,6 +192,15 @@ With [`ark4ne/laravel-json-api`](https://github.com/Ark4ne/laravel-json-api) ins
 their `included` resources, its descriptors (`$this->string()`, `$this->date()`, `$this->struct()`…) give the types of
 the attributes, and its `Includes` and `Fields` rules give the `include` and `fields[type]` parameters. Set
 `integrations.json_api.errors` to `true` if the application renders its errors as JSON:API error documents.
+
+Both major versions are supported, the installed one is detected:
+
+- **1.x** (`^1.9`): the generator runs the hooks of the resources on the package's fake model.
+- **2.x** (`^2.0`): the generator reads the definition the package compiles (`PostResource::definition()`): the type of
+  each value, the related resources of each relationship (polymorphic ones, Laravel's native JSON:API resources),
+  their links and meta. `id` is a string and the documents carry the `jsonapi` member, as the package renders them.
+  A value without descriptor (a closure) is typed by rendering the resource on a sample of its model. The error
+  documents are those of `JsonApi::renderErrors()`.
 
 ## Extending
 

@@ -1,0 +1,25 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Ark4ne\OpenApi\Tests\Fixtures\JsonApiV2\Types;
+
+use Ark4ne\JsonApi\Resources\JsonApiResource;
+use Ark4ne\OpenApi\Tests\Fixtures\JsonApi\Models\Post;
+use Illuminate\Http\Request;
+use RuntimeException;
+
+/**
+ * A JSON:API resource whose values all have a descriptor, and whose closure throws when rendered on a sample.
+ *
+ * @extends JsonApiResource<Post>
+ */
+final class TypedFailingResource extends JsonApiResource
+{
+    public function toAttributes(Request $request): iterable
+    {
+        return [
+            'title' => $this->string(static fn(): never => throw new RuntimeException('exploded')),
+        ];
+    }
+}

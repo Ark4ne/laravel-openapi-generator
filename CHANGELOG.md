@@ -6,6 +6,21 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+
+- JSON:API integration for `ark4ne/laravel-json-api` 2.x (`Integrations\JsonApiV2`), read from the definitions the
+  package compiles (`ResourceDefinition`) without reflection: value types, polymorphic relationships, relationships to
+  Laravel's native JSON:API resources, identifier meta, links declared by name, `id` as a string, the `jsonapi` member
+  (component `JsonApi`), `toDocumentMeta()`, the `Http\Rules\Includes` and `Http\Rules\Fields` rules and the error
+  documents of the package; a value without descriptor is typed by rendering the resource on a sample. The `include`
+  description lists a relationship back to a resource of its path without following it. The findings of the
+  compilation of a definition are relayed once per document, as diagnostics (its errors as warnings).
+
+### Changed
+
+- The 1.x JSON:API integration is enabled by the presence of `Ark4ne\JsonApi\Resources\Skeleton` (removed in 2.0);
+  `about` shows the major version of `ark4ne/laravel-json-api`.
+
 ## [1.0.1] - 2026-11-02
 
 ### Fixed

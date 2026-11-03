@@ -41,7 +41,7 @@
         "symfony/yaml": "^7.4 || ^8.0"
     },
     "suggest": {
-        "ark4ne/laravel-json-api": "Documents JSON:API resources, collections and requests (^1.9).",
+        "ark4ne/laravel-json-api": "Documents JSON:API resources, collections and requests (^1.9 or ^2.0).",
         "opis/json-schema": "Validates the generated documents against the official OpenAPI schemas.",
         "symfony/yaml": "Writes the generated documents as YAML."
     },
@@ -60,7 +60,7 @@
         "test:coverage": [
             "@putenv XDEBUG_MODE=coverage",
             "phpunit --coverage-clover=build/coverage/clover.xml",
-            "php bin/coverage-check.php build/coverage/clover.xml 90"
+            "php bin/coverage-check.php build/coverage/clover.xml 90 src/Integrations/JsonApiV2"
         ],
         "stan": "phpstan analyse --memory-limit=1G",
         "cs": "php-cs-fixer fix --dry-run --diff",

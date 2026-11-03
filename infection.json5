@@ -1,13 +1,19 @@
 {
     "$schema": "https://raw.githubusercontent.com/infection/infection/master/resources/schema.json",
     "source": {
-        "directories": ["src"]
+        "directories": ["src"],
+        // ark4ne/laravel-json-api 2.x: mutated by infection-json-api-v2.json5, with 2.x installed.
+        "excludes": ["Integrations/JsonApiV2"]
     },
     "logs": {
         "text": "build/infection/infection.log",
         "summary": "build/infection/summary.log"
     },
     "tmpDir": "build/infection",
+    // Not looked up through `composer config bin-dir`, whose output deprecation notices can break.
+    "phpUnit": {
+        "customPath": "vendor/bin/phpunit"
+    },
     "minMsi": 80,
     "minCoveredMsi": 80,
     "mutators": {

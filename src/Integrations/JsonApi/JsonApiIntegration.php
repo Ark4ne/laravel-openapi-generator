@@ -8,16 +8,17 @@ use Ark4ne\OpenApi\Extraction\Exceptions\ErrorBodies;
 use Ark4ne\OpenApi\Generation\Integration;
 
 /**
- * `ark4ne/laravel-json-api` (^1.9): its resources and collections in `application/vnd.api+json`, the `Includes` and
+ * `ark4ne/laravel-json-api` 1.x (^1.9): its resources and collections in `application/vnd.api+json`, the `Includes` and
  * `Fields` rules as the `include` and `fields[type]` parameters and, when the application renders them, JSON:API
  * error bodies (the package itself leaves Laravel's errors as they are).
  */
 final readonly class JsonApiIntegration implements Integration
 {
     /**
-     * The class whose presence tells the package is installed, named as a string so that nothing is loaded.
+     * The class whose presence tells the package is installed in 1.x (2.0 removed it), named as a string so that
+     * nothing is loaded.
      */
-    public const PACKAGE_CLASS = 'Ark4ne\JsonApi\Resources\JsonApiResource';
+    public const PACKAGE_CLASS = 'Ark4ne\JsonApi\Resources\Skeleton';
 
     /**
      * @param bool $errors the error responses are JSON:API error documents (`errors[]`)

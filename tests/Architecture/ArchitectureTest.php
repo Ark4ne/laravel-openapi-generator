@@ -39,6 +39,11 @@ final class ArchitectureTest
     private const TESTS = 'Ark4ne\OpenApi\Tests';
 
     /**
+     * The classes of the 1.x JSON:API integration, not those of the 2.x one (`JsonApiV2`, a namespace of the same prefix).
+     */
+    private const JSON_API_1_X = '/^Ark4ne\\\\OpenApi\\\\Integrations\\\\JsonApi\\\\\\w+$/';
+
+    /**
      * Layers from left to right: each one depends only on those to its left (docs/architecture.md §2).
      */
     private const LAYERS = [
@@ -84,14 +89,41 @@ final class ArchitectureTest
         }
     }
 
-    public function test_only_the_json_api_integration_depends_on_its_package(): ArchitectureRule
+    public function test_only_the_json_api_integrations_depend_on_their_package(): ArchitectureRule
     {
         return PHPat::rule()
             ->classes(Selector::inNamespace(self::ROOT))
-            ->excluding(Selector::inNamespace(self::ROOT . '\Integrations\JsonApi'), Selector::inNamespace(self::TESTS))
+            ->excluding(Selector::inNamespace(self::ROOT . '\Integrations\JsonApi'), Selector::inNamespace(self::ROOT . '\Integrations\JsonApiV2'), Selector::inNamespace(self::TESTS))
             ->shouldNotDependOn()
             ->classes(Selector::inNamespace('Ark4ne\JsonApi'))
-            ->because('the generator works without ark4ne/laravel-json-api: only its integration loads its classes.');
+            ->because('the generator works without ark4ne/laravel-json-api: only its integrations load its classes.');
+    }
+
+    public function test_the_json_api_2_x_integration_does_not_depend_on_the_1_x_one(): ArchitectureRule
+    {
+        return PHPat::rule()
+            ->classes(Selector::inNamespace(self::ROOT . '\Integrations\JsonApiV2'))
+            ->shouldNotDependOn()
+            ->classes(Selector::classname(self::JSON_API_1_X, true))
+            ->because('each one documents its own major version of ark4ne/laravel-json-api, the other one is not loaded.');
+    }
+
+    public function test_the_json_api_1_x_integration_does_not_depend_on_the_2_x_one(): ArchitectureRule
+    {
+        return PHPat::rule()
+            ->classes(Selector::classname(self::JSON_API_1_X, true))
+            ->shouldNotDependOn()
+            ->classes(Selector::inNamespace(self::ROOT . '\Integrations\JsonApiV2'))
+            ->because('each one documents its own major version of ark4ne/laravel-json-api, the other one is not loaded.');
+    }
+
+    public function test_the_json_api_2_x_integration_reads_the_definitions_without_reflection(): ArchitectureRule
+    {
+        return PHPat::rule()
+            ->classes(Selector::inNamespace(self::ROOT . '\Integrations\JsonApiV2'))
+            ->shouldNotDependOn()
+            ->classes(Selector::classname('/^Reflection\\w*$/', true))
+            ->because('ark4ne/laravel-json-api 2.x exposes its definitions as a public contract: no reflection on its classes.');
     }
 
     public function test_exceptions_depend_only_on_support_and_the_diagnostics(): ArchitectureRule
