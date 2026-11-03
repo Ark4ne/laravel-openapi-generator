@@ -32,21 +32,24 @@ use stdClass;
 #[Group('json-api-v2')]
 final class JsonApiRuleMappersTest extends TestCase
 {
-    public function test_includes_lists_the_relationship_paths_without_going_back(): void
+    public function test_includes_lists_a_relationship_back_to_a_resource_of_the_path_without_following_it(): void
     {
         $field = $this->map(new IncludesRuleMapper(), new Includes(UserResource::class), 'include');
 
         Schemas::assertSame([
             'type' => 'string',
-            'description' => 'Relationships to include, separated by commas: `posts`, `posts.comments`, `comments`, `comments.post`.',
+            'description' => 'Relationships to include, separated by commas: `posts`, `posts.user`, `posts.comments`, `posts.comments.user`, `posts.comments.post`, `comments`, `comments.user`, `comments.post`, `comments.post.user`, `comments.post.comments`.',
             'example' => 'posts,comments',
         ], $field->schema);
         self::assertSame([IncludesRuleMapper::RULE], (new IncludesRuleMapper())->handles());
     }
 
-    public function test_the_include_example_takes_described_paths_only(): void
+    public function test_a_relationship_to_the_resource_itself_is_listed(): void
     {
-        self::assertSame('tags', $this->map(new IncludesRuleMapper(), new Includes(NestedResource::class), 'include')->schema->example);
+        $field = $this->map(new IncludesRuleMapper(), new Includes(NestedResource::class), 'include');
+
+        self::assertSame('Relationships to include, separated by commas: `parent`, `tags`.', $field->schema->description);
+        self::assertSame('parent,tags', $field->schema->example);
     }
 
     public function test_a_native_relationship_ends_its_path_and_a_polymorphic_one_follows_each_resource(): void
@@ -54,7 +57,7 @@ final class JsonApiRuleMappersTest extends TestCase
         $field = $this->map(new IncludesRuleMapper(), new Includes(ShowcaseResource::class), 'include');
 
         self::assertSame(
-            'Relationships to include, separated by commas: `subject`, `subject.user`, `subject.user.comments`, `subject.comments`, `subject.comments.user`, `subject.user.posts`, `subject.post`, `subject.post.user`, `author`.',
+            'Relationships to include, separated by commas: `subject`, `subject.user`, `subject.user.posts`, `subject.user.comments`, `subject.user.comments.user`, `subject.user.comments.post`, `subject.comments`, `subject.comments.user`, `subject.comments.user.posts`, `subject.comments.user.comments`, `subject.comments.post`, `subject.user.posts.user`, `subject.user.posts.comments`, `subject.post`, `subject.post.user`, `subject.post.user.posts`, `subject.post.user.comments`, `subject.post.comments`, `author`.',
             $field->schema->description,
         );
     }

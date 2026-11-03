@@ -12,8 +12,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   package compiles (`ResourceDefinition`) without reflection: value types, polymorphic relationships, relationships to
   Laravel's native JSON:API resources, identifier meta, links declared by name, `id` as a string, the `jsonapi` member
   (component `JsonApi`), `toDocumentMeta()`, the `Http\Rules\Includes` and `Http\Rules\Fields` rules and the error
-  documents of the package; a value without descriptor is typed by rendering the resource on a sample. The findings of
-  the compilation of a definition are relayed as diagnostics.
+  documents of the package; a value without descriptor is typed by rendering the resource on a sample. The `include`
+  description lists a relationship back to a resource of its path without following it. The findings of the
+  compilation of a definition are relayed once per document, as diagnostics (its errors as warnings).
 
 ### Changed
 

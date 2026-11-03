@@ -51,6 +51,8 @@ final class ResourceDefinitions
             $definition = null;
         }
 
+        // An error of the package is a warning here: the document is still written, an error being kept for a document
+        // that is not valid (`--strict` fails on warnings).
         foreach ($definition->diagnostics ?? [] as $diagnostic) {
             $message = "{$class}: {$diagnostic->message} ({$diagnostic->code})";
 

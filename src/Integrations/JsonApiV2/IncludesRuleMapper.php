@@ -14,9 +14,9 @@ use Ark4ne\OpenApi\Extraction\Rules\RuleMapper;
 
 /**
  * `new Includes(UserResource::class)`: a string of relationship paths separated by commas (`posts,posts.comments`);
- * the description lists the paths the definitions reach through `related`, a path never going back to a resource it
- * went through and a relationship to native resources ending its path; the example takes the first two relationships
- * it describes.
+ * the description lists the paths the definitions reach through `related`, a relationship back to a resource of
+ * its path (`parent`, `posts.user`) or to native resources ending its path; the example takes the first two
+ * relationships it describes.
  */
 final readonly class IncludesRuleMapper implements RuleMapper
 {
@@ -71,16 +71,15 @@ final readonly class IncludesRuleMapper implements RuleMapper
         $paths = [];
 
         foreach ($definition->relationships as $name => $relationship) {
-            $related = array_values(array_diff($relationship->related, $through));
-
-            if ($relationship->native === null && $related === []) {
+            if ($relationship->native === null && $relationship->related === []) {
                 continue;
             }
 
             $path = $prefix . $name;
             $paths[] = $path;
 
-            foreach ($related as $class) {
+            // Listed but not followed back into a resource of the path, so that the paths stay finite.
+            foreach (array_diff($relationship->related, $through) as $class) {
                 $known = $definitions->of($class, $context, Stage::Request, $field);
                 $nested = $known === null ? [] : self::paths($known, [...$through, $class], $definitions, $context, $field, "{$path}.");
                 $paths = [...$paths, ...array_diff($nested, $paths)];
