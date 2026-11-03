@@ -1,5 +1,5 @@
 # With ark4ne/laravel-json-api 2.x installed (the `json-api-v2` CI job):
-#   composer require --dev "ark4ne/laravel-json-api:2.0.x-dev@dev" -W
+#   composer require --dev "ark4ne/laravel-json-api:^2.0" -W
 #   vendor/bin/phpstan analyse -c phpstan-json-api-v2.neon.dist
 includes:
     - phpstan.base.neon.dist

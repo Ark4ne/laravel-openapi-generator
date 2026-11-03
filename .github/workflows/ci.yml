@@ -71,8 +71,7 @@ jobs:
       - uses: ramsey/composer-install@v3
 
       - name: Install the JSON:API package 2.x
-        # The 2.0 branch until 2.0.0 is tagged.
-        run: composer require --dev "ark4ne/laravel-json-api:2.0.x-dev@dev" --with-all-dependencies --no-interaction
+        run: composer require --dev "ark4ne/laravel-json-api:^2.0" --with-all-dependencies --no-interaction
 
       - name: PHPUnit without the 1.x tests
         run: vendor/bin/phpunit --exclude-group json-api --exclude-group benchmark
@@ -129,7 +128,7 @@ jobs:
 
       - name: Install the JSON:API package 2.x
         if: matrix.json-api == '2.x'
-        run: composer require --dev "ark4ne/laravel-json-api:2.0.x-dev@dev" --with-all-dependencies --no-interaction
+        run: composer require --dev "ark4ne/laravel-json-api:^2.0" --with-all-dependencies --no-interaction
 
       - name: PHPUnit with coverage
         run: vendor/bin/phpunit ${{ matrix.groups }} --coverage-clover=build/coverage/clover.xml
@@ -172,7 +171,7 @@ jobs:
 
       - name: Install the JSON:API package 2.x
         if: matrix.json-api == '2.x'
-        run: composer require --dev "ark4ne/laravel-json-api:2.0.x-dev@dev" --with-all-dependencies --no-interaction
+        run: composer require --dev "ark4ne/laravel-json-api:^2.0" --with-all-dependencies --no-interaction
 
       - name: Infection
         run: infection --configuration=${{ matrix.configuration }} --threads=max --no-progress --show-mutations
