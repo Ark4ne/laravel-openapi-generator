@@ -28,6 +28,7 @@ use Ark4ne\OpenApi\Tests\Fixtures\JsonApiV2\Types\TaggedResource;
 use Ark4ne\OpenApi\Tests\Fixtures\JsonApiV2\Types\TwinAResource;
 use Ark4ne\OpenApi\Tests\Fixtures\JsonApiV2\Types\TwinBResource;
 use Ark4ne\OpenApi\Tests\Fixtures\JsonApiV2\Types\TwinsResource;
+use Ark4ne\OpenApi\Tests\Fixtures\JsonApiV2\Types\TypedFailingResource;
 use Ark4ne\OpenApi\Tests\Fixtures\JsonApiV2\Types\UnsampledResource;
 use Ark4ne\OpenApi\Tests\Fixtures\JsonApiV2\Types\UntypedNativeHolderResource;
 use Ark4ne\OpenApi\Tests\Fixtures\Sampling\Http\Resources\AuthorResource;
@@ -121,6 +122,14 @@ final class JsonApiResourceFormatTest extends JsonApiTestCase
         Schemas::assertSame(['type' => ['string', 'null']], self::at($failing, 'attributes', 'title'));
         Schemas::assertSame([], self::at($failing, 'attributes', 'boom'));
         self::assertStringContainsString('cannot render ' . RenderFailingResource::class . ' on a sample: exploded', $this->diagnostics());
+    }
+
+    public function test_a_resource_whose_values_all_have_a_descriptor_is_not_rendered_on_a_sample(): void
+    {
+        $typed = $this->resourceObject(TypedFailingResource::class, 'TypedFailing');
+
+        Schemas::assertSame(['type' => ['string', 'null']], self::at($typed, 'attributes', 'title'));
+        self::assertStringNotContainsString('cannot render', $this->diagnostics());
     }
 
     public function test_relationships_hold_resource_identifiers_with_their_links_and_meta(): void

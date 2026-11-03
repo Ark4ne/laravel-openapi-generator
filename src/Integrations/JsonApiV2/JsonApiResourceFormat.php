@@ -30,7 +30,7 @@ use WeakMap;
  *   `links` and `meta`; only `type` and `id` are required, sparse fieldsets and conditions letting any other member
  *   out.
  * - Values: typed by their `ValueType` (AttributeSchemas); a `Mixed` value is inferred from the resource rendered on a
- *   sample of its model, through its public API (`toResponse()`).
+ *   sample of its model, through its public API (`toResponse()`), only when it has one.
  * - Relationships: `data`, a resource identifier (`type`, `id`), nullable for one, a list for many; the `type` of
  *   each related resource, an enum of them when polymorphic, that of a native resource when it can be read without
  *   model. `links` (their names when declared by name) and `meta` when declared; their content is not known.
@@ -304,7 +304,8 @@ final class JsonApiResourceFormat implements ResourceFormat
     }
 
     /**
-     * The schemas of the values of a member of the document rendered on a sample (`data.attributes`, `meta`…).
+     * The schemas of the values of a member of the document rendered on a sample (`data.attributes`, `meta`…): the
+     * resource is rendered for its first `Mixed` value only.
      *
      * @param class-string<JsonApiResource<mixed>> $resource
      *
@@ -312,11 +313,10 @@ final class JsonApiResourceFormat implements ResourceFormat
      */
     private function values(string $resource, ResourceSchemas $resources, GenerationContext $context): Closure
     {
-        $rendered = $this->rendered($resource, $resources, $context);
         $model = $resources->models()->model($resource);
 
-        return static fn(string $member): AttributeSchemas => new AttributeSchemas($context, $model, static function (string $path) use ($rendered, $member, $resources, $context): Schema {
-            $value = $rendered;
+        return fn(string $member): AttributeSchemas => new AttributeSchemas($context, $model, function (string $path) use ($resource, $member, $resources, $context): Schema {
+            $value = $this->rendered($resource, $resources, $context);
 
             foreach (explode('.', "{$member}.{$path}") as $segment) {
                 if (! is_array($value) || ! array_key_exists($segment, $value)) {
