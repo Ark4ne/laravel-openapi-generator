@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-03
+
 ### Added
 
 - JSON:API integration for `ark4ne/laravel-json-api` 2.x (`Integrations\JsonApiV2`), read from the definitions the
@@ -98,6 +100,7 @@ A rewrite: see [UPGRADE.md](UPGRADE.md) to migrate from 0.6.
 - `#[Response(statusText: 'Created')]` wrote a 200; the 422 had no schema; optional path parameters (`{id?}`) were
   ignored; state was shared between the documents of one run.
 
-[Unreleased]: https://github.com/Ark4ne/laravel-openapi-generator/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/Ark4ne/laravel-openapi-generator/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/Ark4ne/laravel-openapi-generator/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/Ark4ne/laravel-openapi-generator/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/Ark4ne/laravel-openapi-generator/compare/v0.6.1...v1.0.0
