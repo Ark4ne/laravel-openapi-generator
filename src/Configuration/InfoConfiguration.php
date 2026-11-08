@@ -7,7 +7,8 @@ namespace Ark4ne\OpenApi\Configuration;
 use Ark4ne\OpenApi\Exceptions\InvalidConfigurationException;
 
 /**
- * The `info` object of a document.
+ * The `info` object of a document. `version` accepts the `{variant}` placeholder: the name of the variant of the
+ * document, or the name of its head.
  */
 final readonly class InfoConfiguration
 {

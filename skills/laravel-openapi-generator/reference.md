@@ -167,7 +167,7 @@ unknown top-level key or an invalid value fails the command with the key, the ex
 | `documents.<name>.openapi` | `3.1.2` | Version written: `3.0.0` → `3.0.4`, `3.1.0` → `3.1.2`, `3.2.0` |
 | `documents.<name>.strict` | `true` | Rejects what the version cannot write; `false` drops it with a warning |
 | `documents.<name>.vendor_extensions` | `none` | `redoc`: `x-webhooks` before 3.1, `x-tagGroups` before 3.2 |
-| `documents.<name>.info` | | `title`, `version`, `summary`, `description`, `terms_of_service`, `contact`, `license` |
+| `documents.<name>.info` | | `title`, `version` (`{variant}` replaced), `summary`, `description`, `terms_of_service`, `contact`, `license` |
 | `documents.<name>.self` | `null` | Public URI of the document (`$self`, 3.2) |
 | `documents.<name>.external_docs` | `null` | `url`, `description` |
 | `documents.<name>.servers` | `[]` | Servers of the document; the global `servers` when empty |
@@ -178,8 +178,9 @@ unknown top-level key or an invalid value fails the command with the key, the ex
 | `documents.<name>.use_references` | `true` | Resources and enums as `components.schemas` referenced by `$ref` |
 | `documents.<name>.output` | | Overrides of the global `output` |
 | `documents.<name>.extensions` | `[]` | `x-*` extensions of the document |
+| `documents.<name>.variants` | `null` | One document per variant (an API revision, a version…): `values` (an enum class with cases, in declaration order, named by their value when backed; or a list of strings; names of letters, digits, `.`, `-`, `_`), `head` (`false`; a name: one more document without variant), `header` (`null`; the request header selecting the variant). Extensions read `$context->variant` (`null`: the head) |
 | `servers` | `APP_URL` | `url`, `description`, `name` (3.2), `variables` (`default`, `enum`, `description`) |
-| `output` | | `disk` (`null`: the default disk), `directory` (`openapi`), `file` (`{document}.json`, with `{document}` and `{locale}`), `format` (`json`, `yaml`) |
+| `output` | | `disk` (`null`: the default disk), `directory` (`openapi`), `file` (`{document}.json`, with `{document}`, `{locale}` and `{variant}`; a locale or a variant without placeholder is inserted before the extension), `format` (`json`, `yaml`) |
 | `sampling` | | `transactions` (`true`), `connections` (drivers wrapped in a rolled back transaction), `collection_size` (`2`), `seed` (`1`), `examples` (`true`) |
 | `date_formats` | | PHP date format → OpenAPI format (`date`, `date-time`), for `date_format:` and the sampled values |
 | `middlewares` | `[]` | Middleware name or class → classes implementing `MiddlewareMapper`, replacing the built-in ones of that middleware |
@@ -217,8 +218,8 @@ application code it does not understand: it adds a diagnostic (`$context->diagno
 
 | Command | Effect |
 | --- | --- |
-| `openapi:generate` | Every document, in each language. `--document=*`, `--strict` (fail on a warning), `--dry-run`, `--format=json\|yaml`, `--stdout` (one document; diagnostics on the error output). Exit 0 written, 1 a document failed, 2 invalid configuration or options |
-| `openapi:inspect {route}` | What the generator understood of a route (its name, its URI, or its method and URI): the operation after the passes and all its diagnostics. `--document=` |
+| `openapi:generate` | Every document, in each variant and each language. `--document=*`, `--variant=` (one variant, or the head, of every chosen document), `--strict` (fail on a warning), `--dry-run`, `--format=json\|yaml`, `--stdout` (one document, one variant; diagnostics on the error output). Exit 0 written, 1 a document failed, 2 invalid configuration or options |
+| `openapi:inspect {route}` | What the generator understood of a route (its name, its URI, or its method and URI): the operation after the passes and all its diagnostics. `--document=`, `--variant=` (the first generation of the document by default) |
 | `about` | Version, documents, JSON:API integration (and the major version of `ark4ne/laravel-json-api`) |
 
 Diagnostics are grouped by route: warnings by default, infos with `-v`, only errors with `-q`.

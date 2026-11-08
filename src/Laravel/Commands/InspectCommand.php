@@ -13,6 +13,7 @@ use Ark4ne\OpenApi\Description\ResponseDescription;
 use Ark4ne\OpenApi\Description\SecurityDescription;
 use Ark4ne\OpenApi\Discovery\RouteDefinition;
 use Ark4ne\OpenApi\Exceptions\InvalidConfigurationException;
+use Ark4ne\OpenApi\Generation\Generator;
 use Ark4ne\OpenApi\Laravel\DiagnosticsOutput;
 use Ark4ne\OpenApi\Laravel\GeneratorFactory;
 use Ark4ne\OpenApiWriter\Enums\HttpMethod;
@@ -32,7 +33,8 @@ final class InspectCommand extends Command
 {
     protected $signature = 'openapi:inspect
         {route : Name of the route, its URI, or its method and URI ("GET api/users")}
-        {--document= : Document to look in, the first one by default}';
+        {--document= : Document to look in, the first one by default}
+        {--variant= : Variant of the document to look in (its name, or the name of the head), the first one by default}';
 
     protected $description = 'Show what the generator understood of a route';
 
@@ -42,7 +44,9 @@ final class InspectCommand extends Command
             $configuration = $this->laravel->make(Configuration::class);
             $name = $this->option('document');
             $document = $configuration->document(is_string($name) ? $name : (string) array_key_first($configuration->documents));
-            $generated = $this->laravel->make(GeneratorFactory::class)->make($configuration)->generate($configuration, $document);
+            $variant = $this->option('variant');
+            $variant = is_string($variant) ? $document->generation($variant) : Generator::variants($document)[0];
+            $generated = $this->laravel->make(GeneratorFactory::class)->make($configuration)->generate($configuration, $document, variant: $variant);
         } catch (InvalidConfigurationException $exception) {
             $this->components->error($exception->getMessage());
 
@@ -55,7 +59,8 @@ final class InspectCommand extends Command
         $operations = array_values(array_filter($generated->description->operations, static fn(OperationDescription $operation): bool => self::matches($operation, $targets)));
 
         if ($operations === []) {
-            $this->components->error("{$route} is not in the document {$document->name}");
+            $name = $generated->context->variantName();
+            $this->components->error("{$route} is not in the document {$document->name}" . ($name === null ? '' : " [{$name}]"));
 
             return self::FAILURE;
         }

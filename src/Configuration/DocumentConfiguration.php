@@ -26,6 +26,8 @@ final readonly class DocumentConfiguration
      * @param string|null $self public URI of the generated document (`$self`, 3.2)
      * @param array<string, mixed> $extensions `x-*` extensions of the document
      * @param list<string> $security names of the security schemes required by default on every operation
+     * @param VariantsConfiguration|null $variants the variant dimension: the document is generated once per variant;
+     *        `null` generates it once, without variant
      */
     public function __construct(
         public string $name,
@@ -47,6 +49,7 @@ final readonly class DocumentConfiguration
         public ?string $self = null,
         public array $extensions = [],
         public array $security = [],
+        public ?VariantsConfiguration $variants = null,
     ) {}
 
     /**
@@ -80,10 +83,16 @@ final readonly class DocumentConfiguration
 
         /** @var array{url: string, description?: string}|null $externalDocs */
         $extensions = ConfigurationValues::array("{$key}.extensions", $config['extensions'] ?? []);
+        $info = InfoConfiguration::fromArray("{$key}.info", ConfigurationValues::array("{$key}.info", $config['info'] ?? ['title' => $name]));
+        $variants = isset($config['variants']) ? VariantsConfiguration::fromArray("{$key}.variants", ConfigurationValues::array("{$key}.variants", $config['variants'])) : null;
+
+        if ($variants === null && str_contains($info->version, '{variant}')) {
+            throw InvalidConfigurationException::forKey("{$key}.info.version", 'a version without {variant}, the document having no variants', $info->version);
+        }
 
         return new self(
             $name,
-            InfoConfiguration::fromArray("{$key}.info", ConfigurationValues::array("{$key}.info", $config['info'] ?? ['title' => $name])),
+            $info,
             ConfigurationValues::enum("{$key}.openapi", $config['openapi'] ?? Version::default()->value, Version::class),
             is_bool($config['strict'] ?? true) ? (($config['strict'] ?? true) ? Strictness::Strict : Strictness::Lenient) : throw InvalidConfigurationException::forKey("{$key}.strict", 'a boolean', $config['strict']),
             ConfigurationValues::enum("{$key}.vendor_extensions", $config['vendor_extensions'] ?? VendorExtensions::None->value, VendorExtensions::class),
@@ -101,7 +110,21 @@ final readonly class DocumentConfiguration
             self: ConfigurationValues::nullableString("{$key}.self", $config['self'] ?? null),
             extensions: array_filter($extensions, static fn(int|string $name): bool => is_string($name), ARRAY_FILTER_USE_KEY),
             security: ConfigurationValues::strings("{$key}.security", $config['security'] ?? []),
+            variants: $variants,
         );
+    }
+
+    /**
+     * The generation of this document named by `--variant`: its variant, `null` for its head.
+     *
+     * @throws InvalidConfigurationException the document has no variants, or none of that name and a head of another
+     */
+    public function generation(string $name): ?Variant
+    {
+        $variants = $this->variants ?? throw InvalidConfigurationException::forOption('variant', "one of the variants of documents.{$this->name}, which has none", $name);
+        $variant = $variants->named($name);
+
+        return $variant !== null || $name === $variants->head ? $variant : throw InvalidConfigurationException::forOption('variant', 'one of ' . implode(', ', $variants->names()), $name);
     }
 
     /**
@@ -133,6 +156,7 @@ final readonly class DocumentConfiguration
             $this->self,
             $this->extensions,
             $this->security,
+            $this->variants,
         );
     }
 

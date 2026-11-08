@@ -76,23 +76,39 @@ final readonly class DocumentWriter
     }
 
     /**
-     * `directory/file` of `output`, `{document}` and `{locale}` replaced; a locale is added before the extension when
-     * the file name has no `{locale}`.
+     * `directory/file` of `output`, `{document}`, `{locale}` and `{variant}` replaced; a locale is added before the
+     * extension when the file name has no `{locale}`, a variant (or the name of the head) when it has no `{variant}`.
      */
     public function path(GenerationContext $context): string
     {
         $output = $context->document->output;
         $locale = $context->locale;
+        $variant = $context->variantName();
         $file = $output->file;
 
-        if ($locale !== null && ! str_contains($file, '{locale}')) {
-            $extension = pathinfo($file, PATHINFO_EXTENSION);
-            $file = $extension === '' ? "{$file}.{locale}" : substr($file, 0, -strlen($extension) - 1) . ".{locale}.{$extension}";
+        // The variant always comes before the locale: inserted before `.{locale}`, else before the extension, the
+        // locale then going between the variant and the extension.
+        if ($variant !== null && ! str_contains($file, '{variant}')) {
+            $file = str_contains($file, '.{locale}') ? str_replace('.{locale}', '.{variant}.{locale}', $file) : self::beforeExtension($file, '{variant}');
         }
 
-        $file = str_replace(['{document}', '{locale}'], [$context->document->name, $locale ?? ''], $file);
+        if ($locale !== null && ! str_contains($file, '{locale}')) {
+            $file = self::beforeExtension($file, '{locale}');
+        }
+
+        $file = str_replace(['{document}', '{locale}', '{variant}'], [$context->document->name, $locale ?? '', $variant ?? ''], $file);
 
         return trim($output->directory, '/') === '' ? $file : trim($output->directory, '/') . '/' . $file;
+    }
+
+    /**
+     * `$file` with `.$placeholder` before its extension (at its end without extension).
+     */
+    private static function beforeExtension(string $file, string $placeholder): string
+    {
+        $extension = pathinfo($file, PATHINFO_EXTENSION);
+
+        return $extension === '' ? "{$file}.{$placeholder}" : substr($file, 0, -strlen($extension) - 1) . ".{$placeholder}.{$extension}";
     }
 
     private static function report(Diagnostic $diagnostic, GenerationContext $context): void

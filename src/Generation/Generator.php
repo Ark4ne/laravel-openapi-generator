@@ -6,6 +6,7 @@ namespace Ark4ne\OpenApi\Generation;
 
 use Ark4ne\OpenApi\Configuration\Configuration;
 use Ark4ne\OpenApi\Configuration\DocumentConfiguration;
+use Ark4ne\OpenApi\Configuration\Variant;
 use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Description\DocumentDescription;
 use Ark4ne\OpenApi\Discovery\MiddlewareResolver;
@@ -62,7 +63,8 @@ final readonly class Generator
     }
 
     /**
-     * Every document of the configuration, in each of its languages (once without language when none is set).
+     * Every document of the configuration, in each of its languages (once without language when none is set) and each of
+     * its variants (then its head, when it has one; once without variant when it has none).
      *
      * @return list<GeneratedDocument>
      */
@@ -71,24 +73,46 @@ final readonly class Generator
         $generated = [];
 
         foreach ($configuration->documents as $document) {
-            foreach ($configuration->languages === [] ? [null] : $configuration->languages as $locale) {
-                $generated[] = $this->generate($configuration, $document, $locale);
+            foreach (self::variants($document) as $variant) {
+                foreach ($configuration->languages === [] ? [null] : $configuration->languages as $locale) {
+                    $generated[] = $this->generate($configuration, $document, $locale, $variant);
+                }
             }
         }
 
         return $generated;
     }
 
-    public function generate(Configuration $configuration, string|DocumentConfiguration $document, ?string $locale = null): GeneratedDocument
+    /**
+     * @param Variant|null $variant the variant to generate, `null` for the head or a document without variants
+     */
+    public function generate(Configuration $configuration, string|DocumentConfiguration $document, ?string $locale = null, ?Variant $variant = null): GeneratedDocument
     {
         $document = is_string($document) ? $configuration->document($document) : $document;
-        $context = GenerationContext::for($configuration, $document, $locale);
+        $context = GenerationContext::for($configuration, $document, $locale, $variant);
         $integrations = array_values(array_filter($this->integrations, static fn(Integration $integration): bool => $integration->available()));
         $errors = self::errorBodies($integrations);
         $description = $this->session->run(fn(): DocumentDescription => $this->describe($context, $integrations, $errors), $context);
         $description = Passes::default($configuration, $errors, $this->container, ...$this->extensions->passes)->process($description, $context);
 
         return new GeneratedDocument($this->builder->build($description, $context), $description, $context);
+    }
+
+    /**
+     * The generations of a document in its variant dimension: each variant, then `null` for its head; only `null` for a
+     * document without variants.
+     *
+     * @return list<Variant|null>
+     */
+    public static function variants(DocumentConfiguration $document): array
+    {
+        $variants = $document->variants;
+
+        if ($variants === null) {
+            return [null];
+        }
+
+        return $variants->head === null ? $variants->values : [...$variants->values, null];
     }
 
     /**

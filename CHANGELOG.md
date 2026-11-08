@@ -6,6 +6,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+
+- Document variants (`documents.<name>.variants`): a document is generated once per value of one dimension of the API
+  (an enum, its cases in declaration order, or a list of strings), and once more without variant when `head` names
+  that document. Variant names are of letters, digits, `.`, `-` and `_`. `{variant}` is replaced in the file name and
+  in `info.version` (an error on a document without variants); `openapi:generate --variant=` generates one variant,
+  `openapi:inspect --variant=` inspects one (the first by default). The variant travels in `GenerationContext::$variant` (`Configuration\Variant`, compared by declaration
+  order) for the extensions; `header` is read, the documentation of the header coming next.
+
 ## [1.1.0] - 2026-11-03
 
 ### Added

@@ -7,6 +7,7 @@ namespace Ark4ne\OpenApi\Laravel\Commands;
 use Ark4ne\OpenApi\Configuration\Configuration;
 use Ark4ne\OpenApi\Configuration\DocumentConfiguration;
 use Ark4ne\OpenApi\Configuration\OutputFormat;
+use Ark4ne\OpenApi\Configuration\Variant;
 use Ark4ne\OpenApi\Context\DiagnosticLevel;
 use Ark4ne\OpenApi\Context\Diagnostics;
 use Ark4ne\OpenApi\Exceptions\GenerationFailedException;
@@ -22,7 +23,7 @@ use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * Generates the documents of the configuration, in each of its languages.
+ * Generates the documents of the configuration, in each of its languages and each of their variants.
  *
  * Exit codes: 0 every document is written; 1 a document has an error, or a warning with `--strict` (it is not
  * written); 2 the configuration or the options are invalid (nothing is generated).
@@ -32,6 +33,7 @@ final class GenerateCommand extends Command
 {
     protected $signature = 'openapi:generate
         {--document=* : Documents to generate, all of them by default}
+        {--variant= : The variant to generate (its name, or the name of the head), all of them by default}
         {--strict : Fail on the first warning}
         {--dry-run : Generate and validate, without writing}
         {--format= : json or yaml, instead of the configured format}
@@ -44,6 +46,7 @@ final class GenerateCommand extends Command
         try {
             $configuration = $this->laravel->make(Configuration::class);
             $documents = $this->documents($configuration);
+            $generations = $this->generations($documents);
             $generator = $this->laravel->make(GeneratorFactory::class)->make($configuration);
 
             foreach ($documents as $document) {
@@ -57,8 +60,8 @@ final class GenerateCommand extends Command
 
         $locales = $configuration->languages === [] ? [null] : $configuration->languages;
 
-        if ($this->option('stdout') === true && count($documents) * count($locales) !== 1) {
-            $this->components->error('--stdout writes one document: choose it with --document (and a single language)');
+        if ($this->option('stdout') === true && count($generations) * count($locales) !== 1) {
+            $this->components->error('--stdout writes one document: choose it with --document (and --variant, and a single language)');
 
             return self::INVALID;
         }
@@ -67,9 +70,9 @@ final class GenerateCommand extends Command
         $validator = $this->laravel->make(DocumentValidator::class);
         $failed = false;
 
-        foreach ($documents as $document) {
+        foreach ($generations as [$document, $variant]) {
             foreach ($locales as $locale) {
-                $failed = ! $this->generate($generator, $writer, $validator, $configuration, $document, $locale) || $failed;
+                $failed = ! $this->generate($generator, $writer, $validator, $configuration, $document, $variant, $locale) || $failed;
             }
         }
 
@@ -79,9 +82,10 @@ final class GenerateCommand extends Command
     /**
      * @return bool whether the document is written (or would be, with `--dry-run`)
      */
-    private function generate(Generator $generator, DocumentWriter $writer, DocumentValidator $validator, Configuration $configuration, DocumentConfiguration $document, ?string $locale): bool
+    private function generate(Generator $generator, DocumentWriter $writer, DocumentValidator $validator, Configuration $configuration, DocumentConfiguration $document, ?Variant $variant, ?string $locale): bool
     {
-        $label = $locale === null ? $document->name : "{$document->name} ({$locale})";
+        $name = $document->variants?->nameOf($variant);
+        $label = $document->name . ($name === null ? '' : " [{$name}]") . ($locale === null ? '' : " ({$locale})");
         $stdout = $this->option('stdout') === true;
         $console = $this->output->getOutput();
         // With --stdout, everything but the document goes to the error output: the standard output holds it only.
@@ -89,7 +93,7 @@ final class GenerateCommand extends Command
         $output = new DiagnosticsOutput($errors);
 
         try {
-            $generated = $generator->generate($configuration, $document, $locale);
+            $generated = $generator->generate($configuration, $document, $locale, $variant);
             $contents = $writer->contents($generated->openApi, $generated->context);
             $validator->validate($generated->openApi, $generated->context);
         } catch (GenerationFailedException $exception) {
@@ -158,6 +162,36 @@ final class GenerateCommand extends Command
         }
 
         return $documents;
+    }
+
+    /**
+     * Each generation of the documents in their variant dimension: every variant then the head, or the one `--variant`
+     * names, which every document must have.
+     *
+     * @param list<DocumentConfiguration> $documents
+     *
+     * @return list<array{DocumentConfiguration, Variant|null}>
+     *
+     * @throws InvalidConfigurationException
+     */
+    private function generations(array $documents): array
+    {
+        $name = $this->option('variant');
+        $generations = [];
+
+        foreach ($documents as $document) {
+            if (! is_string($name)) {
+                foreach (Generator::variants($document) as $variant) {
+                    $generations[] = [$document, $variant];
+                }
+
+                continue;
+            }
+
+            $generations[] = [$document, $document->generation($name)];
+        }
+
+        return $generations;
     }
 
     /**

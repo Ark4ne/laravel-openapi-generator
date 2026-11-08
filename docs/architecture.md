@@ -136,7 +136,10 @@ One `GenerationContext` per generated document, passed **explicitly** to each ex
 - the `DocumentConfiguration` of the current document (no `config()` call outside the `Laravel` layer);
 - `Diagnostics`: warnings and errors, each with its route and step;
 - `ComponentRegistry`: named schemas met (resources, enums), with name collision detection;
-- the current locale (multilingual generation).
+- the current locale (multilingual generation);
+- the current variant (`Configuration\Variant`, `null` for the head or a document without variants): one generation per
+  value of the `variants` dimension of the document. The core gives it no meaning; an integration or an extension
+  recognises its own values and ignores the others.
 
 It is not a service container: dependencies come through constructors.
 
