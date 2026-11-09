@@ -21,6 +21,7 @@ use Ark4ne\OpenApi\Tests\Fixtures\Variants\ApiRevision;
 use Ark4ne\OpenApi\Tests\Support\Descriptions;
 use Ark4ne\OpenApi\Tests\TestCase;
 use Ark4ne\OpenApiWriter\Enums\HttpMethod;
+use Ark4ne\OpenApiWriter\Objects\Discriminator;
 use Ark4ne\OpenApiWriter\Objects\Schema;
 use PHPUnit\Framework\Attributes\CoversClass;
 
@@ -46,6 +47,21 @@ final class UnusedComponentsPassTest extends TestCase
         ]);
 
         self::assertSame(['Country', 'Address', 'User'], self::kept($document));
+    }
+
+    public function test_a_component_a_discriminator_maps_to_is_kept(): void
+    {
+        $pet = Schema::create()->oneOf(Schema::ref('Cat'))->discriminator(Discriminator::create()->propertyName('type')->mapping(['cat' => '#/components/schemas/Cat', 'dog' => 'Dog'])->defaultMapping('Animal'));
+        $document = Descriptions::document(self::returning('Pet'))->schemas([
+            'Pet' => $pet,
+            'Cat' => Schema::object(),
+            'Dog' => Schema::object()->properties(Schema::ref('Bone')->objectId('bone')),
+            'Bone' => Schema::object(),
+            'Animal' => Schema::object(),
+            'Unused' => Schema::object(),
+        ]);
+
+        self::assertSame(['Pet', 'Cat', 'Dog', 'Bone', 'Animal'], self::kept($document));
     }
 
     public function test_a_component_referenced_only_by_unused_components_is_removed(): void

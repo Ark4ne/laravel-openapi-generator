@@ -10,6 +10,7 @@ use Ark4ne\OpenApi\Configuration\InfoConfiguration;
 use Ark4ne\OpenApi\Configuration\Variant;
 use Ark4ne\OpenApi\Configuration\VariantsConfiguration;
 use Ark4ne\OpenApi\Context\GenerationContext;
+use Ark4ne\OpenApi\Context\Stage;
 use Ark4ne\OpenApi\Tests\Fixtures\Variants\ApiRevision;
 use Ark4ne\OpenApi\Tests\TestCase;
 use Closure;
@@ -120,6 +121,45 @@ final class GenerationContextTest extends TestCase
         self::assertTrue($request->attributes->get('prepared'));
         self::assertSame('2026-12-01', $request->header('Api-Version'));
         self::assertDiagnostics(['[warning] sampling: cannot prepare a sample request: no revision'], $context);
+    }
+
+    public function test_the_preparers_run_once_for_every_sample_request_of_a_context(): void
+    {
+        $runs = 0;
+        $context = $this->revisions(Variant::ofCase(ApiRevision::Labels, 1), preparers: [
+            static function (Request $request) use (&$runs): void {
+                $runs++;
+                $request->attributes->set('prepared', true);
+            },
+        ]);
+
+        $requests = [$context->sampleRequest(), $context->sampleRequest(), $context->sampleRequest()];
+
+        self::assertSame(1, $runs);
+
+        foreach ($requests as $request) {
+            self::assertTrue($request->attributes->get('prepared'));
+            self::assertSame('2026-12-01', $request->header('Api-Version'));
+        }
+    }
+
+    public function test_a_failing_preparer_is_reported_once_for_every_sample_request_of_a_context(): void
+    {
+        $context = $this->revisions(null, preparers: [static fn() => throw new RuntimeException('no revision')]);
+
+        $context->sampleRequest();
+        $context->sampleRequest();
+
+        self::assertDiagnostics(['[warning] sampling: cannot prepare a sample request: no revision'], $context);
+    }
+
+    public function test_a_failing_preparer_of_a_request_is_reported_at_its_stage_and_route(): void
+    {
+        $context = $this->revisions(null, preparers: [static fn() => throw new RuntimeException('no revision')]);
+
+        $context->prepareRequest(Request::create('/api/users', 'POST'), Stage::Request, 'POST /api/users');
+
+        self::assertDiagnostics(['[warning] request POST /api/users: cannot prepare the request Illuminate\Http\Request: no revision'], $context);
     }
 
     public function test_every_sample_request_is_a_new_request(): void

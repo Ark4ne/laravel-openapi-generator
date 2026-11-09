@@ -19,6 +19,8 @@ use Throwable;
  */
 final readonly class GenerationContext
 {
+    private SampleRequest $sample;
+
     /**
      * @param Variant|null $variant the variant generated, `null` for the head or a document without variants
      * @param list<Closure(Request, GenerationContext): void> $requestPreparers what prepares every sample request, in
@@ -32,7 +34,9 @@ final readonly class GenerationContext
         public ?string $locale = null,
         public ?Variant $variant = null,
         public array $requestPreparers = [],
-    ) {}
+    ) {
+        $this->sample = new SampleRequest();
+    }
 
     /**
      * A context for the given document, in that locale and that variant, with its own diagnostics and components.
@@ -57,19 +61,21 @@ final readonly class GenerationContext
 
     /**
      * A new `GET /` request on which the application renders its samples (resources, responsables), prepared as
-     * `prepareRequest()` does. The only place of `src/` that creates a plain request.
+     * `prepareRequest()` does: once per context, each call returning its own copy. The only place of `src/` that
+     * creates a plain request.
      */
     public function sampleRequest(): Request
     {
-        return $this->prepareRequest(Request::create('/'));
+        return $this->sample->get(fn(): Request => $this->prepareRequest(Request::create('/')));
     }
 
     /**
      * Prepares a request the generator builds for the application (a sample request, the form request whose rules are
      * read): the variant header when one is configured and a variant is generated (not for the head), then every
-     * request preparer, in order. A preparer that throws is reported, the next ones still run.
+     * request preparer, in order. A preparer that throws is reported at `$stage`, for `$route` when given; the next
+     * ones still run.
      */
-    public function prepareRequest(Request $request): Request
+    public function prepareRequest(Request $request, Stage $stage = Stage::Sampling, ?string $route = null): Request
     {
         $header = $this->document->variants?->header;
 
@@ -81,7 +87,8 @@ final readonly class GenerationContext
             try {
                 $prepare($request, $this);
             } catch (Throwable $error) {
-                $this->diagnostics->warning(Stage::Sampling, "cannot prepare a sample request: {$error->getMessage()}");
+                $what = $stage === Stage::Sampling ? 'a sample request' : 'the request ' . $request::class;
+                $this->diagnostics->warning($stage, "cannot prepare {$what}: {$error->getMessage()}", $route);
             }
         }
 

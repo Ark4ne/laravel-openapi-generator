@@ -12,6 +12,7 @@ use Ark4ne\OpenApi\Generation\Integration;
 use Ark4ne\OpenApi\Tests\Feature\DocumentScenario;
 use Ark4ne\OpenApi\Tests\Fixtures\Variants\ApiRevision;
 use Ark4ne\OpenApi\Tests\Fixtures\Variants\RevisionController;
+use Ark4ne\OpenApi\Tests\Fixtures\Variants\RevisionRequest;
 use Ark4ne\OpenApi\Tests\Fixtures\Variants\TestVariantIntegration;
 use Ark4ne\OpenApi\Tests\Support\Schemas;
 use Ark4ne\OpenApiWriter\Enums\Version;
@@ -89,7 +90,9 @@ final class GeneratorVariantsTest extends DocumentScenario
 
         self::assertSame("The API.\n\nSecond (2026-12-01)", Schemas::at($this->written($generated), 'info', 'description'));
         self::assertContains('[warning] pass: cannot describe the variant 2026-12-01: broken cannot describe', array_map(strval(...), $generated->context->diagnostics->all()));
-        self::assertContains('[warning] sampling: cannot prepare a sample request: broken cannot prepare', array_map(strval(...), $generated->context->diagnostics->all()));
+        $diagnostics = array_map(strval(...), $generated->context->diagnostics->all());
+        self::assertCount(1, array_keys($diagnostics, '[warning] sampling: cannot prepare a sample request: broken cannot prepare', true));
+        self::assertContains('[warning] request POST /api/revision: cannot prepare the request ' . RevisionRequest::class . ': broken cannot prepare', $diagnostics);
     }
 
     public function test_the_variant_is_described_inside_the_sampling_session(): void

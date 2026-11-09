@@ -9,6 +9,7 @@ use Ark4ne\OpenApi\Description\ParameterDescription;
 use Ark4ne\OpenApi\Generation\SchemaWalker;
 use Ark4ne\OpenApi\Tests\Support\Descriptions;
 use Ark4ne\OpenApiWriter\Contracts\SchemaContract;
+use Ark4ne\OpenApiWriter\Objects\Discriminator;
 use Ark4ne\OpenApiWriter\Objects\Reference;
 use Ark4ne\OpenApiWriter\Objects\Schema;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -32,6 +33,24 @@ final class SchemaWalkerTest extends TestCase
     public function test_a_reference_object_to_a_component_schema_names_it(): void
     {
         self::assertSame('User', SchemaWalker::component(Reference::to('#/components/schemas/User')));
+    }
+
+    public function test_the_components_a_discriminator_maps_to_are_named(): void
+    {
+        $schema = Schema::create()->oneOf(Schema::ref('Cat'), Schema::ref('Dog'))->discriminator(Discriminator::create()->propertyName('type')->mapping([
+            'cat' => '#/components/schemas/Cat',
+            'dog' => 'Dog',
+            'cow' => 'https://example.com/cow.json',
+            'kitten' => '#/components/schemas/Cat',
+        ])->defaultMapping('Animal'));
+
+        self::assertSame(['Cat', 'Dog', 'Animal'], SchemaWalker::discriminated($schema));
+    }
+
+    public function test_a_schema_without_discriminator_maps_to_no_component(): void
+    {
+        self::assertSame([], SchemaWalker::discriminated(Schema::object()));
+        self::assertSame([], SchemaWalker::discriminated(Reference::to('#/components/schemas/User')));
     }
 
     public function test_every_child_of_a_schema_is_mapped(): void

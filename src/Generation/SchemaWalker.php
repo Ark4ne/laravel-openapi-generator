@@ -38,6 +38,39 @@ final class SchemaWalker
     }
 
     /**
+     * The names of the component schemas the discriminator of `$schema` maps to (its `mapping` and its
+     * `defaultMapping`), each once, in order: a reference to a component schema or a bare schema name; an external
+     * reference names none.
+     *
+     * @return list<string>
+     */
+    public static function discriminated(SchemaContract $schema): array
+    {
+        $discriminator = $schema instanceof Schema ? $schema->discriminator : null;
+
+        if ($discriminator === null) {
+            return [];
+        }
+
+        $names = [];
+
+        foreach ([...array_values($discriminator->mapping ?? []), $discriminator->defaultMapping] as $target) {
+            $name = match (true) {
+                $target === null => null,
+                str_starts_with($target, self::COMPONENTS) => substr($target, strlen(self::COMPONENTS)),
+                preg_match('/^[\w.-]+$/', $target) === 1 => $target,
+                default => null,
+            };
+
+            if ($name !== null && ! in_array($name, $names, true)) {
+                $names[] = $name;
+            }
+        }
+
+        return $names;
+    }
+
+    /**
      * @param Closure(Schema): Schema $map
      */
     public static function schema(Schema $schema, Closure $map): Schema

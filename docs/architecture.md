@@ -141,9 +141,10 @@ One `GenerationContext` per generated document, passed **explicitly** to each ex
 - the current variant (`Configuration\Variant`, `null` for the head or a document without variants): one generation per
   value of the `variants` dimension of the document. The core gives it no meaning; an integration or an extension
   recognises its own values and ignores the others;
-- the requests the application is run on: `sampleRequest()` (a new `GET /`) and `prepareRequest()` (the form request
-  whose rules are read) set the variant header and run the request preparers, the `prepareSampleRequest()` of the
-  available `Generation\VariantIntegration`s (a preparer that throws is reported). Nothing else in `src/` creates a
+- the requests the application is run on: `sampleRequest()` (a `GET /`, prepared once per context, each call getting
+  its own copy) and `prepareRequest()` (the form request whose rules are read) set the variant header and run the
+  request preparers, the `prepareSampleRequest()` of the available `Generation\VariantIntegration`s (a preparer that
+  throws is reported once for the sample request, and at the `request` stage with the route for a form request). Nothing else in `src/` creates a
   request (`new Request()`, `Request::create()` and the other named constructors are forbidden by `disallowed-calls`,
   `RequestFactory` excepted, which prepares its own): every resource, responsable and rule is read as a client of the
   variant. The request of the container is not replaced: application code that reads `request()`, or a request

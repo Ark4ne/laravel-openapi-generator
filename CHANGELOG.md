@@ -33,9 +33,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   nothing; bounds whose `since` is newer than their `until` are a warning and cover no document. Ignored in a
   document without variants.
 - `UnusedComponentsPass` (built-in, after the application's passes, before the cleanup): in a document with variants,
-  the component schemas no longer referenced, directly or through another component, are left out.
+  the component schemas no longer referenced, directly or through another component, are left out. A discriminator
+  mapping (`mapping`, `defaultMapping`) counts as a reference.
 - `GenerationContext::sampleRequest()` and `prepareRequest()`: the requests the application renders its samples on;
-  creating a request is forbidden elsewhere in `src/` (`disallowed-calls`).
+  creating a request is forbidden elsewhere in `src/` (`disallowed-calls`). The sample request is prepared once per
+  generation, each call getting its own copy, so a failing preparer is reported once; a failure while preparing a
+  form request is reported at the `request` stage, with its route.
 
 ### Fixed
 

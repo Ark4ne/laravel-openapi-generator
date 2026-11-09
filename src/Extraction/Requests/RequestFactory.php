@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Ark4ne\OpenApi\Extraction\Requests;
 
 use Ark4ne\OpenApi\Context\GenerationContext;
+use Ark4ne\OpenApi\Context\Stage;
 use Ark4ne\OpenApi\Description\ParameterDescription;
 use Ark4ne\OpenApi\Extraction\OperationContext;
 use Ark4ne\OpenApi\Extraction\Rules\SchemaTypes;
@@ -53,7 +54,7 @@ final readonly class RequestFactory
         $route = clone $operation->route->route;
         $route->parameters = $samples;
         $request->setRouteResolver(static fn() => $route);
-        $context->prepareRequest($request);
+        $context->prepareRequest($request, Stage::Request, $operation->route->label());
 
         return $request;
     }
