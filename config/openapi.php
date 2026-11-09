@@ -131,6 +131,16 @@ return [
             | `x-*` extensions of the document.
             */
             'extensions' => [],
+
+            /*
+            | Settings of the integrations for this document, by the key of a
+            | document integration: each one reads its own, and settings no
+            | available integration reads are a warning. One document per
+            | version of the API, each with its own `routes` and settings.
+            */
+            // 'integrations' => [
+            //     '<integration key>' => [/* its settings */],
+            // ],
         ],
     ],
 

@@ -23,6 +23,7 @@ use Ark4ne\OpenApi\Extraction\Responses\OperationResponses;
 use Ark4ne\OpenApi\Extraction\Rules\RuleMappers;
 use Ark4ne\OpenApi\Extraction\Strategies\BuiltInStrategies;
 use Ark4ne\OpenApi\Extraction\Strategies\QueryStrategy;
+use Ark4ne\OpenApi\Generation\Passes\IntegrationPass;
 use Ark4ne\OpenApi\Sampling\Samplers;
 use Ark4ne\OpenApi\Sampling\SamplingSession;
 use Ark4ne\OpenApi\Types\TypeResolver;
@@ -38,7 +39,8 @@ use Throwable;
  *
  * The available integrations add their resource formats and rule mappers, and the last one that has error bodies
  * replaces Laravel's; the extensions of the application join the registries, and its strategy classes come from the
- * container. The available variant integrations prepare the requests and describe the document, in their order.
+ * container. The available document integrations read their settings in the document: they prepare the requests,
+ * describe the document and add passes, in their order.
  */
 final readonly class Generator
 {
@@ -86,12 +88,15 @@ final readonly class Generator
     {
         $document = is_string($document) ? $configuration->document($document) : $document;
         $integrations = array_values(array_filter($this->integrations, static fn(Integration $integration): bool => $integration->available()));
-        $variants = array_values(array_filter($integrations, static fn(Integration $integration): bool => $integration instanceof VariantIntegration));
-        $preparers = array_map(static fn(VariantIntegration $integration): Closure => $integration->prepareSampleRequest(...), $variants);
+        $documents = self::documentIntegrations($integrations);
+        $preparers = array_map(static fn(DocumentIntegration $integration): Closure => $integration->prepareRequest(...), $documents);
         $context = GenerationContext::for($configuration, $document, $locale, $preparers);
+        self::conflicts($integrations, $documents, $context);
+        self::unclaimed($documents, $context);
+        $documents = array_values($documents);
         $errors = self::errorBodies($integrations);
-        $description = $this->session->run(fn(): DocumentDescription => $this->describe($context, $integrations, $errors)->addNotes(...self::notes($variants, $context)), $context);
-        $description = Passes::default($configuration, $errors, $this->container, ...$this->extensions->passes)->process($description, $context);
+        $description = $this->session->run(fn(): DocumentDescription => $this->describe($context, $integrations, $errors)->addNotes(...self::notes($documents, $context)), $context);
+        $description = Passes::default($configuration, $errors, $this->container, ...self::passes($documents, $context), ...$this->extensions->passes)->process($description, $context);
 
         return new GeneratedDocument($this->builder->build($description, $context), $description, $context);
     }
@@ -150,9 +155,104 @@ final readonly class Generator
     }
 
     /**
-     * What the variant integrations describe of the document, in their order; one that throws is reported.
+     * The available document integrations by key, in their order: the first of a key wins, the others are left out.
      *
-     * @param list<VariantIntegration> $integrations the available ones
+     * @param list<Integration> $integrations the available ones
+     *
+     * @return array<string, DocumentIntegration>
+     */
+    private static function documentIntegrations(array $integrations): array
+    {
+        $documents = [];
+
+        foreach ($integrations as $integration) {
+            if ($integration instanceof DocumentIntegration) {
+                $documents[$integration->key()] ??= $integration;
+            }
+        }
+
+        return $documents;
+    }
+
+    /**
+     * Reports the document integrations left out because an earlier one has their key.
+     *
+     * @param list<Integration> $integrations the available ones
+     * @param array<string, DocumentIntegration> $documents those kept
+     */
+    private static function conflicts(array $integrations, array $documents, GenerationContext $context): void
+    {
+        foreach ($integrations as $integration) {
+            if ($integration instanceof DocumentIntegration && $documents[$integration->key()] !== $integration) {
+                $kept = $documents[$integration->key()]::class;
+                $context->diagnostics->warning(Stage::Configuration, 'the integration ' . $integration::class . " has the key {$integration->key()} of {$kept}, left out");
+            }
+        }
+    }
+
+    /**
+     * Reports the settings of the document no available document integration reads: a typo, or a package missing.
+     *
+     * @param array<string, DocumentIntegration> $integrations the available ones, by key
+     */
+    private static function unclaimed(array $integrations, GenerationContext $context): void
+    {
+        foreach (array_keys($context->document->integrations) as $key) {
+            if (! isset($integrations[$key])) {
+                $context->diagnostics->warning(Stage::Configuration, "no available integration reads documents.{$context->document->name}.integrations.{$key}, settings ignored");
+            }
+        }
+    }
+
+    /**
+     * The passes of the document integrations, in their order, each guarded (`IntegrationPass`); an integration that
+     * cannot give them, or gives something that is not a pass, is reported.
+     *
+     * @param list<DocumentIntegration> $integrations the available ones
+     *
+     * @return list<Pass>
+     */
+    private static function passes(array $integrations, GenerationContext $context): array
+    {
+        $passes = [];
+
+        foreach ($integrations as $integration) {
+            $key = $integration->key();
+
+            try {
+                $given = self::given($integration->passes($context));
+            } catch (Throwable $error) {
+                $context->diagnostics->warning(Stage::Pass, "cannot add the passes of the integration {$key}: {$error->getMessage()}");
+
+                continue;
+            }
+
+            foreach ($given as $pass) {
+                if ($pass instanceof Pass) {
+                    $passes[] = new IntegrationPass($key, $pass);
+                } else {
+                    $context->diagnostics->warning(Stage::Pass, "the integration {$key} gives a pass that does not implement " . Pass::class . ', left out: ' . get_debug_type($pass));
+                }
+            }
+        }
+
+        return $passes;
+    }
+
+    /**
+     * What an integration gives as its passes, read as anything: its PHPDoc type is not checked at runtime.
+     *
+     * @return list<mixed>
+     */
+    private static function given(mixed $passes): array
+    {
+        return is_array($passes) ? array_values($passes) : [$passes];
+    }
+
+    /**
+     * What the document integrations describe of the document, in their order; one that throws is reported.
+     *
+     * @param list<DocumentIntegration> $integrations the available ones
      *
      * @return list<string>
      */
@@ -164,7 +264,7 @@ final readonly class Generator
             try {
                 $note = $integration->describe($context);
             } catch (Throwable $error) {
-                $context->diagnostics->warning(Stage::Pass, "cannot describe the document {$context->document->name}: {$error->getMessage()}");
+                $context->diagnostics->warning(Stage::Pass, "the integration {$integration->key()} cannot describe the document {$context->document->name}: {$error->getMessage()}");
 
                 continue;
             }

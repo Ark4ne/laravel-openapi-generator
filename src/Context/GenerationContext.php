@@ -21,8 +21,9 @@ final readonly class GenerationContext
     private SampleRequest $sample;
 
     /**
-     * @param list<Closure(Request, GenerationContext): void> $requestPreparers what prepares every request the generator
-     *        builds for the application, in order (those of the available integrations)
+     * @param array<array-key, Closure(Request, GenerationContext): void> $requestPreparers what prepares every request
+     *        the generator builds for the application, in order: by integration key, named in the diagnostics (those of
+     *        the available document integrations), or a list
      */
     public function __construct(
         public Configuration $configuration,
@@ -38,7 +39,7 @@ final readonly class GenerationContext
     /**
      * A context for the given document, in that locale, with its own diagnostics and components.
      *
-     * @param list<Closure(Request, GenerationContext): void> $requestPreparers
+     * @param array<array-key, Closure(Request, GenerationContext): void> $requestPreparers
      */
     public static function for(Configuration $configuration, DocumentConfiguration $document, ?string $locale = null, array $requestPreparers = []): self
     {
@@ -64,12 +65,13 @@ final readonly class GenerationContext
      */
     public function prepareRequest(Request $request, Stage $stage = Stage::Sampling, ?string $route = null): Request
     {
-        foreach ($this->requestPreparers as $prepare) {
+        foreach ($this->requestPreparers as $name => $prepare) {
             try {
                 $prepare($request, $this);
             } catch (Throwable $error) {
                 $what = $stage === Stage::Sampling ? 'a sample request' : 'the request ' . $request::class;
-                $this->diagnostics->warning($stage, "cannot prepare {$what}: {$error->getMessage()}", $route);
+                $by = is_string($name) ? " for the integration {$name}" : '';
+                $this->diagnostics->warning($stage, "cannot prepare {$what}{$by}: {$error->getMessage()}", $route);
             }
         }
 

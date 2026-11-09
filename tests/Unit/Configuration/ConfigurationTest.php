@@ -228,4 +228,49 @@ final class ConfigurationTest extends TestCase
 
         Configuration::fromArray(['documents' => ['v1' => ['routes' => ['order' => 'random']]]]);
     }
+
+    public function test_the_settings_of_an_integration_are_read_from_the_document(): void
+    {
+        $settings = ['revision' => OutputFormat::Yaml, 'nested' => ['kept' => true]];
+
+        $document = Configuration::fromArray(['documents' => ['v1' => ['integrations' => ['json_api' => $settings]]]])->document('v1');
+
+        self::assertSame(['json_api' => $settings], $document->integrations);
+        self::assertSame($settings, $document->integration('json_api'));
+    }
+
+    public function test_an_absent_integration_has_empty_settings(): void
+    {
+        $document = Configuration::fromArray(['documents' => ['v1' => ['integrations' => ['json_api' => ['revision' => 'a']]]]])->document('v1');
+
+        self::assertSame([], $document->integration('other'));
+        self::assertSame([], Configuration::fromArray(['documents' => ['v1' => []]])->document('v1')->integrations);
+    }
+
+    public function test_the_integration_settings_are_kept_in_another_format(): void
+    {
+        $document = Configuration::fromArray(['documents' => ['v1' => ['integrations' => ['json_api' => ['revision' => 'a']]]]])->document('v1');
+
+        self::assertSame(['revision' => 'a'], $document->withFormat(OutputFormat::Yaml)->integration('json_api'));
+    }
+
+    /**
+     * @return iterable<string, array{mixed, string}>
+     */
+    public static function invalidIntegrationSettings(): iterable
+    {
+        yield 'a block that is not an array' => ['json_api', 'openapi.documents.v1.integrations: expected an array, got "json_api"'];
+        yield 'settings that are not an array' => [['json_api' => 'a'], 'openapi.documents.v1.integrations.json_api: expected an array, got "a"'];
+        yield 'an integration key that is not a string' => [[['revision' => 'a']], 'openapi.documents.v1.integrations: expected string integration keys, got 0'];
+        yield 'a setting key that is not a string' => [['json_api' => ['a']], 'openapi.documents.v1.integrations.json_api: expected named settings (string keys), got 0'];
+    }
+
+    #[DataProvider('invalidIntegrationSettings')]
+    public function test_invalid_integration_settings_are_rejected(mixed $integrations, string $message): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage($message);
+
+        Configuration::fromArray(['documents' => ['v1' => ['integrations' => $integrations]]]);
+    }
 }

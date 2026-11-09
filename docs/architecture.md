@@ -62,11 +62,17 @@ Support ← Types ← Attributes ← Configuration ← Description ← Context �
   OpenAPI.
 - `Integrations` is never a dependency of the core: an integration is registered by the configuration or by the
   service provider, and its third-party package stays in `suggest`. It implements `Generation\Integration`
-  (resource formats, rule mappers, error bodies), and `Generation\VariantIntegration` when it prepares the requests
-  of a generation and describes its document. The `Generator` keeps only the available integrations: an
+  (resource formats, rule mappers, error bodies), and `Generation\DocumentIntegration` when it changes what it
+  documents per document. The `Generator` keeps only the available integrations: an
   integration whose package is missing loads none of its classes. Only `Integrations\JsonApi` (1.x) and
   `Integrations\JsonApiV2` (2.x) depend on `Ark4ne\JsonApi`, neither on the other (`phpat`), and the CI runs the
   suite without that package.
+- **One document configuration per version.** The core knows no versions, revisions or version headers: each
+  document carries a free block of settings per integration (`documents.<name>.integrations.<key>`), which the core
+  never interprets. A `DocumentIntegration` reads its own (`$context->document->integration($this->key())`) and
+  prepares the requests, describes the document and adds passes (after the built-in passes, before the
+  application's); settings no available integration reads are a warning. The endpoints of a version are chosen by
+  its `routes`, never by attributes in the core.
 - Each line of `ark4ne/laravel-json-api` is checked with its own package installed, the integration of the other
   left out: 1.x, the dev dependency, by `phpstan.neon.dist`, the `json-api` test group and `infection.json5`; 2.x by
   `phpstan-json-api-v2.neon.dist`, the `json-api-v2` group and `infection-json-api-v2.json5`. The coverage of each
@@ -140,7 +146,7 @@ One `GenerationContext` per generated document, passed **explicitly** to each ex
 - the current locale (multilingual generation);
 - the requests the application is run on: `sampleRequest()` (a `GET /`, prepared once per context, each call getting
   its own copy) and `prepareRequest()` (the form request whose rules are read) run the request preparers, the
-  `prepareSampleRequest()` of the available `Generation\VariantIntegration`s (a preparer that throws is reported once
+  `prepareRequest()` of the available `Generation\DocumentIntegration`s (a preparer that throws is reported once
   for the sample request, and at the `request` stage with its route for a form request). Nothing else in `src/`
   creates a request (`new Request()`, `Request::create()` and the other named constructors are forbidden by
   `disallowed-calls`, `RequestFactory` excepted, which prepares its own). The request of the container is not

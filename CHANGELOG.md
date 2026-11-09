@@ -8,9 +8,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Added
 
-- `Generation\VariantIntegration`: an integration that prepares the sample and form requests of a generation
-  (`prepareSampleRequest()`) and describes its document (`describe()`, appended to `info.description` through
-  `DocumentDescription::$notes`, inside the sampling session); either one that throws is a warning diagnostic.
+- Integration settings per document (`documents.<name>.integrations`): a block of settings per integration key, never
+  interpreted by the core, so that each version of an API is one document configuration (its `routes`, its settings).
+  `DocumentConfiguration::integration(string $key)` gives the settings of one integration, `[]` when absent. Settings
+  no available integration reads are a warning diagnostic.
+- `Generation\DocumentIntegration`: an integration that reads its settings in each document (`key()`), prepares the
+  sample and form requests (`prepareRequest()`), describes the document (`describe()`, appended to `info.description`
+  through `DocumentDescription::$notes`, inside the sampling session) and adds passes (`passes()`, after the built-in
+  passes, before the application's). A method that throws, or a pass that throws (`IntegrationPass`: the document
+  goes on as before that pass), is a warning naming the integration; what is not a pass is left out with a warning.
+  A later integration with the key of an earlier one is left out, with a warning.
 - `UnusedComponentsPass` (built-in, after the application's passes, before the cleanup): the component schemas no
   longer referenced, directly or through another component, are left out. A discriminator mapping (`mapping`,
   `defaultMapping`) counts as a reference.

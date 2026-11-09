@@ -178,6 +178,7 @@ unknown top-level key or an invalid value fails the command with the key, the ex
 | `documents.<name>.use_references` | `true` | Resources and enums as `components.schemas` referenced by `$ref` |
 | `documents.<name>.output` | | Overrides of the global `output` |
 | `documents.<name>.extensions` | `[]` | `x-*` extensions of the document |
+| `documents.<name>.integrations` | `[]` | Settings of the integrations for this document, by the key of a `DocumentIntegration`, each an array of named settings read by that integration only; one document per version of the API, each with its own `routes` and settings. A key no available integration reads is a warning (no built-in integration reads settings yet) |
 | `servers` | `APP_URL` | `url`, `description`, `name` (3.2), `variables` (`default`, `enum`, `description`) |
 | `output` | | `disk` (`null`: the default disk), `directory` (`openapi`), `file` (`{document}.json`, with `{document}` and `{locale}`), `format` (`json`, `yaml`) |
 | `sampling` | | `transactions` (`true`), `connections` (drivers wrapped in a rolled back transaction), `collection_size` (`2`), `seed` (`1`), `examples` (`true`) |
@@ -202,7 +203,8 @@ priority with `priority()`, returning a public `PRIORITY` constant.
 | `RuleMapper` | `Extraction\Rules` | `handles(): list<string>` (rule names or classes), `map(RuleInvocation, FieldDescription, GenerationContext): FieldDescription`; replaces the built-in mapper of its rules |
 | `ResponseExtractor` | `Extraction\Responses` | `supports(Type, OperationContext)`, `extract(Type, OperationContext, GenerationContext): list<ResponseDescription>`; the first supporting extractor, by decreasing priority |
 | `Sampler` | `Sampling` | `supports(SampleRequest, GenerationContext)`, `sample(SampleRequest, GenerationContext): list<mixed>`; the first supporting sampler, by decreasing priority |
-| `Pass` | `Generation` | `process(DocumentDescription, GenerationContext): DocumentDescription`; after the built-in passes, before the removal of unused component schemas and the cleanup |
+| `Pass` | `Generation` | `process(DocumentDescription, GenerationContext): DocumentDescription`; after the built-in passes and those of the document integrations, before the removal of unused component schemas and the cleanup |
+| `DocumentIntegration` | `Generation` | an `Integration` that reads its settings in each document: `key()` (its key in `documents.<name>.integrations`), `prepareRequest(Request, GenerationContext)` (the sample and form requests), `describe(GenerationContext): ?string` (appended to `info.description`), `passes(GenerationContext): list<Pass>` (each one guarded: a pass that throws is a warning, the document going on as before it); called for every document, a method that throws is a warning; a later integration with the key of an earlier one is left out |
 | `MiddlewareMapper` | `Generation` | `handles(): list<string>`, `map(Middleware, OperationDescription, DocumentDescription, GenerationContext): array{OperationDescription, DocumentDescription}`; listed in `middlewares` |
 | `DescribesRequest` | `Extraction\Requests` | on a request class: `describe(RequestDescriber): RequestDescriber` (`header()`, `cookie()`, `query()`, `json()`, `form()`, `multipart()`, `body()`, `bodySchema()`, `bodyDescription()`, `parameter()`) |
 | `DescribesRule` | `Extraction\Rules` | on a validation rule: `describe(FieldDescription): FieldDescription` |

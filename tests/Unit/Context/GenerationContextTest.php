@@ -104,6 +104,15 @@ final class GenerationContextTest extends TestCase
         self::assertDiagnostics(['[warning] request POST /api/users: cannot prepare the request Illuminate\Http\Request: no revision'], $context);
     }
 
+    public function test_a_failing_preparer_of_an_integration_is_named(): void
+    {
+        $context = $this->preparing(preparers: ['json_api' => static fn() => throw new RuntimeException('no revision')]);
+
+        $context->sampleRequest();
+
+        self::assertDiagnostics(['[warning] sampling: cannot prepare a sample request for the integration json_api: no revision'], $context);
+    }
+
     public function test_every_sample_request_is_a_new_request(): void
     {
         $context = $this->preparing();
@@ -115,7 +124,7 @@ final class GenerationContextTest extends TestCase
     }
 
     /**
-     * @param list<Closure(Request, GenerationContext): void> $preparers
+     * @param array<array-key, Closure(Request, GenerationContext): void> $preparers
      */
     private function preparing(?string $locale = null, array $preparers = []): GenerationContext
     {

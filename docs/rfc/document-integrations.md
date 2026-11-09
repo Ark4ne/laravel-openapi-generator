@@ -1,7 +1,7 @@
 # RFC — Integration settings per document
 
-Status: **draft** (replaces the RFC *Document variants*) · Target: 1.2.0 · Blocked by: the `ark4ne/laravel-json-api`
-2.1.0 tag (epic EI3 only)
+Status: **in progress** (EI1 and EI2 delivered; replaces the RFC *Document variants*) · Target: 1.2.0 · Blocked by:
+the `ark4ne/laravel-json-api` 2.1.0 tag (epic EI3 only)
 
 ## 1. Goal
 
@@ -15,14 +15,14 @@ carries a free block of settings per integration, and the integration reads its 
         'info' => ['title' => 'API', 'version' => '2026-09-01'],
         'routes' => ['include' => ['api/*'], 'exclude' => ['api/labels/*']],
         'integrations' => [
-            'json-api' => ['revision' => App\Http\ApiRevision::Initial],
+            'json_api' => ['revision' => App\Http\ApiRevision::Initial],
         ],
     ],
     'v2026-12' => [
         'info' => ['title' => 'API', 'version' => '2026-12-01'],
         'routes' => ['include' => ['api/*']],
         'integrations' => [
-            'json-api' => ['revision' => App\Http\ApiRevision::Labels],
+            'json_api' => ['revision' => App\Http\ApiRevision::Labels],
         ],
     ],
 ],
@@ -126,7 +126,7 @@ integration documents the version its settings name.*
 
 Acceptance criteria:
 - `Generation\DocumentIntegration extends Integration` (optional), for the available integrations, in their order:
-  - `key(): string`: the key of its settings (`json-api`);
+  - `key(): string`: the key of its settings (`json_api`);
   - `prepareRequest(Request $request, GenerationContext $context): void`: every sample request and every form request
     whose rules are read (the `prepareSampleRequest()` of `VariantIntegration`);
   - `describe(GenerationContext $context): ?string`: a markdown text appended to `info.description`, inside the
@@ -156,7 +156,7 @@ with a revision, `Revision`, `RevisionOrder`, `Lifetime`, `Includes`, `Fields`, 
 #### US 3.1 — The revision of a document · S
 
 Acceptance criteria:
-- `JsonApiV2Integration` implements `DocumentIntegration`, key `json-api`.
+- `JsonApiV2Integration` implements `DocumentIntegration`, key `json_api`.
 - Settings: `revision` (a case of an enum implementing `Ark4ne\JsonApi\Definition\Revision`, or its backed value);
   absent: the head, the 2.0 behaviour.
 - An invalid `revision` (not a case, an unknown value, a package without revisions): warning diagnostic, the head
@@ -204,7 +204,7 @@ Tests: `test_a_revision_document_lists_the_newer_revisions`, `test_the_newest_re
 Acceptance criteria:
 - `suggest`: `^1.9 or ^2.0 (^2.1 for revisions)`; the json-api-v2 CI job installs `^2.1` and runs the scenario; the
   1.x and 2.0 jobs skip it (`#[Group('json-api-revisions')]`).
-- README, skill and `CHANGELOG.md` document the setup: one document per revision, its `routes`, its `json-api` settings.
+- README, skill and `CHANGELOG.md` document the setup: one document per revision, its `routes`, its `json_api` settings.
 
 ---
 
@@ -218,7 +218,7 @@ EI1 and EI2 can be released alone (1.2.0) or with EI3.
 
 | # | Question | Proposal |
 |---|---|---|
-| Q1 | The name of the block | `integrations`: `extensions` already means the `x-*` of the document. |
+| Q1 | The name of the block | `integrations`, keyed like the global `integrations` block (`json_api`): the global block holds the options of an integration, the document's its settings for that document. `extensions` already means the `x-*` of the document. |
 | Q2 | Where the integration passes run | After the built-in passes, before the application's: an application pass sees what the integration did and may undo it. |
 | Q3 | An operation on a resource absent from the revision | A warning, not a removal: the endpoints of a version are chosen by configuration (D2). |
 | Q4 | `x-since`, `x-until`, `deprecated` per field of a request | Later (level 2): walk the unresolved rules, read `at($revision)` per document and the `lifetime()` of each `Revised` value (never `head()`, which may apply at no revision). |
