@@ -13,7 +13,8 @@ use Illuminate\Http\Request;
 use RuntimeException;
 
 /**
- * A document integration, available or not, keyed by its name: it marks the requests with its name, describes the
+ * A document integration, available or not, keyed by its name: it marks the requests with its name, adds a rule
+ * `rules_<name>` to the rules read, describes the
  * document with its own text (`null` for none) or the `note` of its settings, and adds its passes. A failing one
  * throws from every method; `$onDescribe` runs when it describes.
  */
@@ -64,6 +65,15 @@ final readonly class TestDocumentIntegration implements DocumentIntegration
 
         $prepared = $request->attributes->get('prepared');
         $request->attributes->set('prepared', (is_string($prepared) ? "{$prepared}," : '') . $this->name);
+    }
+
+    public function prepareRules(array $rules, Request $request, GenerationContext $context): array
+    {
+        if ($this->failing) {
+            throw new RuntimeException("{$this->name} cannot prepare the rules");
+        }
+
+        return [...$rules, "rules_{$this->name}" => 'string'];
     }
 
     public function describe(GenerationContext $context): ?string

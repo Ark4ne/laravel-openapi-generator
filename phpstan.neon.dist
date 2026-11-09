@@ -8,3 +8,5 @@ parameters:
         - tests/Unit/Integrations/JsonApiV2/*
         - tests/Feature/JsonApiV2/*
         - tests/Fixtures/JsonApiV2/*
+        - tests/Feature/JsonApiRevisions/*
+        - tests/Fixtures/JsonApiRevisions/*

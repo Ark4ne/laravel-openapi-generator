@@ -90,7 +90,8 @@ final readonly class Generator
         $integrations = array_values(array_filter($this->integrations, static fn(Integration $integration): bool => $integration->available()));
         $documents = self::documentIntegrations($integrations);
         $preparers = array_map(static fn(DocumentIntegration $integration): Closure => $integration->prepareRequest(...), $documents);
-        $context = GenerationContext::for($configuration, $document, $locale, $preparers);
+        $rules = array_map(static fn(DocumentIntegration $integration): Closure => $integration->prepareRules(...), $documents);
+        $context = GenerationContext::for($configuration, $document, $locale, $preparers, $rules);
         self::conflicts($integrations, $documents, $context);
         self::unclaimed($documents, $context);
         $documents = array_values($documents);

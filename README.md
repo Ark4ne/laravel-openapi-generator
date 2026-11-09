@@ -30,7 +30,7 @@ Optional:
 
 - `opis/json-schema` to validate the generated documents against the official OpenAPI schemas (recommended)
 - `symfony/yaml` to write YAML
-- `ark4ne/laravel-json-api` ^1.9 or ^2.0 to document JSON:API resources
+- `ark4ne/laravel-json-api` ^1.9 or ^2.0 to document JSON:API resources (^2.1 for its revisions)
 
 Upgrading from 0.6? See [UPGRADE.md](UPGRADE.md).
 
@@ -201,6 +201,25 @@ Both major versions are supported, the installed one is detected:
   their links and meta. `id` is a string and the documents carry the `jsonapi` member, as the package renders them.
   A value without descriptor (a closure) is typed by rendering the resource on a sample of its model. The error
   documents are those of `JsonApi::renderErrors()`.
+- **2.1** (`^2.1`): one document per revision of the API. The `json_api.revision` setting of a document names its
+  revision, and its `routes` choose its endpoints:
+
+```php
+'documents' => [
+    'v2026-09' => [
+        'info' => ['title' => 'API', 'version' => '2026-09-01'],
+        'integrations' => ['json_api' => ['revision' => App\Http\ApiRevision::Initial]],
+    ],
+    'v2026-12' => [
+        'info' => ['title' => 'API', 'version' => '2026-12-01'],
+        'integrations' => ['json_api' => ['revision' => App\Http\ApiRevision::Labels]],
+    ],
+],
+```
+
+The resources, the `include` and `fields` parameters and the rules of the form requests (`Http\Rules\Revised`) are
+those of the revision, and the description lists the newer revisions. A resource that does not exist at the revision is
+a warning: exclude its routes from that document.
 
 ## Extending
 
@@ -279,6 +298,7 @@ the expected value and the received one (`openapi.documents.v1.openapi: expected
 | `documents.<name>.use_references` | `true` | Resources and enums as components referenced by `$ref` |
 | `documents.<name>.output` | | Overrides of the global `output` |
 | `documents.<name>.extensions` | `[]` | `x-*` extensions of the document |
+| `documents.<name>.integrations` | `[]` | Settings of the integrations for this document, by key (`json_api.revision` with `ark4ne/laravel-json-api` 2.1) |
 | `servers` | `APP_URL` | Default servers: `url`, `description`, `name` (3.2), `variables` |
 | `output` | | `disk` (`null`: the default disk), `directory`, `file` (`{document}`, `{locale}`), `format` (`json` or `yaml`) |
 | `sampling` | | `transactions`, `connections` (drivers), `collection_size`, `seed`, `examples` |

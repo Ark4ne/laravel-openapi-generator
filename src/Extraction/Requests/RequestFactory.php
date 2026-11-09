@@ -60,11 +60,13 @@ final readonly class RequestFactory
     }
 
     /**
-     * The rules of a request, its method arguments injected.
+     * The rules of a request, its method arguments injected, then prepared by the context (its rules preparers).
+     *
+     * @param string|null $route the route they are read for, named in the diagnostics
      *
      * @return array<array-key, mixed>
      */
-    public function rules(Request $request): array
+    public function rules(Request $request, GenerationContext $context, ?string $route = null): array
     {
         if (! method_exists($request, 'rules')) {
             return [];
@@ -72,7 +74,7 @@ final readonly class RequestFactory
 
         $rules = $this->container->call([$request, 'rules']);
 
-        return is_array($rules) ? $rules : [];
+        return $context->prepareRules(is_array($rules) ? $rules : [], $request, $route);
     }
 
     private static function sample(ParameterDescription $parameter): mixed

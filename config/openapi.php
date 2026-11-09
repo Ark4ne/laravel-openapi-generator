@@ -139,7 +139,8 @@ return [
             | version of the API, each with its own `routes` and settings.
             */
             // 'integrations' => [
-            //     '<integration key>' => [/* its settings */],
+            //     // ark4ne/laravel-json-api 2.1: the revision documented.
+            //     'json_api' => ['revision' => App\Http\ApiRevision::Initial],
             // ],
         ],
     ],

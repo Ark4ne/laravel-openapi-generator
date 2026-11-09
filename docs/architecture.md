@@ -70,7 +70,7 @@ Support ← Types ← Attributes ← Configuration ← Description ← Context �
 - **One document configuration per version.** The core knows no versions, revisions or version headers: each
   document carries a free block of settings per integration (`documents.<name>.integrations.<key>`), which the core
   never interprets. A `DocumentIntegration` reads its own (`$context->document->integration($this->key())`) and
-  prepares the requests, describes the document and adds passes (after the built-in passes, before the
+  prepares the requests and the rules read from them, describes the document and adds passes (after the built-in passes, before the
   application's); settings no available integration reads are a warning. The endpoints of a version are chosen by
   its `routes`, never by attributes in the core.
 - Each line of `ark4ne/laravel-json-api` is checked with its own package installed, the integration of the other

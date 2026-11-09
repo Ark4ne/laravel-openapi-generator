@@ -142,6 +142,20 @@ final class SkillTest extends SkillTestCase
         self::assertSame(['jsonapi', 'data', 'included'], array_keys((array) Schemas::at($operation, 'responses', '200', 'content', 'application/vnd.api+json', 'schema', 'properties')));
     }
 
+    #[Group('json-api-v2')]
+    #[Group('json-api-revisions')]
+    public function test_the_json_api_revisions_recipe(): void
+    {
+        $revision = static fn(): mixed => constant('App\Revisions\ApiRevision::Initial');
+        $written = $this->example('recipes.md', 'JSON:API revisions (2.1)', ['documents.v1.integrations' => static fn(): array => ['json_api' => ['revision' => $revision()]]]);
+
+        self::assertSame(['name'], array_keys((array) Schemas::at($written, 'paths', '/api/tags', 'post', 'requestBody', 'content', 'application/json', 'schema', 'properties')));
+        self::assertSame(['name'], array_keys((array) Schemas::at($written, 'components', 'schemas', 'Tag', 'properties', 'attributes', 'properties')));
+        $description = Schemas::at($written, 'info', 'description');
+        self::assertIsString($description);
+        self::assertStringContainsString('- 2026-12-01: Names become labels', $description);
+    }
+
     /**
      * @return array<array-key, mixed>
      */

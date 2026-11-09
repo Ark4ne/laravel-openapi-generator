@@ -1,7 +1,7 @@
 # RFC — Integration settings per document
 
-Status: **in progress** (EI1 and EI2 delivered; replaces the RFC *Document variants*) · Target: 1.2.0 · Blocked by:
-the `ark4ne/laravel-json-api` 2.1.0 tag (epic EI3 only)
+Status: **delivered** (EI1 to EI3; replaces the RFC *Document variants*) · Target: 1.2.0 · Release blocked by: the
+`ark4ne/laravel-json-api` 2.1.0 tag (EI3 is developed on its branch `feat/versioned-resources`)
 
 ## 1. Goal
 
@@ -157,11 +157,12 @@ with a revision, `Revision`, `RevisionOrder`, `Lifetime`, `Includes`, `Fields`, 
 
 Acceptance criteria:
 - `JsonApiV2Integration` implements `DocumentIntegration`, key `json_api`.
-- Settings: `revision` (a case of an enum implementing `Ark4ne\JsonApi\Definition\Revision`, or its backed value);
-  absent: the head, the 2.0 behaviour.
-- An invalid `revision` (not a case, an unknown value, a package without revisions): warning diagnostic, the head
-  documented.
-- `JsonApiV2\Revisions::of(GenerationContext): ?Revision`.
+- Settings: `revision`, a case of an enum implementing `Ark4ne\JsonApi\Definition\Revision` (a backed value alone
+  cannot name its enum); absent: the head, the 2.0 behaviour.
+- An invalid `revision` (not a case of a revision enum, a package without revisions) or another setting: warning
+  diagnostic, the head documented.
+- `JsonApiV2\Revisions::of(GenerationContext): ?Revision`, read once per context; with 2.0, no class of the revisions
+  is loaded.
 
 Tests: `test_the_revision_of_a_document_is_read_from_its_settings`, `test_a_document_without_revision_documents_the_head`,
 `test_an_invalid_revision_is_reported`.
@@ -173,9 +174,13 @@ Acceptance criteria:
 - `prepareRequest()` calls `JsonApi::useRevision($request, $revision)`: samples, `include` and `fields` render in the
   names of the revision.
 - The rules of a form request are read at the revision: `Revised::resolve($rules, $revision)` (a no-op without
-  `Revised` values), so a `JsonApiFormRequest`, a request using `UseRevisedRules` and a plain request are read alike;
-  `include` and `fields` as before, with `revision:`.
-- `IncludesRuleMapper` and `FieldsRuleMapper` read the revision of the rule, else that of the context.
+  `Revised` values), so a `JsonApiFormRequest`, a request using `UseRevisedRules` and a plain request are read alike.
+  The generator reads `rules()`, not `validationRules()`: the core gives the document integrations a hook on the
+  rules read (`DocumentIntegration::prepareRules()`, run by `GenerationContext::prepareRules()` from
+  `RequestFactory::rules()`).
+- `IncludesRuleMapper` and `FieldsRuleMapper` read the revision of the rule (`revision()`), `null` being the head:
+  what the rule validates. A rule built in `rules()` with `JsonApiContext::revisionOf($this)` gets the revision of the
+  document, the form request being prepared with it.
 
 Tests: Feature scenario `JsonApiRevisions` (fixture enum `Initial`, `Labels`, `UsersReplaceTeachers`; a renamed
 attribute, a renamed relationship, a field `until()`, a field `since()`, a request with `Revised` rules; one document
@@ -184,8 +189,9 @@ per revision), expected documents per revision.
 #### US 3.3 — Resources absent from a revision · S
 
 Acceptance criteria:
-- An operation whose request or response resource does not exist at the revision (`Definitions::lifetime()`): warning
-  diagnostic naming the route, so that the application excludes it with `routes.exclude` (D2); the operation is kept.
+- A resource that does not exist at the revision (`Definitions::exists()`): warning diagnostic naming it, once per
+  document (its component is built once, whatever the route), so that the application excludes its routes with
+  `routes.exclude` (D2); the operations are kept.
 - A relationship to a resource absent from the revision is never documented (`Definitions::for()` already gives the
   relationships of the revision).
 
@@ -202,8 +208,9 @@ Tests: `test_a_revision_document_lists_the_newer_revisions`, `test_the_newest_re
 #### US 3.5 — Dependency and CI · S
 
 Acceptance criteria:
-- `suggest`: `^1.9 or ^2.0 (^2.1 for revisions)`; the json-api-v2 CI job installs `^2.1` and runs the scenario; the
-  1.x and 2.0 jobs skip it (`#[Group('json-api-revisions')]`).
+- `suggest`: `^1.9 or ^2.0 (^2.1 for revisions)`; the json-api-v2 CI job runs `^2.0` without the revision tests
+  (`#[Group('json-api-revisions')]`) and 2.1 with them (the branch `feat/versioned-resources` until 2.1.0 is tagged,
+  then `^2.1`); PHPStan of the integration runs with 2.1; the 1.x job skips both groups.
 - README, skill and `CHANGELOG.md` document the setup: one document per revision, its `routes`, its `json_api` settings.
 
 ---

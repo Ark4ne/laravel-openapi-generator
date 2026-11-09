@@ -30,7 +30,8 @@ composer ci              # every blocking check except coverage and mutation
 vendor/bin/phpunit --filter test_name
 
 # ark4ne/laravel-json-api 2.x (the dev dependency is 1.x): what the json-api-v2 CI job runs
-composer require --dev "ark4ne/laravel-json-api:^2.0" -W
+composer require --dev "ark4ne/laravel-json-api:^2.0" -W            # 2.0: add --exclude-group json-api-revisions
+composer require --dev "ark4ne/laravel-json-api:dev-feat/versioned-resources as 2.1.0" -W   # 2.1, until tagged
 vendor/bin/phpunit --exclude-group json-api --exclude-group benchmark
 vendor/bin/phpstan analyse -c phpstan-json-api-v2.neon.dist --memory-limit=1G
 ```

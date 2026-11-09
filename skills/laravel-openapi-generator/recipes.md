@@ -528,6 +528,94 @@ final class ArticleController
 Route::get('articles/{article}', [ArticleController::class, 'show'])->name('articles.show');
 ```
 
+## JSON:API revisions (2.1)
+
+With `ark4ne/laravel-json-api` 2.1, each revision of the API is its own document: the `json_api.revision` setting of
+the document names it (a case of the application's `Revision` enum), its `routes` choose its endpoints. Its resources,
+`include` and `fields` parameters are those of that revision, the rules of its form requests are resolved at it
+(`Http\Rules\Revised`, in any form request), and its description lists the newer revisions. A document without the
+setting documents the head. A resource that does not exist at the revision is a warning: exclude its routes from that
+document.
+
+```php
+namespace App\Revisions;
+
+use Ark4ne\JsonApi\Definition\Revision;
+use Ark4ne\JsonApi\Http\Rules\Revised;
+use Ark4ne\JsonApi\Resources\JsonApiResource;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
+enum ApiRevision: string implements Revision
+{
+    case Initial = '2026-09-01';
+    case Labels = '2026-12-01';
+
+    public function description(): string
+    {
+        return match ($this) {
+            self::Initial => 'First published revision',
+            self::Labels => 'Names become labels',
+        };
+    }
+}
+
+final class Tag extends Model {}
+
+/**
+ * @extends JsonApiResource<Tag>
+ */
+final class TagResource extends JsonApiResource
+{
+    public function toAttributes(Request $request): iterable
+    {
+        return ['label' => $this->string()->was(ApiRevision::Initial, name: 'name')];
+    }
+}
+
+final class StoreTagRequest extends FormRequest
+{
+    public function rules(): array
+    {
+        return [
+            'name' => Revised::rules('required|string')->until(ApiRevision::Initial),
+            'label' => Revised::rules('required|string')->since(ApiRevision::Labels),
+        ];
+    }
+}
+
+final class TagController
+{
+    /**
+     * Create a tag.
+     */
+    public function store(StoreTagRequest $request): TagResource
+    {
+        return new TagResource(new Tag());
+    }
+}
+
+Route::post('tags', [TagController::class, 'store'])->name('tags.store');
+```
+
+```php
+// config/openapi.php: one document per revision
+'documents' => [
+    'v2026-09' => [
+        'info' => ['title' => 'API', 'version' => '2026-09-01'],
+        'routes' => ['include' => ['api/*']],
+        'integrations' => ['json_api' => ['revision' => App\Revisions\ApiRevision::Initial]],
+    ],
+    'v2026-12' => [
+        'info' => ['title' => 'API', 'version' => '2026-12-01'],
+        'routes' => ['include' => ['api/*']],
+        'integrations' => ['json_api' => ['revision' => App\Revisions\ApiRevision::Labels]],
+    ],
+],
+```
+
 ## Checking the documentation in the test suite
 
 Fail the build when the documentation degrades: `--strict` fails on the first warning, `--dry-run` writes nothing.

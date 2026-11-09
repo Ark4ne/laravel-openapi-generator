@@ -62,7 +62,7 @@ final readonly class FormRequestExtractor implements RequestExtractor
 
         // Reading the rules runs application code (rules(), Rule::when() closures, rules describing themselves).
         try {
-            $rules = $this->requests->rules($this->requests->make($class, $operation, $context));
+            $rules = $this->requests->rules($this->requests->make($class, $operation, $context), $context, $label);
             $fields = $this->fields->build($this->parser->parse($rules, $context, $label), $context, $label);
         } catch (Throwable $error) {
             $context->diagnostics->warning(Stage::Request, "cannot read the rules of {$class}: {$error->getMessage()}", $label);

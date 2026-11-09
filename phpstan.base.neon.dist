@@ -60,7 +60,7 @@ parameters:
                 - 'ray()'
             message: 'debug output must not be committed'
 
-    # The application renders its samples on the requests of the context: they carry the variant (docs/architecture.md §3.3).
+    # The application renders its samples on the requests of the context: the integrations prepare them (docs/architecture.md §3.3).
     disallowedStaticCalls:
         -
             method:
@@ -78,6 +78,8 @@ parameters:
             method: 'Symfony\Component\HttpFoundation\Request::__construct()'
             message: 'use GenerationContext::sampleRequest(), or prepare the request with GenerationContext::prepareRequest()'
             allowIn:
+                # The type of a native JSON:API resource, read on an empty JsonApiRequest: nothing is rendered.
+                - src/Integrations/JsonApiV2/ResourceDefinitions.php
                 - tests/*
 
 services:

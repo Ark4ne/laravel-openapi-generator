@@ -17,7 +17,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   through `DocumentDescription::$notes`, inside the sampling session) and adds passes (`passes()`, after the built-in
   passes, before the application's). A method that throws, or a pass that throws (`IntegrationPass`: the document
   goes on as before that pass), is a warning naming the integration; what is not a pass is left out with a warning.
-  A later integration with the key of an earlier one is left out, with a warning.
+  A later integration with the key of an earlier one is left out, with a warning. `prepareRules()` prepares the rules
+  read from a form request before they are parsed (`GenerationContext::prepareRules()`, from `RequestFactory::rules()`).
+- JSON:API revisions (`ark4ne/laravel-json-api` 2.1): `documents.<name>.integrations.json_api.revision`, a case of the
+  application's `Revision` enum, documents that revision of the API. The definitions of its resources are those of
+  the revision, the sample and form requests carry it (`JsonApi::useRevision()`), the `Revised` rules of any form
+  request are resolved at it, the `include` and `fields` parameters follow the revision of their rule, and the
+  description lists the newer revisions. Without the setting, or with 2.0, the head. An invalid revision, another
+  setting, and a resource absent from the revision are warnings.
 - `UnusedComponentsPass` (built-in, after the application's passes, before the cleanup): the component schemas no
   longer referenced, directly or through another component, are left out. A discriminator mapping (`mapping`,
   `defaultMapping`) counts as a reference.
