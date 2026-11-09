@@ -21,7 +21,9 @@ use Ark4ne\OpenApi\Generation\Passes\TagGroupPass;
 use Ark4ne\OpenApi\Generation\Passes\TagPass;
 use Ark4ne\OpenApi\Generation\Passes\ThrottleResponsePass;
 use Ark4ne\OpenApi\Generation\Passes\ThrownExceptionResponsePass;
+use Ark4ne\OpenApi\Generation\Passes\UnusedComponentsPass;
 use Ark4ne\OpenApi\Generation\Passes\ValidationErrorResponsePass;
+use Ark4ne\OpenApi\Generation\Passes\VariantBoundsPass;
 use Ark4ne\OpenApi\Generation\Passes\VariantHeaderPass;
 use Ark4ne\OpenApi\Generation\Passes\WebhookPass;
 use Ark4ne\OpenApi\Tests\Support\Descriptions;
@@ -36,6 +38,7 @@ final class PassesTest extends TestCase
     public function test_the_default_chain_runs_in_its_order(): void
     {
         self::assertSame([
+            VariantBoundsPass::class,
             WebhookPass::class,
             CallbackResolutionPass::class,
             ThrownExceptionResponsePass::class,
@@ -51,6 +54,7 @@ final class PassesTest extends TestCase
             EquivalentPathsPass::class,
             PathParametersPass::class,
             VariantHeaderPass::class,
+            UnusedComponentsPass::class,
             CleanupPass::class,
         ], array_map(get_class(...), Passes::default()->all()));
     }

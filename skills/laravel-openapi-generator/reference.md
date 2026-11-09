@@ -122,6 +122,17 @@ The route is documented under `webhooks` (3.1+; `x-webhooks` before with `redoc`
 | --- | --- |
 | `name` | on an action: the key of the webhook (the route name by default); on a controller: the prefix of the keys of its actions (`order` + `paid` gives `order.paid`) |
 
+### `#[Since]`, `#[Until]`
+
+On a controller or an action, in a document with `variants` (ignored without): the first (`Since`) or the last
+(`Until`) variant whose document lists the operation, both inclusive. The head lists only operations without `Until`.
+Each is read on its own, the action's winning over the controller's. A variant the document does not declare: an
+error diagnostic, the operation kept. The component schemas only removed operations used are left out.
+
+| Parameter | Effect |
+| --- | --- |
+| `variant` | an enum case (its value when backed, else its name) or the name of a variant |
+
 ### `#[Callback]`
 
 Repeatable, on the action: a request sent back to a URL the client gave.
@@ -203,7 +214,7 @@ priority with `priority()`, returning a public `PRIORITY` constant.
 | `RuleMapper` | `Extraction\Rules` | `handles(): list<string>` (rule names or classes), `map(RuleInvocation, FieldDescription, GenerationContext): FieldDescription`; replaces the built-in mapper of its rules |
 | `ResponseExtractor` | `Extraction\Responses` | `supports(Type, OperationContext)`, `extract(Type, OperationContext, GenerationContext): list<ResponseDescription>`; the first supporting extractor, by decreasing priority |
 | `Sampler` | `Sampling` | `supports(SampleRequest, GenerationContext)`, `sample(SampleRequest, GenerationContext): list<mixed>`; the first supporting sampler, by decreasing priority |
-| `Pass` | `Generation` | `process(DocumentDescription, GenerationContext): DocumentDescription`; after the built-in passes, before the cleanup |
+| `Pass` | `Generation` | `process(DocumentDescription, GenerationContext): DocumentDescription`; after the built-in passes, before the unused components (documents with variants) and the cleanup |
 | `MiddlewareMapper` | `Generation` | `handles(): list<string>`, `map(Middleware, OperationDescription, DocumentDescription, GenerationContext): array{OperationDescription, DocumentDescription}`; listed in `middlewares` |
 | `DescribesRequest` | `Extraction\Requests` | on a request class: `describe(RequestDescriber): RequestDescriber` (`header()`, `cookie()`, `query()`, `json()`, `form()`, `multipart()`, `body()`, `bodySchema()`, `bodyDescription()`, `parameter()`) |
 | `DescribesRule` | `Extraction\Rules` | on a validation rule: `describe(FieldDescription): FieldDescription` |

@@ -124,7 +124,7 @@ Rules:
 
 | Object | Content |
 | --- | --- |
-| `OperationDescription` | Source route, HTTP method, `operationId`, summary, description, tags, `deprecated`, request, responses, security, extensions |
+| `OperationDescription` | Source route, HTTP method, `operationId`, summary, description, tags, `deprecated`, request, responses, security, extensions, variant bounds (`VariantBounds`) |
 | `RequestDescription` | `ParameterDescription[]` (path, query, headers, cookies), `BodyDescription` (media types → `Schema`), presence of validation rules |
 | `ResponseDescription` | Status code, description, headers, contents (media type → `Schema`), pagination, origin (inferred, attribute, pass) |
 | `SecurityDescription` | Required security scheme and scopes |
@@ -169,7 +169,7 @@ interface ResponseExtractor
 
 | Registry | Input | Output | Examples |
 | --- | --- | --- | --- |
-| `OperationExtractors` | `OperationContext` | enriched `OperationDescription` | PHPDoc, `#[Operation]`, `#[Tag]`, naming strategies |
+| `OperationExtractors` | `OperationContext` | enriched `OperationDescription` | PHPDoc, `#[Operation]`, `#[Tag]`, `#[Since]`, `#[Until]`, naming strategies |
 | `RequestExtractors` | `OperationContext` | enriched `RequestDescription` | Path parameters, `FormRequest`, `DescribableRequest`, attributes |
 | `RuleMappers` | a validation rule | a modified `Schema` | `RequiredRule`, `EnumRule`, `PasswordRule`, `FileRule` |
 | `ResponseExtractors` | return type of the action | `ResponseDescription[]` | `JsonResource`, `ResourceCollection`, `JsonResponse`, files, streams |
@@ -245,8 +245,12 @@ interface Pass
 }
 ```
 
-- The order is explicit, in `Passes::default()`, and tested: security → error responses → tags and groups →
-  `operationId` → components and `$ref` → cleanup.
+- The order is explicit, in `Passes::default()`, and tested: variant bounds → security → error responses → tags and
+  groups → `operationId` → components and `$ref` → path parameters → variant header → the application's → unused
+  components → cleanup.
+- A pass that removes operations runs first, so that no other pass reads them (`VariantBoundsPass`); a pass that
+  removes components runs last but the cleanup, so that every reference counts (`UnusedComponentsPass`). Both act in a
+  document with `variants` only: a document without is generated as before them.
 - A pass handles **one** cross-cutting concern (`MiddlewareSecurityPass`, `ValidationErrorResponsePass`,
   `ComponentExtractionPass`…). Middlewares are mapped to security requirements by `MiddlewareMapper`s, used by
   `MiddlewareSecurityPass`.

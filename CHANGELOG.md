@@ -24,6 +24,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - `Generation\VariantIntegration`: an integration that prepares the sample and form requests of a generation
   (`prepareSampleRequest()`) and describes its variant (`describe()`, appended to `info.description` through
   `DocumentDescription::$notes`, inside the sampling session); either one that throws is a warning diagnostic.
+- `#[Since]` and `#[Until]` (an enum case or a variant name), on a controller or an action: the first and the last
+  variant whose document lists the operation, both inclusive; the head lists only the operations without `#[Until]`.
+  Each is read on its own, the action's winning over the controller's. They set `OperationDescription::$bounds`
+  (`Description\VariantBounds`), which an integration may set too; `VariantBoundsPass` (built-in, the first pass)
+  removes the operations and webhooks the variant does not have. A bound naming no variant of the document is an error
+  diagnostic and bounds nothing. Ignored in a document without variants.
+- `UnusedComponentsPass` (built-in, after the application's passes, before the cleanup): in a document with variants,
+  the component schemas no longer referenced, directly or through another component, are left out.
 - `GenerationContext::sampleRequest()` and `prepareRequest()`: the requests the application renders its samples on;
   creating a request is forbidden elsewhere in `src/` (`disallowed-calls`).
 

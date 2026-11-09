@@ -1,6 +1,6 @@
 # RFC — Document variants
 
-Status: **in progress** (EV1 and EV2 delivered) · Target: 1.2.0 · Blocked by: the `ark4ne/laravel-json-api` 2.1.0 tag (epic EV4 only)
+Status: **in progress** (EV1 to EV3 delivered) · Target: 1.2.0 · Blocked by: the `ark4ne/laravel-json-api` 2.1.0 tag (epic EV4 only)
 
 ## 1. Goal
 
@@ -230,9 +230,11 @@ only the operations of its variant.*
 Acceptance criteria:
 - `Attributes\Since(UnitEnum|string $variant)` and `Attributes\Until(UnitEnum|string $variant)`, on a controller class
   or an action method (the method wins); both **inclusive**, as in `ark4ne/laravel-json-api`.
-- `Description\VariantBounds` (`final readonly`): `since`, `until` (names, `?string`), `covers(?Variant)`;
+- `Description\VariantBounds` (`final readonly`): `since`, `until` (names, `?string`), `covers(?Variant,
+  VariantsConfiguration)` (the configuration orders the names), `unknown(VariantsConfiguration)`;
   `OperationDescription::$bounds` (`?VariantBounds`) with its replacing setter.
-- `Generation\Passes\VariantBoundsPass`: removes the operations whose bounds do not cover the variant. The head is
+- `Generation\Passes\VariantBoundsPass`, the first pass (no other pass reads a removed operation): removes the
+  operations and the webhooks whose bounds do not cover the variant. The head is
   covered by an operation without `until`.
 - A bound naming no variant of the document: error diagnostic, the operation kept.
 - Without `variants` on the document, the bounds are ignored.
@@ -247,8 +249,8 @@ Tests: `test_an_operation_since_a_variant_is_absent_from_older_documents`,
 *As an API client, I want a document without the schemas of the operations it does not have.*
 
 Acceptance criteria:
-- `Generation\Passes\UnusedComponentsPass`, after `ComponentExtractionPass`, in documents with `variants` only (D5):
-  removes the component schemas no longer referenced, transitively.
+- `Generation\Passes\UnusedComponentsPass`, after the application's passes, before the cleanup (every reference
+  counts), in documents with `variants` only (D5): removes the component schemas no longer referenced, transitively.
 
 Tests: `test_a_component_referenced_only_by_a_removed_operation_is_removed`,
 `test_a_component_referenced_by_another_component_is_kept`.
