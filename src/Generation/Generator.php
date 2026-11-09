@@ -8,6 +8,7 @@ use Ark4ne\OpenApi\Configuration\Configuration;
 use Ark4ne\OpenApi\Configuration\DocumentConfiguration;
 use Ark4ne\OpenApi\Configuration\Variant;
 use Ark4ne\OpenApi\Context\GenerationContext;
+use Ark4ne\OpenApi\Context\Stage;
 use Ark4ne\OpenApi\Description\DocumentDescription;
 use Ark4ne\OpenApi\Discovery\MiddlewareResolver;
 use Ark4ne\OpenApi\Discovery\PathParameterResolver;
@@ -30,6 +31,7 @@ use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Translation\Translator;
 use Illuminate\Routing\Router;
+use Throwable;
 
 /**
  * Generates the documents of the configuration: for each document and each language, the routes, their
@@ -95,8 +97,7 @@ final readonly class Generator
         $preparers = array_map(static fn(VariantIntegration $integration): Closure => $integration->prepareSampleRequest(...), $variants);
         $context = GenerationContext::for($configuration, $document, $locale, $variant, $preparers);
         $errors = self::errorBodies($integrations);
-        $description = $this->session->run(fn(): DocumentDescription => $this->describe($context, $integrations, $errors), $context);
-        $description = $description->addNotes(...array_values(array_filter(array_map(static fn(VariantIntegration $integration): ?string => $integration->describe($context), $variants), static fn(?string $note): bool => $note !== null && $note !== '')));
+        $description = $this->session->run(fn(): DocumentDescription => $this->describe($context, $integrations, $errors)->addNotes(...self::notes($variants, $context)), $context);
         $description = Passes::default($configuration, $errors, $this->container, ...$this->extensions->passes)->process($description, $context);
 
         return new GeneratedDocument($this->builder->build($description, $context), $description, $context);
@@ -170,6 +171,34 @@ final readonly class Generator
         }
 
         return $errors;
+    }
+
+    /**
+     * What the variant integrations describe of the variant, in their order; one that throws is reported.
+     *
+     * @param list<VariantIntegration> $integrations the available ones
+     *
+     * @return list<string>
+     */
+    private static function notes(array $integrations, GenerationContext $context): array
+    {
+        $notes = [];
+
+        foreach ($integrations as $integration) {
+            try {
+                $note = $integration->describe($context);
+            } catch (Throwable $error) {
+                $context->diagnostics->warning(Stage::Pass, "cannot describe the variant {$context->variantName()}: {$error->getMessage()}");
+
+                continue;
+            }
+
+            if ($note !== null) {
+                $notes[] = $note;
+            }
+        }
+
+        return $notes;
     }
 
     /**

@@ -9,6 +9,7 @@ use Ark4ne\OpenApi\Configuration\DocumentConfiguration;
 use Ark4ne\OpenApi\Configuration\Variant;
 use Closure;
 use Illuminate\Http\Request;
+use Throwable;
 
 /**
  * State of the generation of one document in one language and one variant, passed explicitly to every extractor, sampler and pass.
@@ -66,7 +67,7 @@ final readonly class GenerationContext
     /**
      * Prepares a request the generator builds for the application (a sample request, the form request whose rules are
      * read): the variant header when one is configured and a variant is generated (not for the head), then every
-     * request preparer, in order.
+     * request preparer, in order. A preparer that throws is reported, the next ones still run.
      */
     public function prepareRequest(Request $request): Request
     {
@@ -77,7 +78,11 @@ final readonly class GenerationContext
         }
 
         foreach ($this->requestPreparers as $prepare) {
-            $prepare($request, $this);
+            try {
+                $prepare($request, $this);
+            } catch (Throwable $error) {
+                $this->diagnostics->warning(Stage::Sampling, "cannot prepare a sample request: {$error->getMessage()}");
+            }
         }
 
         return $request;

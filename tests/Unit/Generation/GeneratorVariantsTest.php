@@ -81,6 +81,32 @@ final class GeneratorVariantsTest extends DocumentScenario
         self::assertSame("The API.\n\nLabels replace names (2026-12-01)\n\nSecond (2026-12-01)", Schemas::at($written, 'info', 'description'));
     }
 
+    public function test_a_failing_description_is_reported_and_the_others_kept(): void
+    {
+        $generator = $this->variantGenerator(new TestVariantIntegration('broken', failing: true), new TestVariantIntegration('second', description: 'Second'));
+
+        $generated = $generator->generate($this->configuration(), 'v1', variant: $this->labels());
+
+        self::assertSame("The API.\n\nSecond (2026-12-01)", Schemas::at($this->written($generated), 'info', 'description'));
+        self::assertContains('[warning] pass: cannot describe the variant 2026-12-01: broken cannot describe', array_map(strval(...), $generated->context->diagnostics->all()));
+        self::assertContains('[warning] sampling: cannot prepare a sample request: broken cannot prepare', array_map(strval(...), $generated->context->diagnostics->all()));
+    }
+
+    public function test_the_variant_is_described_inside_the_sampling_session(): void
+    {
+        $session = $this->samplingSession();
+        $persisting = [];
+        $integration = new TestVariantIntegration('recording', onDescribe: static function () use ($session, &$persisting): void {
+            $persisting[] = $session->canPersist();
+        });
+        $container = $this->app?->make(Container::class);
+        self::assertInstanceOf(Container::class, $container);
+
+        Generator::make($this->router(), $container, $session, integrations: [$integration])->generate($this->configuration(), 'v1', variant: $this->labels());
+
+        self::assertSame([true], $persisting);
+    }
+
     public function test_a_document_without_description_from_integrations_keeps_its_own(): void
     {
         $written = $this->written($this->variantGenerator(new TestVariantIntegration('silent'))->generate($this->configuration(), 'v1', variant: $this->labels()));

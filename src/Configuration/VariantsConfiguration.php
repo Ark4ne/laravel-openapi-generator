@@ -28,6 +28,16 @@ final readonly class VariantsConfiguration
     private const string NAME = '/^[A-Za-z0-9][A-Za-z0-9._-]*$/';
 
     /**
+     * A header name: an HTTP token (RFC 9110 §5.6.2).
+     */
+    private const string HEADER = "/^[A-Za-z0-9!#$%&'*+.^_`|~-]+$/";
+
+    /**
+     * The header parameters OpenAPI ignores, described by its own fields: not a variant header.
+     */
+    private const array RESERVED_HEADERS = ['accept', 'content-type', 'authorization'];
+
+    /**
      * @param list<Variant> $values in declaration order, of one dimension, with distinct names
      * @param string|null $head the name of the document generated without variant, `null` for none
      * @param string|null $header the request header that selects the variant, `null` for none
@@ -42,7 +52,8 @@ final readonly class VariantsConfiguration
      * @param array<array-key, mixed> $config the `variants` entry of a document
      *
      * @throws InvalidConfigurationException `values` is neither an enum class nor a non-empty list of strings, two
-     *         variants share a name, `head` is the name of a variant, `head` or `header` is empty
+     *         variants share a name, `head` is the name of a variant, `head` is not a name, `header` is not a header
+     *         name or is one OpenAPI ignores (Accept, Content-Type, Authorization)
      */
     public static function fromArray(string $key, array $config): self
     {
@@ -62,8 +73,8 @@ final readonly class VariantsConfiguration
 
         $header = $config['header'] ?? null;
 
-        if ($header !== null && (! is_string($header) || $header === '')) {
-            throw InvalidConfigurationException::forKey("{$key}.header", 'null or a header name', $header);
+        if ($header !== null && (! is_string($header) || preg_match(self::HEADER, $header) !== 1 || in_array(strtolower($header), self::RESERVED_HEADERS, true))) {
+            throw InvalidConfigurationException::forKey("{$key}.header", 'null or a header name other than Accept, Content-Type and Authorization', $header);
         }
 
         return new self($values, $head, $header);

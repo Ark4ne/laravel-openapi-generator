@@ -16,14 +16,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   `GenerationContext::$variant` (`Configuration\Variant`, compared by declaration order) for the extensions.
 - The variant header (`documents.<name>.variants.header`) is documented on every operation of a document with
   variants (`VariantHeaderPass`, built-in): the name of the variant (`const`, `enum` of one value in 3.0), every
-  variant name in the head, never required; a header of the same name already on the operation is kept. The sample
-  requests (`GenerationContext::sampleRequest()`) and the form requests whose rules are read carry it, so that the
-  resources, responsables and rules of the application are read as a client of that variant sees them.
+  variant name in the head, never required; a header of the same name already on the operation is kept. It is an
+  HTTP token other than `Accept`, `Content-Type` and `Authorization`, which OpenAPI ignores. The sample requests
+  (`GenerationContext::sampleRequest()`) and the form requests whose rules are read carry it, so that the resources,
+  responsables and rules of the application are read as a client of that variant sees them; `request()` and a
+  request injected into `rules()` are the container's, without it.
 - `Generation\VariantIntegration`: an integration that prepares the sample and form requests of a generation
   (`prepareSampleRequest()`) and describes its variant (`describe()`, appended to `info.description` through
-  `DocumentDescription::$notes`).
+  `DocumentDescription::$notes`, inside the sampling session); either one that throws is a warning diagnostic.
 - `GenerationContext::sampleRequest()` and `prepareRequest()`: the requests the application renders its samples on;
-  `Request::create()` is forbidden elsewhere in `src/` (`disallowed-calls`).
+  creating a request is forbidden elsewhere in `src/` (`disallowed-calls`).
 
 ## [1.1.0] - 2026-11-03
 

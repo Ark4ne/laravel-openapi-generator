@@ -125,8 +125,9 @@ return [
             | its versions…): `values` is an enum (its cases, in declaration
             | order) or a list of strings; `head` names an extra document
             | without variant (false: none); `header` is the request header
-            | that selects the variant, documented on every operation and set
-            | on the requests the samples and the rules are read on. Names are
+            | that selects the variant (not Accept, Content-Type or
+            | Authorization), documented on every operation and set on the
+            | requests the samples and the rules are read on. Names are
             | of letters, digits, `.`, `-` and `_`. `{variant}` is replaced in
             | the file name and in `info.version`; extensions read the variant
             | of the generation.

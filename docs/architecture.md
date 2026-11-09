@@ -143,9 +143,11 @@ One `GenerationContext` per generated document, passed **explicitly** to each ex
   recognises its own values and ignores the others;
 - the requests the application is run on: `sampleRequest()` (a new `GET /`) and `prepareRequest()` (the form request
   whose rules are read) set the variant header and run the request preparers, the `prepareSampleRequest()` of the
-  available `Generation\VariantIntegration`s. Nothing else in `src/` creates a request (`Request::create()` is
-  forbidden by `disallowed-calls`, `RequestFactory` excepted, which prepares its own): every resource, responsable
-  and rule is read as a client of the variant.
+  available `Generation\VariantIntegration`s (a preparer that throws is reported). Nothing else in `src/` creates a
+  request (`new Request()`, `Request::create()` and the other named constructors are forbidden by `disallowed-calls`,
+  `RequestFactory` excepted, which prepares its own): every resource, responsable and rule is read as a client of the
+  variant. The request of the container is not replaced: application code that reads `request()`, or a request
+  injected into `rules()`, sees no variant.
 
 It is not a service container: dependencies come through constructors.
 

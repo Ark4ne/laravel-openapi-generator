@@ -81,6 +81,11 @@ final class VariantsConfigurationTest extends TestCase
         self::assertSame('Api-Version', $variants->header);
     }
 
+    public function test_a_header_is_any_http_token(): void
+    {
+        self::assertSame("X-Api_Version.2!#$%&'*+^`|~", self::variants(['values' => ['v1'], 'header' => "X-Api_Version.2!#$%&'*+^`|~"])->header);
+    }
+
     public function test_there_is_no_head_and_no_header_by_default(): void
     {
         $variants = self::variants(['values' => ApiRevision::class]);
@@ -146,6 +151,11 @@ final class VariantsConfigurationTest extends TestCase
         yield 'a backed case that is not a file name' => [['values' => SlashedRevision::class], 'openapi.documents.v1.variants.values: expected'];
         yield 'a head that is not a file name' => [['values' => ['v1'], 'head' => '../latest'], 'openapi.documents.v1.variants.head: expected'];
         yield 'a header of another type' => [['values' => ['v1'], 'header' => ['Api-Version']], 'openapi.documents.v1.variants.header: expected'];
+        yield 'the Accept header' => [['values' => ['v1'], 'header' => 'Accept'], 'openapi.documents.v1.variants.header: expected'];
+        yield 'the Content-Type header in lower case' => [['values' => ['v1'], 'header' => 'content-type'], 'openapi.documents.v1.variants.header: expected'];
+        yield 'the Authorization header' => [['values' => ['v1'], 'header' => 'Authorization'], 'openapi.documents.v1.variants.header: expected'];
+        yield 'a header with a space' => [['values' => ['v1'], 'header' => 'Api Version'], 'openapi.documents.v1.variants.header: expected'];
+        yield 'a header with a colon' => [['values' => ['v1'], 'header' => 'Api-Version:'], 'openapi.documents.v1.variants.header: expected'];
     }
 
     public function test_names_of_letters_digits_dots_dashes_and_underscores_are_accepted(): void

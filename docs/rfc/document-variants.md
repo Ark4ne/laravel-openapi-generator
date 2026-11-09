@@ -92,7 +92,8 @@ Acceptance criteria:
 - `fromArray()` accepts `values` as a `class-string<UnitEnum>` (its `cases()`) or a non-empty `list<string>`.
 - The name of a variant: the value of a `BackedEnum` case, else the case name; a string is its own name.
 - `InvalidConfigurationException` for: an unknown class or a class that is not an enum, an empty list, duplicate names,
-  a `head` name equal to a variant name, an empty `header`.
+  a `head` name equal to a variant name, a `header` that is not an HTTP token or is `Accept`, `Content-Type` or
+  `Authorization` (header parameters OpenAPI ignores).
 - `DocumentConfiguration::$variants` (`?VariantsConfiguration`, `null` by default) and its line in
   `config/openapi.php`, commented out.
 
@@ -188,7 +189,12 @@ Acceptance criteria:
 - `GenerationContext::prepareRequest(Request): Request` does the same on a request the generator builds: the form
   request whose rules are read (`RequestFactory::make(…, GenerationContext)`) carries the variant too, so that rules
   that depend on it (US 4.2) need nothing more. `RequestFactory` is the only other class allowed `Request::create()`
-  (through `FormRequest::create()`).
+  (through `FormRequest::create()`); `new Request()`, `createFrom()`, `createFromBase()` and `createFromGlobals()`
+  are forbidden everywhere in `src/`.
+- A preparer that throws is a warning diagnostic (`sampling`); the next preparers still run.
+- Known limit: the request of the container is not replaced. Application code reading `request()`, or a `Request`
+  injected into `rules()` by the container, sees no variant. Binding the sample request in the container would need
+  the Laravel layer and an extension point; to reconsider on a real case.
 
 Tests: `test_a_sample_request_carries_the_variant_header`,
 `test_an_integration_prepares_the_sample_requests_of_a_variant`, `test_a_sample_request_of_the_head_has_no_header`,
@@ -204,6 +210,8 @@ Acceptance criteria:
 - The texts travel in `DocumentDescription::$notes` (`notes()`, `addNotes()`), added by the `Generator` before the
   passes; `DocumentBuilder` joins them to the configured description.
 - No integration describing: `info.description` as configured.
+- `describe()` runs inside the sampling session (what it samples is rolled back); one that throws is a warning
+  diagnostic (`pass`), the other descriptions kept.
 
 Tests: `test_an_integration_describes_the_variant_in_the_document`,
 `test_a_document_without_description_from_integrations_keeps_its_own`.

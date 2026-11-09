@@ -15,6 +15,7 @@ use Ark4ne\OpenApi\Tests\TestCase;
 use Closure;
 use Illuminate\Http\Request;
 use PHPUnit\Framework\Attributes\CoversClass;
+use RuntimeException;
 
 #[CoversClass(GenerationContext::class)]
 final class GenerationContextTest extends TestCase
@@ -105,6 +106,20 @@ final class GenerationContextTest extends TestCase
         self::assertSame('2026-12-01', $request->header('Api-Version'));
         self::assertTrue($request->attributes->get('prepared'));
         self::assertSame('PUT', $request->getMethod());
+    }
+
+    public function test_a_failing_preparer_is_reported_and_the_next_ones_run(): void
+    {
+        $context = $this->revisions(Variant::ofCase(ApiRevision::Labels, 1), preparers: [
+            static fn() => throw new RuntimeException('no revision'),
+            static fn(Request $request) => $request->attributes->set('prepared', true),
+        ]);
+
+        $request = $context->sampleRequest();
+
+        self::assertTrue($request->attributes->get('prepared'));
+        self::assertSame('2026-12-01', $request->header('Api-Version'));
+        self::assertDiagnostics(['[warning] sampling: cannot prepare a sample request: no revision'], $context);
     }
 
     public function test_every_sample_request_is_a_new_request(): void
