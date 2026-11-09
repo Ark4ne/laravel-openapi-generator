@@ -21,6 +21,7 @@ use Ark4ne\OpenApi\Generation\Passes\TagGroupPass;
 use Ark4ne\OpenApi\Generation\Passes\TagPass;
 use Ark4ne\OpenApi\Generation\Passes\ThrottleResponsePass;
 use Ark4ne\OpenApi\Generation\Passes\ThrownExceptionResponsePass;
+use Ark4ne\OpenApi\Generation\Passes\UnusedComponentsPass;
 use Ark4ne\OpenApi\Generation\Passes\ValidationErrorResponsePass;
 use Ark4ne\OpenApi\Generation\Passes\WebhookPass;
 use Ark4ne\OpenApi\Tests\Support\Descriptions;
@@ -49,6 +50,7 @@ final class PassesTest extends TestCase
             ComponentExtractionPass::class,
             EquivalentPathsPass::class,
             PathParametersPass::class,
+            UnusedComponentsPass::class,
             CleanupPass::class,
         ], array_map(get_class(...), Passes::default()->all()));
     }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Ark4ne\OpenApi\Extraction\Requests;
 
+use Ark4ne\OpenApi\Context\GenerationContext;
+use Ark4ne\OpenApi\Context\Stage;
 use Ark4ne\OpenApi\Description\ParameterDescription;
 use Ark4ne\OpenApi\Extraction\OperationContext;
 use Ark4ne\OpenApi\Extraction\Rules\SchemaTypes;
@@ -17,7 +19,8 @@ use Throwable;
  * Builds the request class of an action without running it: no validation, no `authorize()`.
  *
  * The request knows its route, whose parameters are bound to samples: a new model, the first case of an enum, `1`
- * for an integer, else `sample`. `rules()` is called by the container, which injects its arguments.
+ * for an integer, else `sample`; it is prepared by the context (its request preparers).
+ * `rules()` is called by the container, which injects its arguments.
  */
 final readonly class RequestFactory
 {
@@ -32,7 +35,7 @@ final readonly class RequestFactory
      *
      * @return T
      */
-    public function make(string $class, OperationContext $operation): Request
+    public function make(string $class, OperationContext $operation, GenerationContext $context): Request
     {
         $samples = [];
 
@@ -51,6 +54,7 @@ final readonly class RequestFactory
         $route = clone $operation->route->route;
         $route->parameters = $samples;
         $request->setRouteResolver(static fn() => $route);
+        $context->prepareRequest($request, Stage::Request, $operation->route->label());
 
         return $request;
     }

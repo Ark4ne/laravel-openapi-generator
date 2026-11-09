@@ -60,6 +60,26 @@ parameters:
                 - 'ray()'
             message: 'debug output must not be committed'
 
+    # The application renders its samples on the requests of the context: they carry the variant (docs/architecture.md §3.3).
+    disallowedStaticCalls:
+        -
+            method:
+                - 'Symfony\Component\HttpFoundation\Request::create()'
+                - 'Symfony\Component\HttpFoundation\Request::createFromGlobals()'
+                - 'Illuminate\Http\Request::createFrom()'
+                - 'Illuminate\Http\Request::createFromBase()'
+            message: 'use GenerationContext::sampleRequest(), or prepare the request with GenerationContext::prepareRequest()'
+            allowIn:
+                - src/Context/GenerationContext.php
+                - src/Extraction/Requests/RequestFactory.php
+                - tests/*
+    disallowedMethodCalls:
+        -
+            method: 'Symfony\Component\HttpFoundation\Request::__construct()'
+            message: 'use GenerationContext::sampleRequest(), or prepare the request with GenerationContext::prepareRequest()'
+            allowIn:
+                - tests/*
+
 services:
     -
         class: Ark4ne\OpenApi\Tests\Architecture\ArchitectureTest

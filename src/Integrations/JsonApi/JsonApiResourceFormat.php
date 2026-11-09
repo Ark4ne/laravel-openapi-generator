@@ -32,7 +32,6 @@ use Ark4ne\OpenApiWriter\Objects\Schema;
 use BackedEnum;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Support\Str;
 use ReflectionMethod;
@@ -268,7 +267,7 @@ final class JsonApiResourceFormat implements ResourceFormat
         }
 
         $instance = self::instance($resource, new FakeModel());
-        $declared = $this->call($resource, 'toRelationships', static fn(): mixed => (new ReflectionMethod($instance, 'toRelationships'))->invoke($instance, Request::create('/')), $context);
+        $declared = $this->call($resource, 'toRelationships', static fn(): mixed => (new ReflectionMethod($instance, 'toRelationships'))->invoke($instance, $context->sampleRequest()), $context);
         $relations = [];
 
         foreach (Values::mergeValues(self::keyed($declared)) as $key => $relation) {
@@ -310,7 +309,7 @@ final class JsonApiResourceFormat implements ResourceFormat
      */
     private function members(JsonApiResource $instance, string $method, ?string $model, ResourceSchemas $resources, GenerationContext $context): ?Schema
     {
-        $values = $this->call($instance::class, $method, static fn(): mixed => (new ReflectionMethod($instance, $method))->invoke($instance, Request::create('/')), $context);
+        $values = $this->call($instance::class, $method, static fn(): mixed => (new ReflectionMethod($instance, $method))->invoke($instance, $context->sampleRequest()), $context);
 
         return is_iterable($values) ? $this->values(self::keyed($values), $instance, $model, $resources, $context) : null;
     }
@@ -463,7 +462,7 @@ final class JsonApiResourceFormat implements ResourceFormat
 
         $sample = $resources->samples($resource, $context)[0] ?? null;
         $instance = $sample === null ? null : self::instance($resource, $sample);
-        $id = $instance === null ? null : $this->call($resource, 'toIdentifier', static fn(): mixed => (new ReflectionMethod($instance, 'toIdentifier'))->invoke($instance, Request::create('/')), $context);
+        $id = $instance === null ? null : $this->call($resource, 'toIdentifier', static fn(): mixed => (new ReflectionMethod($instance, 'toIdentifier'))->invoke($instance, $context->sampleRequest()), $context);
         $known = $this->ids[$context] ?? [];
         $known[$resource] = match (true) {
             is_int($id) => Schema::integer(),
@@ -489,7 +488,7 @@ final class JsonApiResourceFormat implements ResourceFormat
         }
 
         $instance = self::instance($resource, new FakeModel());
-        $type = $this->call($resource, 'toType', static fn(): mixed => (new ReflectionMethod($instance, 'toType'))->invoke($instance, Request::create('/')), $context);
+        $type = $this->call($resource, 'toType', static fn(): mixed => (new ReflectionMethod($instance, 'toType'))->invoke($instance, $context->sampleRequest()), $context);
         $known = $this->types[$context] ?? [];
         $known[$resource] = is_string($type) ? $type : Str::kebab(Str::beforeLast(class_basename($resource), 'Resource'));
         $this->types[$context] = $known;

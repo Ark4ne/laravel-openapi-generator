@@ -6,6 +6,33 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+
+- Integration settings per document (`documents.<name>.integrations`): a block of settings per integration key, never
+  interpreted by the core, so that each version of an API is one document configuration (its `routes`, its settings).
+  `DocumentConfiguration::integration(string $key)` gives the settings of one integration, `[]` when absent. Settings
+  no available integration reads are a warning diagnostic.
+- `Generation\DocumentIntegration`: an integration that reads its settings in each document (`key()`), prepares the
+  sample and form requests (`prepareRequest()`), describes the document (`describe()`, appended to `info.description`
+  through `DocumentDescription::$notes`, inside the sampling session) and adds passes (`passes()`, after the built-in
+  passes, before the application's). A method that throws, or a pass that throws (`IntegrationPass`: the document
+  goes on as before that pass), is a warning naming the integration; what is not a pass is left out with a warning.
+  A later integration with the key of an earlier one is left out, with a warning.
+- `UnusedComponentsPass` (built-in, after the application's passes, before the cleanup): the component schemas no
+  longer referenced, directly or through another component, are left out. A discriminator mapping (`mapping`,
+  `defaultMapping`) counts as a reference.
+- `GenerationContext::sampleRequest()` and `prepareRequest()`: the requests the application renders its samples on;
+  creating a request is forbidden elsewhere in `src/` (`disallowed-calls`). The sample request is prepared once per
+  generation, each call getting its own copy, so a failing preparer is reported once; a failure while preparing a
+  form request is reported at the `request` stage, with its route.
+
+### Fixed
+
+- The schemas held by `patternProperties`, `dependentSchemas`, `$defs`, `propertyNames`, `unevaluatedProperties`,
+  `unevaluatedItems`, `if`, `then`, `else` and `contentSchema`, and the path parameters of the document, are walked
+  like the others: their references follow a component kept once under another name, and are written inline without
+  `use_references`.
+
 ## [1.1.0] - 2026-11-03
 
 ### Added

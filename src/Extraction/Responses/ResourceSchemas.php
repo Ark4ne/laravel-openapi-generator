@@ -16,7 +16,6 @@ use Ark4ne\OpenApi\Sampling\Samplers;
 use Ark4ne\OpenApi\Sampling\SchemaInferrer;
 use Ark4ne\OpenApiWriter\Objects\Schema;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use ReflectionClass;
@@ -246,7 +245,7 @@ final class ResourceSchemas implements ResourceDescriber
         }
 
         $samples = $this->samples($resource, $context);
-        $request = Request::create('/');
+        $request = $context->sampleRequest();
 
         try {
             $plain = $this->instance($resource, $samples[0] ?? null)?->toArray($request) ?? [];
@@ -283,7 +282,7 @@ final class ResourceSchemas implements ResourceDescriber
     private function remember(string $resource, string $name, array $plain, mixed $other, GenerationContext $context): void
     {
         try {
-            $second = $this->instance($resource, $other)?->toArray(Request::create('/'));
+            $second = $this->instance($resource, $other)?->toArray($context->sampleRequest());
         } catch (Throwable) {
             $second = null;
         }
@@ -314,7 +313,7 @@ final class ResourceSchemas implements ResourceDescriber
         $extras = [];
 
         try {
-            foreach ($instance === null ? [] : [...$instance->with(Request::create('/')), ...$instance->additional] as $key => $value) {
+            foreach ($instance === null ? [] : [...$instance->with($context->sampleRequest()), ...$instance->additional] as $key => $value) {
                 $extras[(string) $key] = $this->inferrer->infer($value, $context);
             }
         } catch (Throwable) {

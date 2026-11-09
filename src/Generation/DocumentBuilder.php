@@ -54,7 +54,7 @@ final readonly class DocumentBuilder
         $openApi = OpenApi::create()
             ->openapi($configuration->version)
             ->self($configuration->self)
-            ->info(self::info($configuration->info))
+            ->info(self::info($configuration->info, $document->notes))
             ->externalDocs(self::externalDocs($configuration->externalDocs));
         // A setter called without argument writes an empty collection: each one is called only with items.
         $openApi = self::with($openApi, $openApi->servers(...), array_map(self::documentServer(...), $configuration->servers));
@@ -274,7 +274,10 @@ final readonly class DocumentBuilder
             ->kind($description->kind);
     }
 
-    private static function info(InfoConfiguration $configuration): Info
+    /**
+     * @param list<string> $notes appended to the configured description, each one after a blank line
+     */
+    private static function info(InfoConfiguration $configuration, array $notes): Info
     {
         $contact = $configuration->contact === [] ? null : Contact::create()
             ->name($configuration->contact['name'] ?? null)
@@ -291,11 +294,21 @@ final readonly class DocumentBuilder
         return Info::create()
             ->title($configuration->title)
             ->summary($configuration->summary)
-            ->description($configuration->description)
+            ->description(self::description($configuration->description, $notes))
             ->termsOfService($configuration->termsOfService)
             ->contact($contact)
             ->license($license)
             ->version($configuration->version);
+    }
+
+    /**
+     * @param list<string> $notes
+     */
+    private static function description(?string $description, array $notes): ?string
+    {
+        $parts = array_values(array_filter([$description, ...$notes], static fn(?string $part): bool => $part !== null && $part !== ''));
+
+        return $parts === [] ? null : implode("\n\n", $parts);
     }
 
     private static function documentServer(ServerConfiguration $configuration): Server
