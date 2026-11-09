@@ -8,7 +8,7 @@ use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Description\DocumentDescription;
 use Ark4ne\OpenApi\Generation\Pass;
 use Ark4ne\OpenApi\Generation\SchemaWalker;
-use Ark4ne\OpenApiWriter\Objects\Schema;
+use Ark4ne\OpenApiWriter\Contracts\SchemaContract;
 
 /**
  * The component schemas no operation, webhook, path parameter or shared response references any more, directly or
@@ -27,28 +27,20 @@ final readonly class UnusedComponentsPass implements Pass
         /** @var array<string, true> $used */
         $used = [];
         $pending = [];
-        $collect = static function (Schema $schema) use (&$used, &$pending): Schema {
+        $collect = static function (SchemaContract $schema) use (&$used, &$pending): void {
             $name = SchemaWalker::component($schema);
 
             if ($name !== null && ! isset($used[$name])) {
                 $used[$name] = true;
                 $pending[] = $name;
             }
-
-            return $schema;
         };
 
-        SchemaWalker::document($document->schemas([]), $collect);
-
-        foreach ($document->pathParameters as $parameters) {
-            foreach ($parameters as $parameter) {
-                SchemaWalker::schema($parameter->schema, $collect);
-            }
-        }
+        SchemaWalker::visit($document->schemas([]), $collect);
 
         while (($name = array_pop($pending)) !== null) {
             if (isset($document->schemas[$name])) {
-                SchemaWalker::schema($document->schemas[$name], $collect);
+                SchemaWalker::visitSchema($document->schemas[$name], $collect);
             }
         }
 

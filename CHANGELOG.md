@@ -37,6 +37,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - `GenerationContext::sampleRequest()` and `prepareRequest()`: the requests the application renders its samples on;
   creating a request is forbidden elsewhere in `src/` (`disallowed-calls`).
 
+### Fixed
+
+- The schemas held by `patternProperties`, `dependentSchemas`, `$defs`, `propertyNames`, `unevaluatedProperties`,
+  `unevaluatedItems`, `if`, `then`, `else` and `contentSchema`, and the path parameters of the document, are walked
+  like the others: their references follow a component kept once under another name, and are written inline without
+  `use_references`.
+
 ## [1.1.0] - 2026-11-03
 
 ### Added
