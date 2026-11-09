@@ -12,7 +12,7 @@ use UnitEnum;
  * the documents of older variants leave it out. Inclusive: the document of `$variant` lists it.
  *
  * The attribute of the action wins over that of the controller; `#[Until]` is read independently. Without `variants` on
- * the document, it is ignored. A variant the document does not declare is reported, the operation kept.
+ * the document, it is ignored. A variant the document does not declare is a warning, the operation kept.
  */
 #[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD)]
 final readonly class Since

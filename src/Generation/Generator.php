@@ -10,6 +10,7 @@ use Ark4ne\OpenApi\Configuration\Variant;
 use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Context\Stage;
 use Ark4ne\OpenApi\Description\DocumentDescription;
+use Ark4ne\OpenApi\Description\OperationDescription;
 use Ark4ne\OpenApi\Discovery\MiddlewareResolver;
 use Ark4ne\OpenApi\Discovery\PathParameterResolver;
 use Ark4ne\OpenApi\Discovery\RouteCollector;
@@ -221,6 +222,11 @@ final readonly class Generator
         foreach ($this->routes->collect($context) as $route) {
             $operation = $factory->create($route, $context);
             $description = $operations->extract($operation, $operation->describe(), $context);
+
+            if (self::outOfBounds($description, $context)) {
+                continue;
+            }
+
             $description = $description
                 ->request($requests->extract($operation, $description->request, $context))
                 ->responses(...$responses->describe($operation, $context))
@@ -235,5 +241,18 @@ final readonly class Generator
         }
 
         return $document;
+    }
+
+    /**
+     * Whether the bounds of an extracted operation leave it out of the variant generated: its requests, responses and
+     * callbacks are then never read at that variant (no sample, no diagnostic, no component). Inverted bounds are left
+     * to the VariantBoundsPass, which reports them.
+     */
+    private static function outOfBounds(OperationDescription $description, GenerationContext $context): bool
+    {
+        $bounds = $description->bounds;
+        $variants = $context->document->variants;
+
+        return $bounds !== null && $variants !== null && ! $bounds->inverted($variants) && ! $bounds->covers($context->variant, $variants);
     }
 }

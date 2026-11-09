@@ -20,6 +20,8 @@ use Closure;
  */
 final class SchemaWalker
 {
+    private const string COMPONENTS = '#/components/schemas/';
+
     /**
      * @param Closure(Schema): Schema $map
      */
@@ -59,6 +61,16 @@ final class SchemaWalker
         $schema = $schema->prefixItems === null || $schema->prefixItems === [] ? $schema : $schema->prefixItems(...array_map($child, $schema->prefixItems));
 
         return $map($schema);
+    }
+
+    /**
+     * The name of the component schema `$schema` references, `null` for any other schema.
+     */
+    public static function component(Schema $schema): ?string
+    {
+        $ref = $schema->ref;
+
+        return is_string($ref) && str_starts_with($ref, self::COMPONENTS) ? substr($ref, strlen(self::COMPONENTS)) : null;
     }
 
     /**

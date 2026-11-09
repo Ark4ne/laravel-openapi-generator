@@ -28,8 +28,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   variant whose document lists the operation, both inclusive; the head lists only the operations without `#[Until]`.
   Each is read on its own, the action's winning over the controller's. They set `OperationDescription::$bounds`
   (`Description\VariantBounds`), which an integration may set too; `VariantBoundsPass` (built-in, the first pass)
-  removes the operations and webhooks the variant does not have. A bound naming no variant of the document is an error
-  diagnostic and bounds nothing. Ignored in a document without variants.
+  removes the operations and webhooks the variant does not have; the generator does not even read the requests and
+  responses of a route its bounds leave out. A bound naming no variant of the document is a warning and bounds
+  nothing; bounds whose `since` is newer than their `until` are a warning and cover no document. Ignored in a
+  document without variants.
 - `UnusedComponentsPass` (built-in, after the application's passes, before the cleanup): in a document with variants,
   the component schemas no longer referenced, directly or through another component, are left out.
 - `GenerationContext::sampleRequest()` and `prepareRequest()`: the requests the application renders its samples on;

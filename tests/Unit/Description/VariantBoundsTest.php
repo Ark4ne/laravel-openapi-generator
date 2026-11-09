@@ -84,6 +84,15 @@ final class VariantBoundsTest extends TestCase
         self::assertSame([], VariantBounds::between()->unknown(self::variants()));
     }
 
+    public function test_bounds_since_a_variant_newer_than_their_until_are_inverted(): void
+    {
+        self::assertTrue(VariantBounds::between('c', 'a')->inverted(self::variants()));
+        self::assertFalse(VariantBounds::between('b', 'b')->inverted(self::variants()));
+        self::assertFalse(VariantBounds::between('a', 'c')->inverted(self::variants()));
+        self::assertFalse(VariantBounds::between('c')->inverted(self::variants()));
+        self::assertFalse(VariantBounds::between('x', 'a')->inverted(self::variants()));
+    }
+
     public function test_the_name_of_the_head_is_no_variant(): void
     {
         self::assertSame(['head'], VariantBounds::between(until: 'head')->unknown(self::variants()));

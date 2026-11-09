@@ -18,8 +18,6 @@ use Ark4ne\OpenApiWriter\Objects\Schema;
  */
 final readonly class UnusedComponentsPass implements Pass
 {
-    private const string PREFIX = '#/components/schemas/';
-
     public function process(DocumentDescription $document, GenerationContext $context): DocumentDescription
     {
         if ($context->document->variants === null || $document->schemas === []) {
@@ -30,15 +28,11 @@ final readonly class UnusedComponentsPass implements Pass
         $used = [];
         $pending = [];
         $collect = static function (Schema $schema) use (&$used, &$pending): Schema {
-            $ref = $schema->ref;
+            $name = SchemaWalker::component($schema);
 
-            if (is_string($ref) && str_starts_with($ref, self::PREFIX)) {
-                $name = substr($ref, strlen(self::PREFIX));
-
-                if (! isset($used[$name])) {
-                    $used[$name] = true;
-                    $pending[] = $name;
-                }
+            if ($name !== null && ! isset($used[$name])) {
+                $used[$name] = true;
+                $pending[] = $name;
             }
 
             return $schema;

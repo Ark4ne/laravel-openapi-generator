@@ -126,8 +126,10 @@ The route is documented under `webhooks` (3.1+; `x-webhooks` before with `redoc`
 
 On a controller or an action, in a document with `variants` (ignored without): the first (`Since`) or the last
 (`Until`) variant whose document lists the operation, both inclusive. The head lists only operations without `Until`.
-Each is read on its own, the action's winning over the controller's. A variant the document does not declare: an
-error diagnostic, the operation kept. The component schemas only removed operations used are left out.
+Each is read on its own, the action's winning over the controller's. A route a variant does not have is never read at
+that variant (no sample, no diagnostic). A variant the document does not declare: a warning, the operation kept; a
+`Since` newer than the `Until`: a warning, the operation in no document. The component schemas only removed
+operations used are left out.
 
 | Parameter | Effect |
 | --- | --- |

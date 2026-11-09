@@ -19,6 +19,15 @@ final class LabelController
         return new LabelResource(null);
     }
 
+    /**
+     * An action whose resource cannot be rendered: a warning when the document of a variant reads it.
+     */
+    #[Since(ApiRevision::Labels)]
+    public function broken(): BrokenResource
+    {
+        return new BrokenResource(null);
+    }
+
     #[Until(ApiRevision::Initial)]
     public function legacy(): NameResource
     {

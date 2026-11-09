@@ -236,7 +236,10 @@ Acceptance criteria:
 - `Generation\Passes\VariantBoundsPass`, the first pass (no other pass reads a removed operation): removes the
   operations and the webhooks whose bounds do not cover the variant. The head is
   covered by an operation without `until`.
-- A bound naming no variant of the document: error diagnostic, the operation kept.
+- A bound naming no variant of the document: warning diagnostic, the operation kept (an error would prevent the
+  document from being written). Bounds whose `since` is newer than their `until`: warning, the operation left out.
+- The generator skips a route its bounds leave out right after the operation extractors: its requests and responses
+  are never read at that variant (no sample, no diagnostic, no component).
 - Without `variants` on the document, the bounds are ignored.
 
 Tests: `test_an_operation_since_a_variant_is_absent_from_older_documents`,

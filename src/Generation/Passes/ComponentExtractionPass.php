@@ -47,7 +47,7 @@ final readonly class ComponentExtractionPass implements Pass
 
         if ($renamed !== []) {
             $document = SchemaWalker::document($document, static function (Schema $schema) use ($renamed): Schema {
-                $name = self::name($schema);
+                $name = SchemaWalker::component($schema);
 
                 return $name !== null && isset($renamed[$name]) ? Schema::ref($renamed[$name]) : $schema;
             });
@@ -94,21 +94,11 @@ final readonly class ComponentExtractionPass implements Pass
     {
         $schemas = $document->schemas;
         $resolve = static function (Schema $schema) use (&$resolve, &$schemas): Schema {
-            $name = self::name($schema);
+            $name = SchemaWalker::component($schema);
 
             return $name !== null && isset($schemas[$name]) ? SchemaWalker::schema($schemas[$name]->objectId(null), $resolve) : $schema;
         };
 
         return SchemaWalker::document($document->schemas([]), $resolve);
-    }
-
-    /**
-     * The component a schema references, `null` for any other schema.
-     */
-    private static function name(Schema $schema): ?string
-    {
-        $ref = $schema->ref;
-
-        return is_string($ref) && str_starts_with($ref, '#/components/schemas/') ? substr($ref, 21) : null;
     }
 }

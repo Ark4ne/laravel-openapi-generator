@@ -65,9 +65,21 @@ final class VariantBoundsPassTest extends TestCase
 
         self::assertSame(['GET /api/users', 'POST /api/users'], self::kept(self::document(VariantBounds::between('2027-01-01', 'latest')), $context));
         self::assertDiagnostics([
-            '[error] pass POST /api/users: the bound 2027-01-01 is not a variant of the document, ignored',
-            '[error] pass POST /api/users: the bound latest is not a variant of the document, ignored',
+            '[warning] pass POST /api/users: the bound 2027-01-01 is not a variant of the document, ignored',
+            '[warning] pass POST /api/users: the bound latest is not a variant of the document, ignored',
         ], $context);
+    }
+
+    public function test_inverted_bounds_are_reported_and_cover_no_document(): void
+    {
+        $document = self::document(VariantBounds::between(ApiRevision::Labels, ApiRevision::Initial));
+
+        foreach ([ApiRevision::Initial, ApiRevision::Labels, null] as $revision) {
+            $context = $this->variantContext($revision);
+
+            self::assertSame(['GET /api/users'], self::kept($document, $context));
+            self::assertDiagnostics(['[warning] pass POST /api/users: the bounds since 2026-12-01 until 2026-09-01 cover no variant, operation left out'], $context);
+        }
     }
 
     public function test_bounds_are_ignored_without_variants(): void

@@ -38,6 +38,27 @@ final class GeneratorVariantBoundsTest extends DocumentScenario
         self::assertSame([['/api/label'], ['Label']], $this->generated(null));
     }
 
+    public function test_an_operation_out_of_bounds_is_not_read_at_the_variant(): void
+    {
+        $this->router()->get('api/broken', [LabelController::class, 'broken']);
+        $configuration = $this->variantConfiguration();
+
+        $generated = $this->boundsGenerator()->generate($configuration, 'v1', variant: $configuration->document('v1')->generation('2026-09-01'));
+
+        self::assertSame([], array_map(strval(...), $generated->context->diagnostics->all()));
+        self::assertSame(['Name'], array_keys($generated->context->components->all()));
+    }
+
+    public function test_an_operation_in_bounds_is_read_at_the_variant(): void
+    {
+        $this->router()->get('api/broken', [LabelController::class, 'broken']);
+        $configuration = $this->variantConfiguration();
+
+        $generated = $this->boundsGenerator()->generate($configuration, 'v1', variant: $configuration->document('v1')->generation('2026-12-01'));
+
+        self::assertNotSame([], $generated->context->diagnostics->all());
+    }
+
     public function test_a_document_without_variants_lists_every_operation_and_component(): void
     {
         $written = $this->boundsGenerator()->generate(Configuration::fromArray(['documents' => ['v1' => [
@@ -54,15 +75,20 @@ final class GeneratorVariantBoundsTest extends DocumentScenario
      */
     private function generated(?string $variant): array
     {
-        $configuration = Configuration::fromArray(['documents' => ['v1' => [
-            'info' => ['title' => 'API', 'version' => '{variant}'],
-            'routes' => ['include' => null],
-            'variants' => ['values' => ApiRevision::class, 'head' => 'latest'],
-        ]]]);
+        $configuration = $this->variantConfiguration();
         $generated = $this->boundsGenerator()->generate($configuration, 'v1', variant: $variant === null ? null : $configuration->document('v1')->generation($variant));
         $written = $generated->openApi->toArray(Version::V3_1_2);
 
         return [array_keys((array) Schemas::at($written, 'paths')), array_keys((array) Schemas::at($written, 'components', 'schemas'))];
+    }
+
+    private function variantConfiguration(): Configuration
+    {
+        return Configuration::fromArray(['documents' => ['v1' => [
+            'info' => ['title' => 'API', 'version' => '{variant}'],
+            'routes' => ['include' => null],
+            'variants' => ['values' => ApiRevision::class, 'head' => 'latest'],
+        ]]]);
     }
 
     private function boundsGenerator(): Generator

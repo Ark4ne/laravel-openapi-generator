@@ -72,6 +72,17 @@ final readonly class VariantBounds extends Description
     }
 
     /**
+     * Whether `since` is newer than `until`, both naming variants of `$variants`: the bounds cover no variant.
+     */
+    public function inverted(VariantsConfiguration $variants): bool
+    {
+        $since = $this->since === null ? null : $variants->named($this->since);
+        $until = $this->until === null ? null : $variants->named($this->until);
+
+        return $since !== null && $until !== null && ! $since->isAtMost($until);
+    }
+
+    /**
      * The name of a variant given as an enum case: the value of a backed case, the name of a pure case.
      */
     private static function name(UnitEnum|string|null $variant): ?string
