@@ -17,7 +17,6 @@ use Ark4ne\OpenApiWriter\Objects\Discriminator;
 use Ark4ne\OpenApiWriter\Objects\Schema;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Throwable;
 use WeakMap;
@@ -351,7 +350,7 @@ final class JsonApiResourceFormat implements ResourceFormat
 
         if ($sample !== null) {
             try {
-                $response = (new $resource(self::identified($sample)))->toResponse(Request::create('/'));
+                $response = (new $resource(self::identified($sample)))->toResponse($context->sampleRequest());
                 $data = $response->getData(true);
                 $document = is_array($data) ? $data : [];
             } catch (Throwable $error) {

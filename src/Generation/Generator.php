@@ -26,6 +26,7 @@ use Ark4ne\OpenApi\Extraction\Strategies\QueryStrategy;
 use Ark4ne\OpenApi\Sampling\Samplers;
 use Ark4ne\OpenApi\Sampling\SamplingSession;
 use Ark4ne\OpenApi\Types\TypeResolver;
+use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Translation\Translator;
 use Illuminate\Routing\Router;
@@ -36,7 +37,7 @@ use Illuminate\Routing\Router;
  *
  * The available integrations add their resource formats and rule mappers, and the last one that has error bodies
  * replaces Laravel's; the extensions of the application join the registries, and its strategy classes come from the
- * container.
+ * container. The available variant integrations prepare the sample requests and describe the variant, in their order.
  */
 final readonly class Generator
 {
@@ -89,10 +90,13 @@ final readonly class Generator
     public function generate(Configuration $configuration, string|DocumentConfiguration $document, ?string $locale = null, ?Variant $variant = null): GeneratedDocument
     {
         $document = is_string($document) ? $configuration->document($document) : $document;
-        $context = GenerationContext::for($configuration, $document, $locale, $variant);
         $integrations = array_values(array_filter($this->integrations, static fn(Integration $integration): bool => $integration->available()));
+        $variants = array_values(array_filter($integrations, static fn(Integration $integration): bool => $integration instanceof VariantIntegration));
+        $preparers = array_map(static fn(VariantIntegration $integration): Closure => $integration->prepareSampleRequest(...), $variants);
+        $context = GenerationContext::for($configuration, $document, $locale, $variant, $preparers);
         $errors = self::errorBodies($integrations);
         $description = $this->session->run(fn(): DocumentDescription => $this->describe($context, $integrations, $errors), $context);
+        $description = $description->addNotes(...array_values(array_filter(array_map(static fn(VariantIntegration $integration): ?string => $integration->describe($context), $variants), static fn(?string $note): bool => $note !== null && $note !== '')));
         $description = Passes::default($configuration, $errors, $this->container, ...$this->extensions->passes)->process($description, $context);
 
         return new GeneratedDocument($this->builder->build($description, $context), $description, $context);

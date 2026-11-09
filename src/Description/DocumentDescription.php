@@ -21,6 +21,8 @@ final readonly class DocumentDescription extends Description
      * @param array<string, SecurityScheme> $securitySchemes component name → scheme
      * @param list<SecurityDescription> $security default security of the operations
      * @param array<string, list<ParameterDescription>> $pathParameters path → parameters shared by its operations
+     * @param list<string> $notes markdown texts appended to the configured `info.description`, in order (what the
+     *        variant integrations describe)
      */
     protected function __construct(
         public array $operations = [],
@@ -31,6 +33,7 @@ final readonly class DocumentDescription extends Description
         public array $securitySchemes = [],
         public array $security = [],
         public array $pathParameters = [],
+        public array $notes = [],
     ) {}
 
     public static function create(): self
@@ -123,5 +126,15 @@ final readonly class DocumentDescription extends Description
     public function addSecurity(SecurityDescription ...$security): static
     {
         return $this->copy(security: [...$this->security, ...array_values($security)]);
+    }
+
+    public function notes(string ...$notes): static
+    {
+        return $this->copy(notes: array_values($notes));
+    }
+
+    public function addNotes(string ...$notes): static
+    {
+        return $this->copy(notes: [...$this->notes, ...array_values($notes)]);
     }
 }

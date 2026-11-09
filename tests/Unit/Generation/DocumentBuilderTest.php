@@ -201,6 +201,30 @@ final class DocumentBuilderTest extends TestCase
         ], (array) Schemas::at($written, 'paths', '/orders', 'post', 'callbacks'));
     }
 
+    public function test_the_notes_are_appended_to_the_description_of_the_document(): void
+    {
+        $description = DocumentDescription::create()->notes('First note.')->addNotes('Second note.');
+
+        $written = (new DocumentBuilder())->build($description, $this->writing())->toArray(Version::V3_2_0);
+
+        self::assertSame("Description\n\nFirst note.\n\nSecond note.", Schemas::at($written, 'info', 'description'));
+    }
+
+    public function test_the_notes_are_the_description_of_a_document_without_one(): void
+    {
+        $document = new DocumentConfiguration('v1', new InfoConfiguration('API', '1'));
+        $context = GenerationContext::for(new Configuration(['v1' => $document]), $document);
+
+        $written = (new DocumentBuilder())->build(DocumentDescription::create()->addNotes('Only note.'), $context)->toArray(Version::V3_1_2);
+
+        self::assertSame('Only note.', Schemas::at($written, 'info', 'description'));
+    }
+
+    public function test_notes_replace_the_previous_ones(): void
+    {
+        self::assertSame(['Last.'], DocumentDescription::create()->notes('First.')->notes('Last.')->notes);
+    }
+
     private function writing(): GenerationContext
     {
         $document = new DocumentConfiguration(

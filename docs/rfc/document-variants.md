@@ -1,6 +1,6 @@
 # RFC — Document variants
 
-Status: **in progress** (EV1 delivered) · Target: 1.2.0 · Blocked by: the `ark4ne/laravel-json-api` 2.1.0 tag (epic EV4 only)
+Status: **in progress** (EV1 and EV2 delivered) · Target: 1.2.0 · Blocked by: the `ark4ne/laravel-json-api` 2.1.0 tag (epic EV4 only)
 
 ## 1. Goal
 
@@ -50,12 +50,12 @@ decides what the variant means for it.
 | Layer | New | Modified |
 |---|---|---|
 | Configuration | `Variant`, `VariantsConfiguration` | `DocumentConfiguration` (+ `?VariantsConfiguration $variants`), `OutputConfiguration` (`{variant}`), `InfoConfiguration` (`{variant}` in `version`) |
-| Description | `VariantBounds` | `OperationDescription` (+ `?VariantBounds $bounds`) |
+| Description | `VariantBounds` | `OperationDescription` (+ `?VariantBounds $bounds`), `DocumentDescription` (+ `list<string> $notes`) |
 | Attributes | `Since`, `Until` | — |
-| Context | — | `GenerationContext` (+ `?Variant $variant`) |
-| Sampling | `SampleRequests` | `SchemaInferrer` |
+| Context | — | `GenerationContext` (+ `?Variant $variant`, request preparers, `sampleRequest()`) |
+| Sampling | — | `SchemaInferrer` (sample request) |
 | Extraction | — | `ResourceSchemas`, `ResponsableExtractor` (sample requests), operation extraction (bounds) |
-| Generation | `VariantIntegration` (optional interface), `VariantHeaderPass`, `VariantBoundsPass`, `UnusedComponentsPass` | `Generator::generate()` |
+| Generation | `VariantIntegration` (optional interface), `VariantHeaderPass`, `VariantBoundsPass`, `UnusedComponentsPass` | `Generator::generate()`, `Passes::default()`, `DocumentBuilder` (notes) |
 | Output | — | `DocumentWriter` (`{variant}`) |
 | Integrations | — | `JsonApiV2\*` (EV4) |
 | Laravel | — | `GenerateCommand` (loop, `--variant`), `GeneratorFactory`, `config/openapi.php` |
@@ -158,8 +158,11 @@ Acceptance criteria:
 - `Generation\Passes\VariantHeaderPass`: with `variants.header` set, every operation gets a header parameter of that
   name.
   - In a variant document: `schema: {type: string, const: <name>}` (`enum: [<name>]` in 3.0), `example: <name>`.
-  - In the head document: `schema: {type: string, enum: [<every name>]}`, not required.
-- A header parameter of the same name declared by the application (`#[Header]`) is kept as declared.
+  - In the head document: `schema: {type: string, enum: [<every variant name>]}` (not the head name).
+  - Never required (Q2); webhooks and callbacks get none (the application sends them).
+  - Built-in, after `PathParametersPass`, before the application's passes.
+- A header parameter of the same name (case-insensitive) already on the operation (`#[Header]`, a middleware mapper) is
+  kept as declared.
 
 Tests: `test_every_operation_of_a_variant_documents_its_header`,
 `test_the_head_document_lists_every_variant_in_the_header`, `test_a_declared_header_is_not_replaced`.
@@ -170,16 +173,26 @@ Tests: `test_every_operation_of_a_variant_documents_its_header`,
 samples as a client of that variant would see them.*
 
 Acceptance criteria:
-- `Sampling\SampleRequests::for(GenerationContext): Request`: a `GET /` request, with the variant header when it is
-  configured, then prepared by every available `VariantIntegration`.
+- `GenerationContext::sampleRequest(): Request`: a new `GET /` request, with the variant header when it is configured
+  and a variant is generated (not for the head), then prepared by every request preparer of the context, in order.
+  It lives in the context, not in Sampling: every call site already receives the context, and Sampling cannot depend
+  on the integrations (Generation).
+- `GenerationContext::$requestPreparers` (`list<Closure(Request, GenerationContext): void>`, last constructor
+  parameter, also on `for()`): the `Generator` gives it the `prepareSampleRequest()` of the available
+  `VariantIntegration`s.
 - It replaces every `Request::create('/')` of `src/` (`SchemaInferrer.php:145`, `ResourceSchemas.php:249,286,317`,
-  `ResponsableExtractor.php:67`, `JsonApiV2/JsonApiResourceFormat.php:354`, the 1.x integration). An architecture rule
-  forbids `Request::create()` outside `SampleRequests`.
-- `Generation\VariantIntegration` (optional interface, implemented by an `Integration`):
-  `prepareSampleRequest(Request $request, GenerationContext $context): void`.
+  `ResponsableExtractor.php:67`, `JsonApiV2/JsonApiResourceFormat.php:354`, the 1.x integration). A
+  `disallowed-calls` rule forbids `Request::create()` outside `GenerationContext`.
+- `Generation\VariantIntegration extends Integration` (optional): `prepareSampleRequest(Request $request,
+  GenerationContext $context): void`, called for every sample request, the head's included.
+- `GenerationContext::prepareRequest(Request): Request` does the same on a request the generator builds: the form
+  request whose rules are read (`RequestFactory::make(…, GenerationContext)`) carries the variant too, so that rules
+  that depend on it (US 4.2) need nothing more. `RequestFactory` is the only other class allowed `Request::create()`
+  (through `FormRequest::create()`).
 
 Tests: `test_a_sample_request_carries_the_variant_header`,
-`test_an_integration_prepares_the_sample_requests_of_a_variant`, `test_a_sample_request_of_the_head_has_no_header`.
+`test_an_integration_prepares_the_sample_requests_of_a_variant`, `test_a_sample_request_of_the_head_has_no_header`,
+`test_the_rules_of_a_form_request_are_read_on_a_request_of_the_variant`.
 
 #### US 2.3 — The description of a variant · S
 
@@ -188,6 +201,8 @@ Tests: `test_a_sample_request_carries_the_variant_header`,
 Acceptance criteria:
 - `VariantIntegration::describe(GenerationContext $context): ?string`: a markdown text appended to `info.description`
   (after the configured description, separated by a blank line), in the order of the integrations.
+- The texts travel in `DocumentDescription::$notes` (`notes()`, `addNotes()`), added by the `Generator` before the
+  passes; `DocumentBuilder` joins them to the configured description.
 - No integration describing: `info.description` as configured.
 
 Tests: `test_an_integration_describes_the_variant_in_the_document`,

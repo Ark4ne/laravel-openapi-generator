@@ -14,7 +14,7 @@ use Illuminate\Contracts\Container\Container;
 
 /**
  * The passes, in their explicit order: exception responses → security → error responses → tags and groups →
- * operationId → components → path parameters → the application's → cleanup.
+ * operationId → components → path parameters → variant header → the application's → cleanup.
  */
 final class Passes
 {
@@ -70,6 +70,7 @@ final class Passes
             new Passes\ComponentExtractionPass(),
             new Passes\EquivalentPathsPass(),
             new Passes\PathParametersPass(),
+            new Passes\VariantHeaderPass(),
             ...$others,
             new Passes\CleanupPass(),
         ]);

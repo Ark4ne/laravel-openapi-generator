@@ -62,7 +62,8 @@ Support ← Types ← Attributes ← Configuration ← Description ← Context �
   OpenAPI.
 - `Integrations` is never a dependency of the core: an integration is registered by the configuration or by the
   service provider, and its third-party package stays in `suggest`. It implements `Generation\Integration`
-  (resource formats, rule mappers, error bodies). The `Generator` keeps only the available integrations: an
+  (resource formats, rule mappers, error bodies), and `Generation\VariantIntegration` when it gives the variant of a
+  document a meaning (it prepares the requests, describes the variant). The `Generator` keeps only the available integrations: an
   integration whose package is missing loads none of its classes. Only `Integrations\JsonApi` (1.x) and
   `Integrations\JsonApiV2` (2.x) depend on `Ark4ne\JsonApi`, neither on the other (`phpat`), and the CI runs the
   suite without that package.
@@ -139,7 +140,12 @@ One `GenerationContext` per generated document, passed **explicitly** to each ex
 - the current locale (multilingual generation);
 - the current variant (`Configuration\Variant`, `null` for the head or a document without variants): one generation per
   value of the `variants` dimension of the document. The core gives it no meaning; an integration or an extension
-  recognises its own values and ignores the others.
+  recognises its own values and ignores the others;
+- the requests the application is run on: `sampleRequest()` (a new `GET /`) and `prepareRequest()` (the form request
+  whose rules are read) set the variant header and run the request preparers, the `prepareSampleRequest()` of the
+  available `Generation\VariantIntegration`s. Nothing else in `src/` creates a request (`Request::create()` is
+  forbidden by `disallowed-calls`, `RequestFactory` excepted, which prepares its own): every resource, responsable
+  and rule is read as a client of the variant.
 
 It is not a service container: dependencies come through constructors.
 
