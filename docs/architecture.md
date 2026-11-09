@@ -62,8 +62,8 @@ Support ← Types ← Attributes ← Configuration ← Description ← Context �
   OpenAPI.
 - `Integrations` is never a dependency of the core: an integration is registered by the configuration or by the
   service provider, and its third-party package stays in `suggest`. It implements `Generation\Integration`
-  (resource formats, rule mappers, error bodies), and `Generation\VariantIntegration` when it gives the variant of a
-  document a meaning (it prepares the requests, describes the variant). The `Generator` keeps only the available integrations: an
+  (resource formats, rule mappers, error bodies), and `Generation\VariantIntegration` when it prepares the requests
+  of a generation and describes its document. The `Generator` keeps only the available integrations: an
   integration whose package is missing loads none of its classes. Only `Integrations\JsonApi` (1.x) and
   `Integrations\JsonApiV2` (2.x) depend on `Ark4ne\JsonApi`, neither on the other (`phpat`), and the CI runs the
   suite without that package.
@@ -124,7 +124,7 @@ Rules:
 
 | Object | Content |
 | --- | --- |
-| `OperationDescription` | Source route, HTTP method, `operationId`, summary, description, tags, `deprecated`, request, responses, security, extensions, variant bounds (`VariantBounds`) |
+| `OperationDescription` | Source route, HTTP method, `operationId`, summary, description, tags, `deprecated`, request, responses, security, extensions |
 | `RequestDescription` | `ParameterDescription[]` (path, query, headers, cookies), `BodyDescription` (media types → `Schema`), presence of validation rules |
 | `ResponseDescription` | Status code, description, headers, contents (media type → `Schema`), pagination, origin (inferred, attribute, pass) |
 | `SecurityDescription` | Required security scheme and scopes |
@@ -138,17 +138,13 @@ One `GenerationContext` per generated document, passed **explicitly** to each ex
 - `Diagnostics`: warnings and errors, each with its route and step;
 - `ComponentRegistry`: named schemas met (resources, enums), with name collision detection;
 - the current locale (multilingual generation);
-- the current variant (`Configuration\Variant`, `null` for the head or a document without variants): one generation per
-  value of the `variants` dimension of the document. The core gives it no meaning; an integration or an extension
-  recognises its own values and ignores the others;
 - the requests the application is run on: `sampleRequest()` (a `GET /`, prepared once per context, each call getting
-  its own copy) and `prepareRequest()` (the form request whose rules are read) set the variant header and run the
-  request preparers, the `prepareSampleRequest()` of the available `Generation\VariantIntegration`s (a preparer that
-  throws is reported once for the sample request, and at the `request` stage with the route for a form request). Nothing else in `src/` creates a
-  request (`new Request()`, `Request::create()` and the other named constructors are forbidden by `disallowed-calls`,
-  `RequestFactory` excepted, which prepares its own): every resource, responsable and rule is read as a client of the
-  variant. The request of the container is not replaced: application code that reads `request()`, or a request
-  injected into `rules()`, sees no variant.
+  its own copy) and `prepareRequest()` (the form request whose rules are read) run the request preparers, the
+  `prepareSampleRequest()` of the available `Generation\VariantIntegration`s (a preparer that throws is reported once
+  for the sample request, and at the `request` stage with its route for a form request). Nothing else in `src/`
+  creates a request (`new Request()`, `Request::create()` and the other named constructors are forbidden by
+  `disallowed-calls`, `RequestFactory` excepted, which prepares its own). The request of the container is not
+  replaced: application code that reads `request()`, or a request injected into `rules()`, sees no preparation.
 
 It is not a service container: dependencies come through constructors.
 
@@ -170,7 +166,7 @@ interface ResponseExtractor
 
 | Registry | Input | Output | Examples |
 | --- | --- | --- | --- |
-| `OperationExtractors` | `OperationContext` | enriched `OperationDescription` | PHPDoc, `#[Operation]`, `#[Tag]`, `#[Since]`, `#[Until]`, naming strategies |
+| `OperationExtractors` | `OperationContext` | enriched `OperationDescription` | PHPDoc, `#[Operation]`, `#[Tag]`, naming strategies |
 | `RequestExtractors` | `OperationContext` | enriched `RequestDescription` | Path parameters, `FormRequest`, `DescribableRequest`, attributes |
 | `RuleMappers` | a validation rule | a modified `Schema` | `RequiredRule`, `EnumRule`, `PasswordRule`, `FileRule` |
 | `ResponseExtractors` | return type of the action | `ResponseDescription[]` | `JsonResource`, `ResourceCollection`, `JsonResponse`, files, streams |
@@ -246,12 +242,10 @@ interface Pass
 }
 ```
 
-- The order is explicit, in `Passes::default()`, and tested: variant bounds → security → error responses → tags and
-  groups → `operationId` → components and `$ref` → path parameters → variant header → the application's → unused
-  components → cleanup.
-- A pass that removes operations runs first, so that no other pass reads them (`VariantBoundsPass`); a pass that
-  removes components runs last but the cleanup, so that every reference counts (`UnusedComponentsPass`). Both act in a
-  document with `variants` only: a document without is generated as before them.
+- The order is explicit, in `Passes::default()`, and tested: security → error responses → tags and groups →
+  `operationId` → components and `$ref` → path parameters → the application's → unused components → cleanup.
+- A pass that removes components runs last but the cleanup, so that every reference counts (`UnusedComponentsPass`:
+  a `$ref` or a discriminator mapping).
 - A pass handles **one** cross-cutting concern (`MiddlewareSecurityPass`, `ValidationErrorResponsePass`,
   `ComponentExtractionPass`…). Middlewares are mapped to security requirements by `MiddlewareMapper`s, used by
   `MiddlewareSecurityPass`.

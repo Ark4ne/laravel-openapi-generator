@@ -8,33 +8,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Added
 
-- Document variants (`documents.<name>.variants`): a document is generated once per value of one dimension of the API
-  (an enum, its cases in declaration order, or a list of strings), and once more without variant when `head` names
-  that document. Variant names are of letters, digits, `.`, `-` and `_`. `{variant}` is replaced in the file name and
-  in `info.version` (an error on a document without variants); `openapi:generate --variant=` generates one variant,
-  `openapi:inspect --variant=` inspects one (the first by default). The variant travels in
-  `GenerationContext::$variant` (`Configuration\Variant`, compared by declaration order) for the extensions.
-- The variant header (`documents.<name>.variants.header`) is documented on every operation of a document with
-  variants (`VariantHeaderPass`, built-in): the name of the variant (`const`, `enum` of one value in 3.0), every
-  variant name in the head, never required; a header of the same name already on the operation is kept. It is an
-  HTTP token other than `Accept`, `Content-Type` and `Authorization`, which OpenAPI ignores. The sample requests
-  (`GenerationContext::sampleRequest()`) and the form requests whose rules are read carry it, so that the resources,
-  responsables and rules of the application are read as a client of that variant sees them; `request()` and a
-  request injected into `rules()` are the container's, without it.
 - `Generation\VariantIntegration`: an integration that prepares the sample and form requests of a generation
-  (`prepareSampleRequest()`) and describes its variant (`describe()`, appended to `info.description` through
+  (`prepareSampleRequest()`) and describes its document (`describe()`, appended to `info.description` through
   `DocumentDescription::$notes`, inside the sampling session); either one that throws is a warning diagnostic.
-- `#[Since]` and `#[Until]` (an enum case or a variant name), on a controller or an action: the first and the last
-  variant whose document lists the operation, both inclusive; the head lists only the operations without `#[Until]`.
-  Each is read on its own, the action's winning over the controller's. They set `OperationDescription::$bounds`
-  (`Description\VariantBounds`), which an integration may set too; `VariantBoundsPass` (built-in, the first pass)
-  removes the operations and webhooks the variant does not have; the generator does not even read the requests and
-  responses of a route its bounds leave out. A bound naming no variant of the document is a warning and bounds
-  nothing; bounds whose `since` is newer than their `until` are a warning and cover no document. Ignored in a
-  document without variants.
-- `UnusedComponentsPass` (built-in, after the application's passes, before the cleanup): in a document with variants,
-  the component schemas no longer referenced, directly or through another component, are left out. A discriminator
-  mapping (`mapping`, `defaultMapping`) counts as a reference.
+- `UnusedComponentsPass` (built-in, after the application's passes, before the cleanup): the component schemas no
+  longer referenced, directly or through another component, are left out. A discriminator mapping (`mapping`,
+  `defaultMapping`) counts as a reference.
 - `GenerationContext::sampleRequest()` and `prepareRequest()`: the requests the application renders its samples on;
   creating a request is forbidden elsewhere in `src/` (`disallowed-calls`). The sample request is prepared once per
   generation, each call getting its own copy, so a failing preparer is reported once; a failure while preparing a

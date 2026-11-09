@@ -6,16 +6,13 @@ namespace Ark4ne\OpenApi\Extraction\Operations;
 
 use Ark4ne\OpenApi\Attributes\Operation;
 use Ark4ne\OpenApi\Attributes\Security;
-use Ark4ne\OpenApi\Attributes\Since;
 use Ark4ne\OpenApi\Attributes\Tag;
-use Ark4ne\OpenApi\Attributes\Until;
 use Ark4ne\OpenApi\Attributes\Webhook;
 use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Context\Stage;
 use Ark4ne\OpenApi\Description\OperationDescription;
 use Ark4ne\OpenApi\Description\SecurityDescription;
 use Ark4ne\OpenApi\Description\TagDescription;
-use Ark4ne\OpenApi\Description\VariantBounds;
 use Ark4ne\OpenApi\Extraction\OperationContext;
 
 /**
@@ -33,8 +30,6 @@ use Ark4ne\OpenApi\Extraction\OperationContext;
  *   prefix completed by the name of the action's attribute, else by the method name. Without a name, a warning:
  *   the operation is excluded. Its name is its operationId, unless `#[Operation(operationId:)]` gives one:
  *   the naming strategies read the route, which is not what is called.
- * - `#[Since]` and `#[Until]` set the bounds of the operation, each read on its own: the action's wins over the
- *   controller's. Read whether or not the document has variants: the VariantBoundsPass decides.
  */
 final readonly class AttributeOperationExtractor implements OperationExtractor
 {
@@ -89,33 +84,7 @@ final readonly class AttributeOperationExtractor implements OperationExtractor
             $description = $description->deprecated();
         }
 
-        return self::webhook($operation, self::bounds($operation, $description, $context), $operationId, $context);
-    }
-
-    /**
-     * `#[Since]` and `#[Until]` of the action, else of the controller, as the bounds of the operation; unchanged
-     * without either.
-     */
-    private static function bounds(OperationContext $operation, OperationDescription $description, GenerationContext $context): OperationDescription
-    {
-        $since = self::last($operation->actionAttributes(Since::class, $context)) ?? self::last($operation->classAttributes(Since::class, $context));
-        $until = self::last($operation->actionAttributes(Until::class, $context)) ?? self::last($operation->classAttributes(Until::class, $context));
-
-        return $since === null && $until === null ? $description : $description->bounds(VariantBounds::between($since?->variant, $until?->variant));
-    }
-
-    /**
-     * The attribute of the child when a parent and its child both have one.
-     *
-     * @template T of object
-     *
-     * @param list<T> $attributes from the highest parent down
-     *
-     * @return T|null
-     */
-    private static function last(array $attributes): ?object
-    {
-        return $attributes === [] ? null : $attributes[array_key_last($attributes)];
+        return self::webhook($operation, $description, $operationId, $context);
     }
 
     /**

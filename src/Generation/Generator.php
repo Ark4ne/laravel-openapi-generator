@@ -6,11 +6,9 @@ namespace Ark4ne\OpenApi\Generation;
 
 use Ark4ne\OpenApi\Configuration\Configuration;
 use Ark4ne\OpenApi\Configuration\DocumentConfiguration;
-use Ark4ne\OpenApi\Configuration\Variant;
 use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Context\Stage;
 use Ark4ne\OpenApi\Description\DocumentDescription;
-use Ark4ne\OpenApi\Description\OperationDescription;
 use Ark4ne\OpenApi\Discovery\MiddlewareResolver;
 use Ark4ne\OpenApi\Discovery\PathParameterResolver;
 use Ark4ne\OpenApi\Discovery\RouteCollector;
@@ -40,7 +38,7 @@ use Throwable;
  *
  * The available integrations add their resource formats and rule mappers, and the last one that has error bodies
  * replaces Laravel's; the extensions of the application join the registries, and its strategy classes come from the
- * container. The available variant integrations prepare the sample requests and describe the variant, in their order.
+ * container. The available variant integrations prepare the requests and describe the document, in their order.
  */
 final readonly class Generator
 {
@@ -67,8 +65,7 @@ final readonly class Generator
     }
 
     /**
-     * Every document of the configuration, in each of its languages (once without language when none is set) and each of
-     * its variants (then its head, when it has one; once without variant when it has none).
+     * Every document of the configuration, in each of its languages (once without language when none is set).
      *
      * @return list<GeneratedDocument>
      */
@@ -77,48 +74,26 @@ final readonly class Generator
         $generated = [];
 
         foreach ($configuration->documents as $document) {
-            foreach (self::variants($document) as $variant) {
-                foreach ($configuration->languages === [] ? [null] : $configuration->languages as $locale) {
-                    $generated[] = $this->generate($configuration, $document, $locale, $variant);
-                }
+            foreach ($configuration->languages === [] ? [null] : $configuration->languages as $locale) {
+                $generated[] = $this->generate($configuration, $document, $locale);
             }
         }
 
         return $generated;
     }
 
-    /**
-     * @param Variant|null $variant the variant to generate, `null` for the head or a document without variants
-     */
-    public function generate(Configuration $configuration, string|DocumentConfiguration $document, ?string $locale = null, ?Variant $variant = null): GeneratedDocument
+    public function generate(Configuration $configuration, string|DocumentConfiguration $document, ?string $locale = null): GeneratedDocument
     {
         $document = is_string($document) ? $configuration->document($document) : $document;
         $integrations = array_values(array_filter($this->integrations, static fn(Integration $integration): bool => $integration->available()));
         $variants = array_values(array_filter($integrations, static fn(Integration $integration): bool => $integration instanceof VariantIntegration));
         $preparers = array_map(static fn(VariantIntegration $integration): Closure => $integration->prepareSampleRequest(...), $variants);
-        $context = GenerationContext::for($configuration, $document, $locale, $variant, $preparers);
+        $context = GenerationContext::for($configuration, $document, $locale, $preparers);
         $errors = self::errorBodies($integrations);
         $description = $this->session->run(fn(): DocumentDescription => $this->describe($context, $integrations, $errors)->addNotes(...self::notes($variants, $context)), $context);
         $description = Passes::default($configuration, $errors, $this->container, ...$this->extensions->passes)->process($description, $context);
 
         return new GeneratedDocument($this->builder->build($description, $context), $description, $context);
-    }
-
-    /**
-     * The generations of a document in its variant dimension: each variant, then `null` for its head; only `null` for a
-     * document without variants.
-     *
-     * @return list<Variant|null>
-     */
-    public static function variants(DocumentConfiguration $document): array
-    {
-        $variants = $document->variants;
-
-        if ($variants === null) {
-            return [null];
-        }
-
-        return $variants->head === null ? $variants->values : [...$variants->values, null];
     }
 
     /**
@@ -175,7 +150,7 @@ final readonly class Generator
     }
 
     /**
-     * What the variant integrations describe of the variant, in their order; one that throws is reported.
+     * What the variant integrations describe of the document, in their order; one that throws is reported.
      *
      * @param list<VariantIntegration> $integrations the available ones
      *
@@ -189,7 +164,7 @@ final readonly class Generator
             try {
                 $note = $integration->describe($context);
             } catch (Throwable $error) {
-                $context->diagnostics->warning(Stage::Pass, "cannot describe the variant {$context->variantName()}: {$error->getMessage()}");
+                $context->diagnostics->warning(Stage::Pass, "cannot describe the document {$context->document->name}: {$error->getMessage()}");
 
                 continue;
             }
@@ -222,11 +197,6 @@ final readonly class Generator
         foreach ($this->routes->collect($context) as $route) {
             $operation = $factory->create($route, $context);
             $description = $operations->extract($operation, $operation->describe(), $context);
-
-            if (self::outOfBounds($description, $context)) {
-                continue;
-            }
-
             $description = $description
                 ->request($requests->extract($operation, $description->request, $context))
                 ->responses(...$responses->describe($operation, $context))
@@ -241,18 +211,5 @@ final readonly class Generator
         }
 
         return $document;
-    }
-
-    /**
-     * Whether the bounds of an extracted operation leave it out of the variant generated: its requests, responses and
-     * callbacks are then never read at that variant (no sample, no diagnostic, no component). Inverted bounds are left
-     * to the VariantBoundsPass, which reports them.
-     */
-    private static function outOfBounds(OperationDescription $description, GenerationContext $context): bool
-    {
-        $bounds = $description->bounds;
-        $variants = $context->document->variants;
-
-        return $bounds !== null && $variants !== null && ! $bounds->inverted($variants) && ! $bounds->covers($context->variant, $variants);
     }
 }

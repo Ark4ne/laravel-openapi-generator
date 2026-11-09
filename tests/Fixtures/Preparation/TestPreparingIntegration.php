@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Ark4ne\OpenApi\Tests\Fixtures\Variants;
+namespace Ark4ne\OpenApi\Tests\Fixtures\Preparation;
 
 use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Extraction\Exceptions\ErrorBodies;
@@ -12,11 +12,11 @@ use Illuminate\Http\Request;
 use RuntimeException;
 
 /**
- * A variant integration, available or not: it marks the sample requests with its name and the variant, and describes
- * the variant with its own text (`null` for none). A failing one throws from both; `$onDescribe` runs when it
+ * An integration that prepares requests, available or not: it marks the requests with its name, and describes the
+ * document with its own text (`null` for none). A failing one throws from both; `$onDescribe` runs when it
  * describes.
  */
-final readonly class TestVariantIntegration implements VariantIntegration
+final readonly class TestPreparingIntegration implements VariantIntegration
 {
     public function __construct(
         private string $name,
@@ -53,7 +53,7 @@ final readonly class TestVariantIntegration implements VariantIntegration
         }
 
         $prepared = $request->attributes->get('prepared');
-        $request->attributes->set('prepared', (is_string($prepared) ? "{$prepared}," : '') . "{$this->name}:" . ($context->variantName() ?? 'none'));
+        $request->attributes->set('prepared', (is_string($prepared) ? "{$prepared}," : '') . $this->name);
     }
 
     public function describe(GenerationContext $context): ?string
@@ -66,6 +66,6 @@ final readonly class TestVariantIntegration implements VariantIntegration
             throw new RuntimeException("{$this->name} cannot describe");
         }
 
-        return $this->description === null ? null : "{$this->description} ({$context->variantName()})";
+        return $this->description;
     }
 }

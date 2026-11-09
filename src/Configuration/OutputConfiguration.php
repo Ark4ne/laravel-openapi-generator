@@ -7,7 +7,7 @@ namespace Ark4ne\OpenApi\Configuration;
 use Ark4ne\OpenApi\Exceptions\InvalidConfigurationException;
 
 /**
- * Where a document is written. `file` accepts the `{document}`, `{locale}` and `{variant}` placeholders.
+ * Where a document is written. `file` accepts the `{document}` and `{locale}` placeholders.
  */
 final readonly class OutputConfiguration
 {

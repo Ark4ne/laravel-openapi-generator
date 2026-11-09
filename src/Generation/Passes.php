@@ -13,9 +13,8 @@ use Ark4ne\OpenApi\Extraction\Exceptions\LaravelErrorBodies;
 use Illuminate\Contracts\Container\Container;
 
 /**
- * The passes, in their explicit order: variant bounds → exception responses → security → error responses → tags and
- * groups → operationId → components → path parameters → variant header → the application's → unused components →
- * cleanup.
+ * The passes, in their explicit order: exception responses → security → error responses → tags and groups →
+ * operationId → components → path parameters → the application's → unused components → cleanup.
  */
 final class Passes
 {
@@ -58,7 +57,6 @@ final class Passes
         }
 
         return new self(...[
-            new Passes\VariantBoundsPass(),
             new Passes\WebhookPass(),
             new Passes\CallbackResolutionPass(),
             new Passes\ThrownExceptionResponsePass(),
@@ -73,7 +71,6 @@ final class Passes
             new Passes\ComponentExtractionPass(),
             new Passes\EquivalentPathsPass(),
             new Passes\PathParametersPass(),
-            new Passes\VariantHeaderPass(),
             ...$others,
             new Passes\UnusedComponentsPass(),
             new Passes\CleanupPass(),

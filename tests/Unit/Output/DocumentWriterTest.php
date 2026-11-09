@@ -9,13 +9,10 @@ use Ark4ne\OpenApi\Configuration\DocumentConfiguration;
 use Ark4ne\OpenApi\Configuration\InfoConfiguration;
 use Ark4ne\OpenApi\Configuration\OutputConfiguration;
 use Ark4ne\OpenApi\Configuration\OutputFormat;
-use Ark4ne\OpenApi\Configuration\Variant;
-use Ark4ne\OpenApi\Configuration\VariantsConfiguration;
 use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Exceptions\GenerationFailedException;
 use Ark4ne\OpenApi\Output\DocumentValidator;
 use Ark4ne\OpenApi\Output\DocumentWriter;
-use Ark4ne\OpenApi\Tests\Fixtures\Variants\ApiRevision;
 use Ark4ne\OpenApi\Tests\TestCase;
 use Ark4ne\OpenApiWriter\Enums\Strictness;
 use Ark4ne\OpenApiWriter\Enums\Version;
@@ -70,42 +67,6 @@ final class DocumentWriterTest extends TestCase
         self::assertSame('openapi/v1.fr.json', $this->writer()->path($this->writing(new OutputConfiguration(file: '{document}.json'), locale: 'fr')));
         self::assertSame('openapi/fr/v1.json', $this->writer()->path($this->writing(new OutputConfiguration(file: '{locale}/{document}.json'), locale: 'fr')));
         self::assertSame('openapi/v1.json', $this->writer()->path($this->writing(new OutputConfiguration(file: '{document}{locale}.json'))));
-    }
-
-    public function test_the_file_name_holds_the_variant(): void
-    {
-        $labels = Variant::ofCase(ApiRevision::Labels, 1);
-
-        self::assertSame('openapi/v1-2026-12-01.json', $this->writer()->path($this->variantWriting(new OutputConfiguration(file: '{document}-{variant}.json'), $labels)));
-        self::assertSame('openapi/2026-12-01/v1.json', $this->writer()->path($this->variantWriting(new OutputConfiguration(file: '{variant}/{document}.json'), $labels)));
-    }
-
-    public function test_the_variant_is_inserted_in_a_file_name_without_placeholder(): void
-    {
-        self::assertSame('openapi/v1.2026-12-01.json', $this->writer()->path($this->variantWriting(new OutputConfiguration(file: '{document}.json'), Variant::ofCase(ApiRevision::Labels, 1))));
-        self::assertSame('openapi/v1.2026-12-01', $this->writer()->path($this->variantWriting(new OutputConfiguration(file: '{document}'), Variant::ofCase(ApiRevision::Labels, 1))));
-    }
-
-    public function test_the_file_name_of_the_head_holds_its_name(): void
-    {
-        self::assertSame('openapi/v1-latest.json', $this->writer()->path($this->variantWriting(new OutputConfiguration(file: '{document}-{variant}.json'), null)));
-        self::assertSame('openapi/v1.latest.json', $this->writer()->path($this->variantWriting(new OutputConfiguration(file: '{document}.json'), null)));
-    }
-
-    public function test_the_variant_comes_before_the_locale_in_a_file_name_without_placeholders(): void
-    {
-        self::assertSame('openapi/v1.2026-12-01.fr.json', $this->writer()->path($this->variantWriting(new OutputConfiguration(file: '{document}.json'), Variant::ofCase(ApiRevision::Labels, 1), 'fr')));
-    }
-
-    public function test_the_variant_comes_before_a_locale_placeholder_in_a_file_name_without_variant_placeholder(): void
-    {
-        self::assertSame('openapi/v1.2026-12-01.fr.json', $this->writer()->path($this->variantWriting(new OutputConfiguration(file: '{document}.{locale}.json'), Variant::ofCase(ApiRevision::Labels, 1), 'fr')));
-        self::assertSame('openapi/fr/v1.2026-12-01.json', $this->writer()->path($this->variantWriting(new OutputConfiguration(file: '{locale}/{document}.json'), Variant::ofCase(ApiRevision::Labels, 1), 'fr')));
-    }
-
-    public function test_a_file_name_without_variants_ignores_the_placeholder(): void
-    {
-        self::assertSame('openapi/v1.json', $this->writer()->path($this->writing(new OutputConfiguration(file: '{document}{variant}.json'))));
     }
 
     public function test_the_conversions_of_the_writer_become_diagnostics(): void
@@ -164,16 +125,5 @@ final class DocumentWriterTest extends TestCase
         $document = new DocumentConfiguration('v1', new InfoConfiguration('API', '1'), $version, $strictness, output: $output);
 
         return GenerationContext::for(new Configuration(['v1' => $document]), $document, $locale);
-    }
-
-    /**
-     * A document of the revisions of `ApiRevision` with a `latest` head, generated for `$variant` (`null`: the head).
-     */
-    private function variantWriting(OutputConfiguration $output, ?Variant $variant, ?string $locale = null): GenerationContext
-    {
-        $variants = new VariantsConfiguration([Variant::ofCase(ApiRevision::Initial, 0), Variant::ofCase(ApiRevision::Labels, 1)], head: 'latest');
-        $document = new DocumentConfiguration('v1', new InfoConfiguration('API', '1'), output: $output, variants: $variants);
-
-        return GenerationContext::for(new Configuration(['v1' => $document]), $document, $locale, $variant);
     }
 }

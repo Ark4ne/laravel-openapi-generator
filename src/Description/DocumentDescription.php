@@ -22,7 +22,7 @@ final readonly class DocumentDescription extends Description
      * @param list<SecurityDescription> $security default security of the operations
      * @param array<string, list<ParameterDescription>> $pathParameters path → parameters shared by its operations
      * @param list<string> $notes markdown texts appended to the configured `info.description`, in order (what the
-     *        variant integrations describe)
+     *        integrations describe of the document)
      */
     protected function __construct(
         public array $operations = [],

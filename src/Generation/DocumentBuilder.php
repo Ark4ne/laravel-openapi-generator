@@ -54,7 +54,7 @@ final readonly class DocumentBuilder
         $openApi = OpenApi::create()
             ->openapi($configuration->version)
             ->self($configuration->self)
-            ->info(self::info($configuration->info, $context->variantName(), $document->notes))
+            ->info(self::info($configuration->info, $document->notes))
             ->externalDocs(self::externalDocs($configuration->externalDocs));
         // A setter called without argument writes an empty collection: each one is called only with items.
         $openApi = self::with($openApi, $openApi->servers(...), array_map(self::documentServer(...), $configuration->servers));
@@ -275,11 +275,9 @@ final readonly class DocumentBuilder
     }
 
     /**
-     * @param string|null $variant the name of the variant generated (or of the head), replacing `{variant}` in the
-     *        version
      * @param list<string> $notes appended to the configured description, each one after a blank line
      */
-    private static function info(InfoConfiguration $configuration, ?string $variant, array $notes): Info
+    private static function info(InfoConfiguration $configuration, array $notes): Info
     {
         $contact = $configuration->contact === [] ? null : Contact::create()
             ->name($configuration->contact['name'] ?? null)
@@ -300,7 +298,7 @@ final readonly class DocumentBuilder
             ->termsOfService($configuration->termsOfService)
             ->contact($contact)
             ->license($license)
-            ->version(str_replace('{variant}', $variant ?? '', $configuration->version));
+            ->version($configuration->version);
     }
 
     /**

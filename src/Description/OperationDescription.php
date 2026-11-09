@@ -27,7 +27,6 @@ final readonly class OperationDescription extends Description
      * @param list<ServerDescription> $servers servers of the operation (routes with a domain)
      * @param array<string, mixed> $extensions `x-*` extensions
      * @param bool $excluded left out of the document by the generator (a webhook without name)
-     * @param VariantBounds|null $bounds the variants that have the operation, `null` for all of them
      */
     protected function __construct(
         public HttpMethod|string $method,
@@ -49,7 +48,6 @@ final readonly class OperationDescription extends Description
         public array $extensions = [],
         public ?string $webhook = null,
         public bool $excluded = false,
-        public ?VariantBounds $bounds = null,
     ) {}
 
     public static function create(HttpMethod|string $method, string $path): self
@@ -194,15 +192,6 @@ final readonly class OperationDescription extends Description
     public function exclude(bool $excluded = true): static
     {
         return $this->copy(excluded: $excluded);
-    }
-
-    /**
-     * The variants that have the operation (`#[Since]`, `#[Until]`, an integration); the VariantBoundsPass removes it
-     * from the documents of the others. `null` for every variant.
-     */
-    public function bounds(?VariantBounds $bounds): static
-    {
-        return $this->copy(bounds: $bounds);
     }
 
     /**

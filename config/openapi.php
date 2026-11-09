@@ -121,24 +121,6 @@ return [
             'use_references' => true,
 
             /*
-            | One document per value of a dimension of the API (its revisions,
-            | its versions…): `values` is an enum (its cases, in declaration
-            | order) or a list of strings; `head` names an extra document
-            | without variant (false: none); `header` is the request header
-            | that selects the variant (not Accept, Content-Type or
-            | Authorization), documented on every operation and set on the
-            | requests the samples and the rules are read on. Names are
-            | of letters, digits, `.`, `-` and `_`. `{variant}` is replaced in
-            | the file name and in `info.version`; extensions read the variant
-            | of the generation.
-            */
-            // 'variants' => [
-            //     'values' => App\Http\ApiRevision::class,
-            //     'head' => false,
-            //     'header' => 'Api-Version',
-            // ],
-
-            /*
             | Overrides of the global `output`.
             */
             'output' => [

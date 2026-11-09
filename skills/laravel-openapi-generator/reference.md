@@ -122,19 +122,6 @@ The route is documented under `webhooks` (3.1+; `x-webhooks` before with `redoc`
 | --- | --- |
 | `name` | on an action: the key of the webhook (the route name by default); on a controller: the prefix of the keys of its actions (`order` + `paid` gives `order.paid`) |
 
-### `#[Since]`, `#[Until]`
-
-On a controller or an action, in a document with `variants` (ignored without): the first (`Since`) or the last
-(`Until`) variant whose document lists the operation, both inclusive. The head lists only operations without `Until`.
-Each is read on its own, the action's winning over the controller's. A route a variant does not have is never read at
-that variant (no sample, no diagnostic). A variant the document does not declare: a warning, the operation kept; a
-`Since` newer than the `Until`: a warning, the operation in no document. The component schemas only removed
-operations used are left out.
-
-| Parameter | Effect |
-| --- | --- |
-| `variant` | an enum case (its value when backed, else its name) or the name of a variant |
-
 ### `#[Callback]`
 
 Repeatable, on the action: a request sent back to a URL the client gave.
@@ -180,7 +167,7 @@ unknown top-level key or an invalid value fails the command with the key, the ex
 | `documents.<name>.openapi` | `3.1.2` | Version written: `3.0.0` → `3.0.4`, `3.1.0` → `3.1.2`, `3.2.0` |
 | `documents.<name>.strict` | `true` | Rejects what the version cannot write; `false` drops it with a warning |
 | `documents.<name>.vendor_extensions` | `none` | `redoc`: `x-webhooks` before 3.1, `x-tagGroups` before 3.2 |
-| `documents.<name>.info` | | `title`, `version` (`{variant}` replaced), `summary`, `description`, `terms_of_service`, `contact`, `license` |
+| `documents.<name>.info` | | `title`, `version`, `summary`, `description`, `terms_of_service`, `contact`, `license` |
 | `documents.<name>.self` | `null` | Public URI of the document (`$self`, 3.2) |
 | `documents.<name>.external_docs` | `null` | `url`, `description` |
 | `documents.<name>.servers` | `[]` | Servers of the document; the global `servers` when empty |
@@ -191,9 +178,8 @@ unknown top-level key or an invalid value fails the command with the key, the ex
 | `documents.<name>.use_references` | `true` | Resources and enums as `components.schemas` referenced by `$ref` |
 | `documents.<name>.output` | | Overrides of the global `output` |
 | `documents.<name>.extensions` | `[]` | `x-*` extensions of the document |
-| `documents.<name>.variants` | `null` | One document per variant (an API revision, a version…): `values` (an enum class with cases, in declaration order, named by their value when backed; or a list of strings; names of letters, digits, `.`, `-`, `_`), `head` (`false`; a name: one more document without variant), `header` (`null`; the request header selecting the variant, an HTTP token other than `Accept`, `Content-Type` and `Authorization`: documented on every operation, its variant name in a variant document, every variant name in the head, never required; set on the request the resources and responsables receive and on the form request whose rules are read, as `$request` or `$this`, not on `request()`). Extensions read `$context->variant` (`null`: the head) and render on `$context->sampleRequest()` |
 | `servers` | `APP_URL` | `url`, `description`, `name` (3.2), `variables` (`default`, `enum`, `description`) |
-| `output` | | `disk` (`null`: the default disk), `directory` (`openapi`), `file` (`{document}.json`, with `{document}`, `{locale}` and `{variant}`; a locale or a variant without placeholder is inserted before the extension), `format` (`json`, `yaml`) |
+| `output` | | `disk` (`null`: the default disk), `directory` (`openapi`), `file` (`{document}.json`, with `{document}` and `{locale}`), `format` (`json`, `yaml`) |
 | `sampling` | | `transactions` (`true`), `connections` (drivers wrapped in a rolled back transaction), `collection_size` (`2`), `seed` (`1`), `examples` (`true`) |
 | `date_formats` | | PHP date format → OpenAPI format (`date`, `date-time`), for `date_format:` and the sampled values |
 | `middlewares` | `[]` | Middleware name or class → classes implementing `MiddlewareMapper`, replacing the built-in ones of that middleware |
@@ -216,7 +202,7 @@ priority with `priority()`, returning a public `PRIORITY` constant.
 | `RuleMapper` | `Extraction\Rules` | `handles(): list<string>` (rule names or classes), `map(RuleInvocation, FieldDescription, GenerationContext): FieldDescription`; replaces the built-in mapper of its rules |
 | `ResponseExtractor` | `Extraction\Responses` | `supports(Type, OperationContext)`, `extract(Type, OperationContext, GenerationContext): list<ResponseDescription>`; the first supporting extractor, by decreasing priority |
 | `Sampler` | `Sampling` | `supports(SampleRequest, GenerationContext)`, `sample(SampleRequest, GenerationContext): list<mixed>`; the first supporting sampler, by decreasing priority |
-| `Pass` | `Generation` | `process(DocumentDescription, GenerationContext): DocumentDescription`; after the built-in passes, before the unused components (documents with variants) and the cleanup |
+| `Pass` | `Generation` | `process(DocumentDescription, GenerationContext): DocumentDescription`; after the built-in passes, before the removal of unused component schemas and the cleanup |
 | `MiddlewareMapper` | `Generation` | `handles(): list<string>`, `map(Middleware, OperationDescription, DocumentDescription, GenerationContext): array{OperationDescription, DocumentDescription}`; listed in `middlewares` |
 | `DescribesRequest` | `Extraction\Requests` | on a request class: `describe(RequestDescriber): RequestDescriber` (`header()`, `cookie()`, `query()`, `json()`, `form()`, `multipart()`, `body()`, `bodySchema()`, `bodyDescription()`, `parameter()`) |
 | `DescribesRule` | `Extraction\Rules` | on a validation rule: `describe(FieldDescription): FieldDescription` |
@@ -231,8 +217,8 @@ application code it does not understand: it adds a diagnostic (`$context->diagno
 
 | Command | Effect |
 | --- | --- |
-| `openapi:generate` | Every document, in each variant and each language. `--document=*`, `--variant=` (one variant, or the head, of every chosen document), `--strict` (fail on a warning), `--dry-run`, `--format=json\|yaml`, `--stdout` (one document, one variant; diagnostics on the error output). Exit 0 written, 1 a document failed, 2 invalid configuration or options |
-| `openapi:inspect {route}` | What the generator understood of a route (its name, its URI, or its method and URI): the operation after the passes and all its diagnostics. `--document=`, `--variant=` (the first generation of the document by default) |
+| `openapi:generate` | Every document, in each language. `--document=*`, `--strict` (fail on a warning), `--dry-run`, `--format=json\|yaml`, `--stdout` (one document; diagnostics on the error output). Exit 0 written, 1 a document failed, 2 invalid configuration or options |
+| `openapi:inspect {route}` | What the generator understood of a route (its name, its URI, or its method and URI): the operation after the passes and all its diagnostics. `--document=` |
 | `about` | Version, documents, JSON:API integration (and the major version of `ark4ne/laravel-json-api`) |
 
 Diagnostics are grouped by route: warnings by default, infos with `-v`, only errors with `-q`.

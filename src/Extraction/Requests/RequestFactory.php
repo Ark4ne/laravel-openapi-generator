@@ -19,7 +19,7 @@ use Throwable;
  * Builds the request class of an action without running it: no validation, no `authorize()`.
  *
  * The request knows its route, whose parameters are bound to samples: a new model, the first case of an enum, `1`
- * for an integer, else `sample`; it is prepared by the context (the variant header, the request preparers).
+ * for an integer, else `sample`; it is prepared by the context (its request preparers).
  * `rules()` is called by the container, which injects its arguments.
  */
 final readonly class RequestFactory

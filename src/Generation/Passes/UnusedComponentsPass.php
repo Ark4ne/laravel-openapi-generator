@@ -12,15 +12,14 @@ use Ark4ne\OpenApiWriter\Contracts\SchemaContract;
 
 /**
  * The component schemas no operation, webhook, path parameter or shared response references any more, directly or
- * through another component (a `$ref` or a discriminator mapping), removed: those of the operations a variant does not
- * have. Runs after every other pass but the cleanup, so that the references an application's pass adds count. Only in
- * a document with `variants`: a document without keeps every component, as in 1.1.
+ * through another component (a `$ref` or a discriminator mapping), removed: those of the operations a pass removed.
+ * Runs after every other pass but the cleanup, so that the references an application's pass adds count.
  */
 final readonly class UnusedComponentsPass implements Pass
 {
     public function process(DocumentDescription $document, GenerationContext $context): DocumentDescription
     {
-        if ($context->document->variants === null || $document->schemas === []) {
+        if ($document->schemas === []) {
             return $document;
         }
 

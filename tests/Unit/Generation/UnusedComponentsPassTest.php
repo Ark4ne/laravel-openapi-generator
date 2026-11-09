@@ -4,12 +4,6 @@ declare(strict_types=1);
 
 namespace Ark4ne\OpenApi\Tests\Unit\Generation;
 
-use Ark4ne\OpenApi\Configuration\Configuration;
-use Ark4ne\OpenApi\Configuration\DocumentConfiguration;
-use Ark4ne\OpenApi\Configuration\InfoConfiguration;
-use Ark4ne\OpenApi\Configuration\Variant;
-use Ark4ne\OpenApi\Configuration\VariantsConfiguration;
-use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Description\BodyDescription;
 use Ark4ne\OpenApi\Description\CallbackDescription;
 use Ark4ne\OpenApi\Description\DocumentDescription;
@@ -17,7 +11,6 @@ use Ark4ne\OpenApi\Description\OperationDescription;
 use Ark4ne\OpenApi\Description\ParameterDescription;
 use Ark4ne\OpenApi\Description\ResponseDescription;
 use Ark4ne\OpenApi\Generation\Passes\UnusedComponentsPass;
-use Ark4ne\OpenApi\Tests\Fixtures\Variants\ApiRevision;
 use Ark4ne\OpenApi\Tests\Support\Descriptions;
 use Ark4ne\OpenApi\Tests\TestCase;
 use Ark4ne\OpenApiWriter\Enums\HttpMethod;
@@ -35,7 +28,7 @@ final class UnusedComponentsPassTest extends TestCase
             'User' => Schema::object(),
         ]);
 
-        self::assertSame(['User'], self::kept($document));
+        self::assertSame(['User'], $this->kept($document));
     }
 
     public function test_a_component_referenced_by_another_component_is_kept(): void
@@ -46,7 +39,7 @@ final class UnusedComponentsPassTest extends TestCase
             'User' => Schema::object()->properties(Schema::array()->items(Schema::ref('Address'))->objectId('addresses')),
         ]);
 
-        self::assertSame(['Country', 'Address', 'User'], self::kept($document));
+        self::assertSame(['Country', 'Address', 'User'], $this->kept($document));
     }
 
     public function test_a_component_a_discriminator_maps_to_is_kept(): void
@@ -61,7 +54,7 @@ final class UnusedComponentsPassTest extends TestCase
             'Unused' => Schema::object(),
         ]);
 
-        self::assertSame(['Pet', 'Cat', 'Dog', 'Bone', 'Animal'], self::kept($document));
+        self::assertSame(['Pet', 'Cat', 'Dog', 'Bone', 'Animal'], $this->kept($document));
     }
 
     public function test_a_component_referenced_only_by_unused_components_is_removed(): void
@@ -72,7 +65,7 @@ final class UnusedComponentsPassTest extends TestCase
             'Translation' => Schema::create()->oneOf(Schema::ref('Label'), Schema::string()),
         ]);
 
-        self::assertSame(['User'], self::kept($document));
+        self::assertSame(['User'], $this->kept($document));
     }
 
     public function test_the_components_of_parameters_bodies_callbacks_webhooks_and_shared_responses_are_kept(): void
@@ -88,7 +81,7 @@ final class UnusedComponentsPassTest extends TestCase
             ->response('Error', ResponseDescription::create(400)->description('Error')->content('application/json', Schema::ref('Error')))
             ->schemas(array_fill_keys(['Status', 'Input', 'Callback', 'Webhook', 'Error', 'Unused'], Schema::object()));
 
-        self::assertSame(['Status', 'Input', 'Callback', 'Webhook', 'Error'], self::kept($document));
+        self::assertSame(['Status', 'Input', 'Callback', 'Webhook', 'Error'], $this->kept($document));
     }
 
     public function test_the_components_of_the_parameters_of_a_path_are_kept(): void
@@ -97,12 +90,12 @@ final class UnusedComponentsPassTest extends TestCase
             ->pathParameters('/api/users/{status}', ParameterDescription::path('status', Schema::ref('Status')))
             ->schemas(['User' => Schema::object(), 'Status' => Schema::string(), 'Unused' => Schema::object()]);
 
-        self::assertSame(['User', 'Status'], self::kept($document));
+        self::assertSame(['User', 'Status'], $this->kept($document));
     }
 
-    public function test_a_document_without_variants_keeps_every_component(): void
+    public function test_a_document_without_component_is_unchanged(): void
     {
-        $document = Descriptions::document(self::returning('User'))->schemas(['Label' => Schema::object(), 'User' => Schema::object()]);
+        $document = Descriptions::document(self::returning('User'));
 
         self::assertSame($document, (new UnusedComponentsPass())->process($document, $this->context()));
     }
@@ -115,12 +108,8 @@ final class UnusedComponentsPassTest extends TestCase
     /**
      * @return list<string> the names of the components kept, in order
      */
-    private static function kept(DocumentDescription $document): array
+    private function kept(DocumentDescription $document): array
     {
-        $variants = new VariantsConfiguration([Variant::ofCase(ApiRevision::Initial, 0), Variant::ofCase(ApiRevision::Labels, 1)]);
-        $configuration = new DocumentConfiguration('v1', new InfoConfiguration('API', '1'), variants: $variants);
-        $context = GenerationContext::for(new Configuration(['v1' => $configuration]), $configuration, variant: $variants->values[0]);
-
-        return array_keys((new UnusedComponentsPass())->process($document, $context)->schemas);
+        return array_keys((new UnusedComponentsPass())->process($document, $this->context())->schemas);
     }
 }
