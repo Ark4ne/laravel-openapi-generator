@@ -72,7 +72,9 @@ Support ← Types ← Attributes ← Configuration ← Description ← Context �
 - An integration on `ark4ne/laravel-api-revisions` reads the shapes of the base (`Shape`, `FieldDefinition`,
   `TypeDefinition`), never its `@internal` classes, and writes them as the base exports them (`JsonSchemaExporter`);
   what it cannot read without a JSON Schema decoder (the fragment of a custom type) is typed by a sample, with an info
-  diagnostic. A nested resource is read from the shapes of the base (`Shapes::for()`, response, at the `headAt` of its
+  diagnostic. The check of the package (`ResourceChecker`) runs once per document in a pass, on the resources the
+  document read and at its revision, never on each definition read; the application's `Checker` is resolved from the
+  `Container` contract the Laravel layer gives to the built-in integrations. A nested resource is read from the shapes of the base (`Shapes::for()`, response, at the `headAt` of its
   field), never by rendering it. The revision of a document is the base revision of the `RevisionScope`, set by `prepareRequest()` for
   every document, the head (`null`) included: a document never inherits the revision of the previous one.
 - **One document configuration per version.** The core knows no versions, revisions or version headers: each

@@ -35,7 +35,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   only when the sparse fieldset names it (`whenInFields()`) says so; the links of a resource object are a URL or a link
   object by name. `json_api.revision` is a case of the enum of `revisions.enum`; every request the generator builds is
   read at it (`RevisionScope::setBase()`, the head included, so that a document never inherits the revision of the
-  previous one), and the description lists the newer revisions from their `#[Meta]`. The 2.x integration is no longer
+  previous one), and the description lists the newer revisions from their `#[Meta]`. The resources a document covers
+  are checked once per document at its revision (`ResourceCheckPass`: `Compilation\ResourceChecker`, the check of
+  `jsonapi:check`, with the application's `Checker`); its findings are diagnostics with their code and revision, each
+  once. The 2.x integration is no longer
   available with 3.x installed. `Support\Patterns::ecma()` turns a PCRE with delimiters into a `pattern`, shared with
   the `regex` rule mapper.
 - `UnusedComponentsPass` (built-in, after the application's passes, before the cleanup): the component schemas no

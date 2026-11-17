@@ -14,6 +14,8 @@ use Ark4ne\OpenApi\Integrations\JsonApiV3\IncludesRuleMapper;
 use Ark4ne\OpenApi\Integrations\JsonApiV3\JsonApiErrorBodies;
 use Ark4ne\OpenApi\Integrations\JsonApiV3\JsonApiResourceFormat;
 use Ark4ne\OpenApi\Integrations\JsonApiV3\JsonApiV3Integration;
+use Ark4ne\OpenApi\Integrations\JsonApiV3\ResourceCheckPass;
+use Ark4ne\OpenApi\Integrations\JsonApiV3\ResourceDefinitions;
 use Ark4ne\OpenApi\Integrations\JsonApiV3\Revisions;
 use Ark4ne\OpenApi\Tests\Fixtures\JsonApiV3\ApiRevision;
 use Ark4ne\OpenApi\Tests\Fixtures\JsonApiV3\OtherRevision;
@@ -35,7 +37,7 @@ final class JsonApiV3IntegrationTest extends JsonApiV3TestCase
         self::assertSame('json_api', $integration->key());
         self::assertEquals([new JsonApiResourceFormat()], $integration->resourceFormats());
         self::assertEquals([new IncludesRuleMapper(), new FieldsRuleMapper()], $integration->ruleMappers());
-        self::assertSame([], $integration->passes($this->ctx()));
+        self::assertEquals([new ResourceCheckPass(new ResourceDefinitions(new Revisions()), new Revisions())], $integration->passes($this->ctx()));
     }
 
     public function test_the_1_x_and_2_x_integrations_are_not_available_with_3_x(): void

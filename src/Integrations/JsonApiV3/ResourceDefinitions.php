@@ -9,6 +9,7 @@ use Ark4ne\JsonApi\Compilation\Definitions;
 use Ark4ne\JsonApi\Configuration\JsonApiObject;
 use Ark4ne\JsonApi\Definition\RelatedResource;
 use Ark4ne\JsonApi\Definition\ResourceDefinition;
+use Ark4ne\JsonApi\Support\Diagnostic;
 use Ark4ne\JsonApi\Support\DiagnosticLevel;
 use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Context\Stage;
@@ -30,11 +31,15 @@ final class ResourceDefinitions
     /** @var WeakMap<GenerationContext, array<string, true>> the findings already relayed, per context */
     private WeakMap $relayed;
 
+    /** @var WeakMap<GenerationContext, array<class-string, true>> the resources read, in order, per context */
+    private WeakMap $covered;
+
     public function __construct(
         private readonly Revisions $revisions = new Revisions(),
     ) {
         $this->definitions = new WeakMap();
         $this->relayed = new WeakMap();
+        $this->covered = new WeakMap();
     }
 
     /**
@@ -56,37 +61,64 @@ final class ResourceDefinitions
         }
 
         try {
-            $definition = $this->definition(RelatedResource::resolve($class), $revision, $context, $stage);
+            $resource = RelatedResource::resolve($class);
+            $definition = $this->definition($resource, $revision, $context, $stage);
+
+            if ($definition !== null) {
+                $covered = $this->covered[$context] ?? [];
+                $covered[$resource] = true;
+                $this->covered[$context] = $covered;
+            }
         } catch (Throwable $error) {
             $context->diagnostics->warning($stage, "{$subject}: cannot read the definition of {$class}: {$error->getMessage()}");
             $definition = null;
         }
 
-        // An error of the package is a warning here: the document is still written, an error being kept for a document
-        // that is not valid (`--strict` fails on warnings). Read once per revision, each finding is relayed once.
-        $relayed = $this->relayed[$context] ?? [];
-
         foreach ($definition->diagnostics ?? [] as $diagnostic) {
-            $message = "{$class}: {$diagnostic->message} ({$diagnostic->code})";
-
-            if (isset($relayed[$message])) {
-                continue;
-            }
-
-            $relayed[$message] = true;
-
-            match ($diagnostic->level) {
-                DiagnosticLevel::Info => $context->diagnostics->info($stage, $message),
-                DiagnosticLevel::Warning, DiagnosticLevel::Error => $context->diagnostics->warning($stage, $message),
-            };
+            $this->relay($context, $stage, $class, $diagnostic);
         }
 
-        $this->relayed[$context] = $relayed;
         $known = $this->definitions[$context] ?? [];
         $known[$key] = $definition;
         $this->definitions[$context] = $known;
 
         return $definition;
+    }
+
+    /**
+     * The JSON:API resources whose definition the context read, in the order read: those the document covers.
+     *
+     * @return list<class-string>
+     */
+    public function covered(GenerationContext $context): array
+    {
+        return array_keys($this->covered[$context] ?? []);
+    }
+
+    /**
+     * A finding of the package about a class, relayed once per context whatever its revision: an error of the package
+     * is a warning here, the document is still written (an error is kept for a document that is not valid, `--strict`
+     * fails on warnings).
+     *
+     * @param string|null $revision the revision showing it, named as in the document
+     */
+    public function relay(GenerationContext $context, Stage $stage, string $class, Diagnostic $diagnostic, ?string $revision = null): void
+    {
+        $relayed = $this->relayed[$context] ?? [];
+        $message = "{$class}: {$diagnostic->message} ({$diagnostic->code})";
+
+        if (isset($relayed[$message])) {
+            return;
+        }
+
+        $relayed[$message] = true;
+        $this->relayed[$context] = $relayed;
+        $message = $revision === null ? $message : "{$class}: {$diagnostic->message} ({$diagnostic->code}, revision {$revision})";
+
+        match ($diagnostic->level) {
+            DiagnosticLevel::Info => $context->diagnostics->info($stage, $message),
+            DiagnosticLevel::Warning, DiagnosticLevel::Error => $context->diagnostics->warning($stage, $message),
+        };
     }
 
     /**

@@ -148,6 +148,17 @@ final class JsonApiV3Test extends DocumentScenario
         self::assertCount(1, array_keys($diagnostics, '[warning] response: ' . MemberResource::class . ' does not exist at the revision 2026-09-01: exclude its routes from the document (routes.exclude)', true));
     }
 
+    public function test_the_resources_of_a_document_are_checked_at_its_revision(): void
+    {
+        $finding = fn(?ApiRevision $revision): array => array_values(array_filter(
+            array_map(strval(...), $this->generated($revision)->context->diagnostics->all()),
+            static fn(string $line): bool => str_contains($line, '(conversion-missing, revision 2026-09-01)'),
+        ));
+
+        self::assertCount(1, $finding(ApiRevision::Initial));
+        self::assertSame([], $finding(null));
+    }
+
     /**
      * @return array<string, mixed>
      */

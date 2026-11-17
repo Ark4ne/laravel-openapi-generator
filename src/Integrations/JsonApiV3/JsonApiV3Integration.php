@@ -8,6 +8,7 @@ use Ark4ne\ApiRevisions\Revisions\RevisionScope;
 use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Extraction\Exceptions\ErrorBodies;
 use Ark4ne\OpenApi\Generation\DocumentIntegration;
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Http\Request;
 
 /**
@@ -45,9 +46,11 @@ final readonly class JsonApiV3Integration implements DocumentIntegration
 
     /**
      * @param bool $errors the error responses are JSON:API error documents (`errors[]`)
+     * @param Container|null $container the application's, for the check of its resources (`ResourceCheckPass`)
      */
     public function __construct(
         private bool $errors = false,
+        private ?Container $container = null,
     ) {
         $this->revisions = new Revisions();
         $this->definitions = new ResourceDefinitions($this->revisions);
@@ -106,8 +109,11 @@ final readonly class JsonApiV3Integration implements DocumentIntegration
         return Revisions::changelog($this->revisions->of($context));
     }
 
+    /**
+     * The check of the resources the document covers (`ResourceCheckPass`).
+     */
     public function passes(GenerationContext $context): array
     {
-        return [];
+        return [new ResourceCheckPass($this->definitions, $this->revisions, $this->container)];
     }
 }

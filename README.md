@@ -228,7 +228,8 @@ a warning: exclude its routes from that document.
   object are a URL or a link object by name. A nested resource has the members of its own shape at that revision. A
   value of unknown type and a custom type are typed by rendering the resource on a sample of its model. One document per revision as above: `json_api.revision` is a case
   of the enum the application configures (`revisions.enum`), and every request the generator builds (samples, form
-  requests) is read at that revision.
+  requests) is read at that revision. The resources of each document are checked at its revision, as `jsonapi:check`
+  does: its errors and warnings are warnings of the document (`--strict` fails on them).
 
 ## Extending
 
