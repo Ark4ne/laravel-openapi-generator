@@ -72,8 +72,11 @@ Support ← Types ← Attributes ← Configuration ← Description ← Context �
 - An integration on `ark4ne/laravel-api-revisions` reads the shapes of the base (`Shape`, `FieldDefinition`,
   `TypeDefinition`), never its `@internal` classes, and writes them as the base exports them (`JsonSchemaExporter`,
   with its public conversions `Export\RegexPattern` and `Export\DatePattern`, never a copy of them);
-  what it cannot read without a JSON Schema decoder (the fragment of a custom type) is typed by a sample, with an info
-  diagnostic. The check of the package (`ResourceChecker`) runs once per document in a pass, on the resources the
+  what it cannot read without a JSON Schema decoder (the fragment of a custom type, a field's own `schema([...])`
+  keywords) is typed by a sample, with an info diagnostic.
+- **The writer only writes OpenAPI.** Any conversion into writer objects (from raw JSON Schema, from another library's
+  model) belongs to the generator, never to `ark4ne/openapi-writer`; a JSON Schema decoder, when one is needed, lives
+  in this package. The check of the package (`ResourceChecker`) runs once per document in a pass, on the resources the
   document read and at its revision, never on each definition read; the application's `Checker` is resolved from the
   `Container` contract the Laravel layer gives to the built-in integrations. A nested resource is read from the shapes of the base (`Shapes::for()`, response, at the `headAt` of its
   field), never by rendering it. The revision of a document is the base revision of the `RevisionScope`, set by `prepareRequest()` for
