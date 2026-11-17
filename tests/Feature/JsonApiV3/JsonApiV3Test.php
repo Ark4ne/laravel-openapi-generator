@@ -77,6 +77,7 @@ final class JsonApiV3Test extends DocumentScenario
         $router->get('api/articles/{post}', [ArticleController::class, 'show'])->name('articles.show');
         $router->post('api/articles', [ArticleController::class, 'store'])->name('articles.store');
         $router->get('api/members/{user}', [ArticleController::class, 'member'])->name('members.show');
+        $router->get('api/patterned/{post}', [ArticleController::class, 'patterned'])->name('patterned.show');
     }
 
     protected function integrations(): array

@@ -70,7 +70,8 @@ Support ← Types ← Attributes ← Configuration ← Description ← Context �
   `Ark4ne\ApiRevisions`, the base 3.x is built on. Each one is available with its own line only: 2.x is told from
   3.x by the values 3.0 removed (`Definition\AttributeDefinition`).
 - An integration on `ark4ne/laravel-api-revisions` reads the shapes of the base (`Shape`, `FieldDefinition`,
-  `TypeDefinition`), never its `@internal` classes, and writes them as the base exports them (`JsonSchemaExporter`);
+  `TypeDefinition`), never its `@internal` classes, and writes them as the base exports them (`JsonSchemaExporter`,
+  with its public conversions `Export\RegexPattern` and `Export\DatePattern`, never a copy of them);
   what it cannot read without a JSON Schema decoder (the fragment of a custom type) is typed by a sample, with an info
   diagnostic. The check of the package (`ResourceChecker`) runs once per document in a pass, on the resources the
   document read and at its revision, never on each definition read; the application's `Checker` is resolved from the

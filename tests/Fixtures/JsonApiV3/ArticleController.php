@@ -7,6 +7,7 @@ namespace Ark4ne\OpenApi\Tests\Fixtures\JsonApiV3;
 use Ark4ne\JsonApi\Resources\JsonApiCollection;
 use Ark4ne\OpenApi\Tests\Fixtures\JsonApi\Models\Post;
 use Ark4ne\OpenApi\Tests\Fixtures\JsonApi\Models\User;
+use Ark4ne\OpenApi\Tests\Fixtures\JsonApiV3\Types\PatternedResource;
 
 final class ArticleController
 {
@@ -34,6 +35,14 @@ final class ArticleController
     public function store(ArticleRequest $request): ArticleResource
     {
         return new ArticleResource(new Post());
+    }
+
+    /**
+     * Show the patterns of a post.
+     */
+    public function patterned(Post $post): PatternedResource
+    {
+        return new PatternedResource($post);
     }
 
     /**

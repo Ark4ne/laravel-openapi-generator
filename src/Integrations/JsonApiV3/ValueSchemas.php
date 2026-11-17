@@ -9,15 +9,17 @@ use Ark4ne\ApiRevisions\Compilation\Shape;
 use Ark4ne\ApiRevisions\Compilation\Shapes;
 use Ark4ne\ApiRevisions\Definition\Kind;
 use Ark4ne\ApiRevisions\Definition\TypeDefinition;
+use Ark4ne\ApiRevisions\Export\DatePattern;
+use Ark4ne\ApiRevisions\Export\RegexPattern;
 use Ark4ne\ApiRevisions\Revisions\Revision;
 use Ark4ne\ApiRevisions\Schema\DeclarationKind;
 use Ark4ne\OpenApi\Context\Diagnostic;
 use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Context\Stage;
-use Ark4ne\OpenApi\Support\DateFormats;
-use Ark4ne\OpenApi\Support\Patterns;
+use Ark4ne\OpenApiWriter\Enums\Version;
 use Ark4ne\OpenApiWriter\Objects\Schema;
 use Closure;
+use DateTimeInterface;
 use Throwable;
 
 /**
@@ -26,9 +28,11 @@ use Throwable;
  * follow the JSON Schema export of the base (`JsonSchemaExporter`).
  *
  * - Each field under its name at the revision; none required (sparse fieldsets, conditions).
- * - The `Kind` gives the type: `String` (`minLength`, `maxLength`, `format`, `pattern`), `Int` and `Float` (`minimum`,
- *   `maximum`), `Bool`, `Date` and `DateTime` (the OpenAPI format of their PHP format in `date_formats`, a plain string
- *   for another one), `Enum` (its backed values), `List` (`minItems`, `maxItems`, its items), `Object` (its children,
+ * - The `Kind` gives the type: `String` (`minLength`, `maxLength`, `format`, `pattern` from `RegexPattern`, the PCRE in
+ *   `$comment` when JSON Schema cannot carry it), `Int` and `Float` (`minimum`, `maximum`), `Bool`, `Date` and
+ *   `DateTime` (`format: date` or `date-time` for the formats JSON Schema names, otherwise the pattern of `DatePattern`
+ *   when it has one and the PHP format in `$comment`). Before 3.1, what `$comment` says is said in the description,
+ *   after that of the type, `Enum` (its backed values), `List` (`minItems`, `maxItems`, its items), `Object` (its children,
  *   for an object typed by the schema of a `was()`, its member types).
  * - A nested resource: the members of its response shape, read at the revision where the head of its field is in
  *   force (`headAt`), at the revision of the field under the schema of a `was()`.
@@ -112,7 +116,8 @@ final readonly class ValueSchemas
             Kind::Int => self::bounded(Schema::integer(), $type),
             Kind::Float => self::bounded(Schema::number(), $type),
             Kind::Bool => Schema::boolean(),
-            Kind::Date, Kind::DateTime => $this->date($type->format),
+            Kind::Date => $this->date($type->format, 'Y-m-d', 'date'),
+            Kind::DateTime => $this->date($type->format, DateTimeInterface::RFC3339, 'date-time'),
             Kind::Enum => Schema::create()->type($type->backing === Kind::Int ? 'integer' : 'string')->enum(...$type->values),
             Kind::List => $this->list($type, $path, $at, $nesting, $items),
             Kind::Object => $this->object($type, $path, $at, $nesting, $children),
@@ -127,9 +132,14 @@ final readonly class ValueSchemas
         $schema = $type->min === null ? $schema : $schema->minLength((int) $type->min);
         $schema = $type->max === null ? $schema : $schema->maxLength((int) $type->max);
         $schema = $type->format === null ? $schema : $schema->format($type->format);
-        $pattern = $type->pattern === null ? null : Patterns::ecma($type->pattern);
 
-        return $pattern === null ? $schema : $schema->pattern($pattern);
+        if ($type->pattern === null) {
+            return $schema;
+        }
+
+        $pattern = RegexPattern::of($type->pattern);
+
+        return $pattern === null ? $this->comment($schema, "PCRE {$type->pattern}") : $schema->pattern($pattern);
     }
 
     private static function bounded(Schema $schema, TypeDefinition $type): Schema
@@ -140,15 +150,27 @@ final readonly class ValueSchemas
     }
 
     /**
-     * A string in the OpenAPI format of its PHP format (`date_formats`, its defaults without one), a plain string for
-     * a format it does not list.
+     * The format JSON Schema names for the formats it knows (none, `$standard`, RFC 3339 extended for a date-time);
+     * for another one, its pattern when every token is numeric (`DatePattern`) and its PHP format in `$comment`.
      */
-    private function date(?string $format): Schema
+    private function date(?string $format, string $standard, string $known): Schema
     {
-        $formats = $this->context->configuration->dateFormats === [] ? DateFormats::DEFAULTS : $this->context->configuration->dateFormats;
-        $openapi = $format === null ? null : $formats[$format] ?? null;
+        if ($format === null || $format === $standard || ($known === 'date-time' && $format === DateTimeInterface::RFC3339_EXTENDED)) {
+            return Schema::string()->format($known);
+        }
 
-        return $openapi === null ? Schema::string() : Schema::string()->format($openapi);
+        $pattern = DatePattern::of($format);
+        $schema = $this->comment(Schema::string(), "PHP date format {$format}");
+
+        return $pattern === null ? $schema : $schema->pattern($pattern);
+    }
+
+    /**
+     * `$comment` from 3.1; before, a description (`finish()` puts that of the type first).
+     */
+    private function comment(Schema $schema, string $comment): Schema
+    {
+        return $this->context->document->version->isAtLeast(Version::V3_1_0) ? $schema->comment($comment) : $schema->description($comment);
     }
 
     /**
@@ -244,7 +266,8 @@ final readonly class ValueSchemas
      */
     private function finish(Schema $schema, TypeDefinition $type, bool $nullable): Schema
     {
-        $schema = $type->description === null ? $schema : $schema->description($type->description);
+        $said = $schema->description;
+        $schema = $type->description === null ? $schema : $schema->description($said === null ? $type->description : "{$type->description}\n\n{$said}");
         $schema = $type->examples === [] || ! $this->context->configuration->sampling->examples ? $schema : $schema->example($type->examples[0]);
         $schema = $type->deprecated ? $schema->deprecated() : $schema;
 
