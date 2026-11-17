@@ -2,7 +2,7 @@
     "$schema": "https://raw.githubusercontent.com/infection/infection/master/resources/schema.json",
     "source": {
         "directories": ["src"],
-        // ark4ne/laravel-json-api 1.x: mutated by infection.json5; 3.x not yet.
+        // ark4ne/laravel-json-api 1.x and 3.x: mutated by infection.json5 and infection-json-api-v3.json5.
         "excludes": ["Integrations/JsonApi", "Integrations/JsonApiV3"]
     },
     "logs": {

@@ -2,8 +2,6 @@
 #   composer require --dev "ark4ne/laravel-json-api:^3.0" -W
 #   vendor/bin/phpunit --exclude-group json-api --exclude-group json-api-v2 --exclude-group benchmark
 #   vendor/bin/phpstan analyse -c phpstan-json-api-v3.neon.dist
-# Until both are tagged, from local clones: a path repository for each (`composer config repositories.<name>`), then
-# "ark4ne/laravel-json-api:dev-<branch> as 3.0.0" and "ark4ne/laravel-api-revisions:dev-<branch> as 1.0.0".
 includes:
     - phpstan.base.neon.dist
 

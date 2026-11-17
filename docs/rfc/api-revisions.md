@@ -1,6 +1,7 @@
 # RFC — `ark4ne/laravel-api-revisions` and `ark4ne/laravel-json-api` on it
 
-Status: **draft** (2026-11-14), written from the `laravel-json-api` study · Extends:
+Status: EA3 **delivered** (2026-11-18, on `laravel-json-api` 3.0.0 and `laravel-api-revisions` 1.0.0) · EA1, EA2
+**open** · Draft of 2026-11-14, written from the `laravel-json-api` study · Extends:
 [`document-integrations.md`](document-integrations.md) (EI1, EI2 kept; EI3 reworked) · Related:
 `laravel-api-revisions/docs/specs/consumers.md`, `laravel-json-api/docs/rfc/api-revisions-integration.md`
 
@@ -80,6 +81,10 @@ setting, the `Revised` rules) is reworked on the new contract before 1.2.0.
   its attributes are the base's model. They are documented from the base's export of the resource (its `attributes`
   and `meta` objects), through the `SchemaProvider` and the decoder of EA1: `AttributeSchemas` is not ported.
 - **US 3.3** — A resource absent from the revision: warning, as EI3 US 3.3.
+- US 3.1 to 3.3 are **done** (2026-11-18). US 3.2 was delivered without EA1: the definitions of 3.0 hold the shapes
+  of the base (`Shapes`, `FieldDefinition`), read by `JsonApiV3\ValueSchemas`; only a custom type's JSON Schema
+  fragment waits for the decoder (sampled, an info diagnostic). The resources of a document are also checked at its
+  revision (`ResourceCheckPass`). CI: a 3.x line (`^3.0`) runs the tests, PHPStan, coverage and mutation testing.
 - **US 3.4** — Remove from `JsonApiV2`: `Revisions`, the `json_api.revision` setting, `Revised` handling,
   `prepareRules()` use; the fixtures `JsonApiRevisions` move to `JsonApiV3` on the new enum contract. **Done**
   (2026-11-17): 2.1 is never tagged, the revisions are served by `JsonApiV3`; the CI 2.x job installs `^2.0`.

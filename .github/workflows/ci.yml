@@ -63,10 +63,15 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # 2.x has no revisions: they are documented with 3.x (JsonApiV3).
+          # 2.x has no revisions: they are documented with 3.x (JsonApiV3, on ark4ne/laravel-api-revisions).
           - json-api: '2.x'
             constraint: '^2.0'
             groups: '--exclude-group json-api --exclude-group json-api-v3 --exclude-group benchmark'
+            phpstan: phpstan-json-api-v2.neon.dist
+          - json-api: '3.x'
+            constraint: '^3.0'
+            groups: '--exclude-group json-api --exclude-group json-api-v2 --exclude-group benchmark'
+            phpstan: phpstan-json-api-v3.neon.dist
     steps:
       - uses: actions/checkout@v4
 
@@ -81,11 +86,11 @@ jobs:
       - name: Install the JSON:API package ${{ matrix.json-api }}
         run: composer require --dev "ark4ne/laravel-json-api:${{ matrix.constraint }}" --with-all-dependencies --no-interaction
 
-      - name: PHPUnit without the 1.x tests
+      - name: PHPUnit without the tests of the other lines
         run: vendor/bin/phpunit ${{ matrix.groups }}
 
       - name: PHPStan
-        run: vendor/bin/phpstan analyse -c phpstan-json-api-v2.neon.dist --memory-limit=1G --no-progress
+        run: vendor/bin/phpstan analyse -c ${{ matrix.phpstan }} --memory-limit=1G --no-progress
 
   static:
     name: Static analysis & code style
@@ -116,14 +121,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Each line leaves out the integrations of the others, which it cannot run (3.x: until it is tagged, run locally,
-          # see phpstan-json-api-v3.neon.dist).
+          # Each line leaves out the integrations of the others, which it cannot run.
           - json-api: '1.x'
             groups: '--exclude-group json-api-v2 --exclude-group json-api-v3 --exclude-group benchmark'
             excluded: src/Integrations/JsonApiV2 src/Integrations/JsonApiV3
           - json-api: '2.x'
+            constraint: '^2.0'
             groups: '--exclude-group json-api --exclude-group json-api-v3 --exclude-group benchmark'
             excluded: src/Integrations/JsonApi src/Integrations/JsonApiV3
+          - json-api: '3.x'
+            constraint: '^3.0'
+            groups: '--exclude-group json-api --exclude-group json-api-v2 --exclude-group benchmark'
+            excluded: src/Integrations/JsonApi src/Integrations/JsonApiV2
     steps:
       - uses: actions/checkout@v4
 
@@ -135,9 +144,9 @@ jobs:
 
       - uses: ramsey/composer-install@v3
 
-      - name: Install the JSON:API package 2.x
-        if: matrix.json-api == '2.x'
-        run: composer require --dev "ark4ne/laravel-json-api:^2.0" --with-all-dependencies --no-interaction
+      - name: Install the JSON:API package ${{ matrix.json-api }}
+        if: matrix.json-api != '1.x'
+        run: composer require --dev "ark4ne/laravel-json-api:${{ matrix.constraint }}" --with-all-dependencies --no-interaction
 
       - name: PHPUnit with coverage
         run: vendor/bin/phpunit ${{ matrix.groups }} --coverage-clover=build/coverage/clover.xml
@@ -165,7 +174,11 @@ jobs:
           - json-api: '1.x'
             configuration: infection.json5
           - json-api: '2.x'
+            constraint: '^2.0'
             configuration: infection-json-api-v2.json5
+          - json-api: '3.x'
+            constraint: '^3.0'
+            configuration: infection-json-api-v3.json5
     steps:
       - uses: actions/checkout@v4
 
@@ -178,9 +191,9 @@ jobs:
 
       - uses: ramsey/composer-install@v3
 
-      - name: Install the JSON:API package 2.x
-        if: matrix.json-api == '2.x'
-        run: composer require --dev "ark4ne/laravel-json-api:^2.0" --with-all-dependencies --no-interaction
+      - name: Install the JSON:API package ${{ matrix.json-api }}
+        if: matrix.json-api != '1.x'
+        run: composer require --dev "ark4ne/laravel-json-api:${{ matrix.constraint }}" --with-all-dependencies --no-interaction
 
       - name: Infection
         run: infection --configuration=${{ matrix.configuration }} --threads=max --no-progress --show-mutations
