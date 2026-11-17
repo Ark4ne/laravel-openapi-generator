@@ -142,6 +142,19 @@ final class SkillTest extends SkillTestCase
         self::assertSame(['jsonapi', 'data', 'included'], array_keys((array) Schemas::at($operation, 'responses', '200', 'content', 'application/vnd.api+json', 'schema', 'properties')));
     }
 
+    #[Group('json-api-v3')]
+    public function test_the_json_api_3_x_recipe(): void
+    {
+        $written = $this->recipe('JSON:API resources (3.x)');
+        $operation = Schemas::at($written, 'paths', '/api/articles/{article}', 'get');
+        self::assertIsArray($operation);
+
+        self::assertSame(['application/vnd.api+json'], array_keys((array) Schemas::at($operation, 'responses', '200', 'content')));
+        self::assertSame(['include', 'fields'], array_map(static fn(mixed $parameter): mixed => is_array($parameter) ? $parameter['name'] ?? null : null, (array) Schemas::at($operation, 'parameters')));
+        self::assertEquals(['type' => 'string', 'maxLength' => 120, 'description' => 'The title.'], Schemas::at($written, 'components', 'schemas', 'Article', 'properties', 'attributes', 'properties', 'title'));
+        self::assertEquals(['type' => ['integer', 'null'], 'minimum' => 1, 'maximum' => 5], Schemas::at($written, 'components', 'schemas', 'Article', 'properties', 'attributes', 'properties', 'rating'));
+    }
+
     #[Group('json-api-v2')]
     #[Group('json-api-revisions')]
     public function test_the_json_api_revisions_recipe(): void

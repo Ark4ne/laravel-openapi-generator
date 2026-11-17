@@ -54,7 +54,7 @@ jobs:
       - name: PHPUnit without the JSON:API tests
         # The integrations load none of the classes of the package: everything else works without it. Groups given
         # here replace those phpunit.xml.dist excludes.
-        run: vendor/bin/phpunit --exclude-group json-api --exclude-group json-api-v2 --exclude-group benchmark
+        run: vendor/bin/phpunit --exclude-group json-api --exclude-group json-api-v2 --exclude-group json-api-v3 --exclude-group benchmark
 
   json-api-v2:
     name: Tests with ark4ne/laravel-json-api ${{ matrix.json-api }}
@@ -66,11 +66,11 @@ jobs:
           # 2.0 has no revisions: the tests of the revisions are left out.
           - json-api: '2.0'
             constraint: '^2.0'
-            groups: '--exclude-group json-api --exclude-group json-api-revisions --exclude-group benchmark'
+            groups: '--exclude-group json-api --exclude-group json-api-v3 --exclude-group json-api-revisions --exclude-group benchmark'
           # Revisions, until 2.1.0 is tagged: the branch of the package, then '^2.1'.
           - json-api: '2.1'
             constraint: 'dev-feat/versioned-resources as 2.1.0'
-            groups: '--exclude-group json-api --exclude-group benchmark'
+            groups: '--exclude-group json-api --exclude-group json-api-v3 --exclude-group benchmark'
     steps:
       - uses: actions/checkout@v4
 
@@ -122,13 +122,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Each line leaves out the integration of the other, which it cannot run.
+          # Each line leaves out the integrations of the others, which it cannot run (3.x: until it is tagged, run locally,
+          # see phpstan-json-api-v3.neon.dist).
           - json-api: '1.x'
-            groups: '--exclude-group json-api-v2 --exclude-group benchmark'
-            excluded: src/Integrations/JsonApiV2
+            groups: '--exclude-group json-api-v2 --exclude-group json-api-v3 --exclude-group benchmark'
+            excluded: src/Integrations/JsonApiV2 src/Integrations/JsonApiV3
           - json-api: '2.x'
-            groups: '--exclude-group json-api --exclude-group benchmark'
-            excluded: src/Integrations/JsonApi
+            groups: '--exclude-group json-api --exclude-group json-api-v3 --exclude-group benchmark'
+            excluded: src/Integrations/JsonApi src/Integrations/JsonApiV3
     steps:
       - uses: actions/checkout@v4
 

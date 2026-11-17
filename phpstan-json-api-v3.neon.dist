@@ -1,0 +1,30 @@
+# With ark4ne/laravel-json-api 3.x installed, on ark4ne/laravel-api-revisions:
+#   composer require --dev "ark4ne/laravel-json-api:^3.0" -W
+#   vendor/bin/phpunit --exclude-group json-api --exclude-group json-api-v2 --exclude-group benchmark
+#   vendor/bin/phpstan analyse -c phpstan-json-api-v3.neon.dist
+# Until both are tagged, from local clones: a path repository for each (`composer config repositories.<name>`), then
+# "ark4ne/laravel-json-api:dev-<branch> as 3.0.0" and "ark4ne/laravel-api-revisions:dev-<branch> as 1.0.0".
+includes:
+    - phpstan.base.neon.dist
+
+parameters:
+    excludePaths:
+        # ark4ne/laravel-json-api 1.x: analysed by phpstan.neon.dist.
+        - src/Integrations/JsonApi/*
+        - tests/Unit/Integrations/JsonApi/*
+        - tests/Feature/JsonApi/*
+        - tests/Fixtures/JsonApi/Controllers/*
+        - tests/Fixtures/JsonApi/Requests/*
+        - tests/Fixtures/JsonApi/Resources/*
+        # ark4ne/laravel-json-api 2.x: analysed by phpstan-json-api-v2.neon.dist.
+        - src/Integrations/JsonApiV2/*
+        - tests/Unit/Integrations/JsonApiV2/*
+        - tests/Feature/JsonApiV2/*
+        - tests/Fixtures/JsonApiV2/*
+        - tests/Feature/JsonApiRevisions/*
+        - tests/Fixtures/JsonApiRevisions/*
+    ignoreErrors:
+        # Always true with 3.x installed: the check tells 3.x from 1.x.
+        -
+            identifier: function.alreadyNarrowedType
+            path: src/Integrations/JsonApiV3/JsonApiV3Integration.php

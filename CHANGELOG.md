@@ -25,6 +25,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   request are resolved at it, the `include` and `fields` parameters follow the revision of their rule, and the
   description lists the newer revisions. Without the setting, or with 2.0, the head. An invalid revision, another
   setting, and a resource absent from the revision are warnings.
+- `ark4ne/laravel-json-api` 3.x (`Integrations\JsonApiV3`, on `ark4ne/laravel-api-revisions`): the values of its
+  definitions are the shapes of the base (`ValueSchemas`). Each field gives its type and its constraints (`minLength`,
+  `maxLength`, `format`, `pattern`, `minimum`, `maximum`, `minItems`, `maxItems`, the backed values of an enum), its
+  description, its first example and `deprecated`, under its name at the revision; an object typed by the schema of a
+  `was()` has its members. A value of unknown type, a custom type (its JSON Schema fragment is not read) and a nested
+  resource are typed by rendering the resource on a sample, the last two with an info diagnostic. An attribute rendered
+  only when the sparse fieldset names it (`whenInFields()`) says so; the links of a resource object are a URL or a link
+  object by name. `json_api.revision` is a case of the enum of `revisions.enum`; every request the generator builds is
+  read at it (`RevisionScope::setBase()`, the head included, so that a document never inherits the revision of the
+  previous one), and the description lists the newer revisions from their `#[Meta]`. The 2.x integration is no longer
+  available with 3.x installed. `Support\Patterns::ecma()` turns a PCRE with delimiters into a `pattern`, shared with
+  the `regex` rule mapper.
 - `UnusedComponentsPass` (built-in, after the application's passes, before the cleanup): the component schemas no
   longer referenced, directly or through another component, are left out. A discriminator mapping (`mapping`,
   `defaultMapping`) counts as a reference.

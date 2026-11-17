@@ -383,7 +383,7 @@ The same extensions in the configuration of the application:
 With `ark4ne/laravel-json-api` 1.x installed, its resources are written in `application/vnd.api+json` as resource
 objects (`id`, `type`, `attributes`, `relationships`), the descriptors (`$this->string()`, `$this->date()`…) give the
 types of the attributes, and the `Includes` and `Fields` rules give the `include` and `fields[type]` parameters. With
-2.x, see the next recipe.
+2.x or 3.x, see the next recipes.
 
 ```php
 namespace App\Blog;
@@ -497,6 +497,91 @@ final class ArticleResource extends JsonApiResource
         return [
             'title' => $this->string(),
             'published_at' => $this->datetime(),
+        ];
+    }
+
+    protected function toRelationships(Request $request): iterable
+    {
+        return ['author' => $this->one(AuthorResource::class)];
+    }
+}
+
+final class ShowArticleRequest extends FormRequest
+{
+    public function rules(): array
+    {
+        return ['include' => [new Includes(ArticleResource::class)], 'fields' => [new Fields(ArticleResource::class)]];
+    }
+}
+
+final class ArticleController
+{
+    /**
+     * Show one article.
+     */
+    public function show(ShowArticleRequest $request, Article $article): ArticleResource
+    {
+        return new ArticleResource($article);
+    }
+}
+
+Route::get('articles/{article}', [ArticleController::class, 'show'])->name('articles.show');
+```
+
+## JSON:API resources (3.x)
+
+With `ark4ne/laravel-json-api` 3.x (built on `ark4ne/laravel-api-revisions`) installed, the generator reads the
+definition the package compiles, whose values are the shapes of the base: each field gives its type and its
+constraints (`min()`, `max()`, `format()`, `pattern()`), its description, its first example and `deprecated`, under its
+name at the revision of the document. An attribute rendered only when the sparse fieldset names it
+(`whenInFields()`) says so; the links of a resource object are a URL or a link object by name. A value of unknown type
+(`mixed()`), a custom type and a nested resource are typed by rendering the resource on a sample of its model (an info
+diagnostic for the last two). Each revision of the API is its own document: `json_api.revision`, a case of the enum
+the application configures (`revisions.enum`), names it; every request the generator builds is read at that revision
+(the base revision of the `RevisionScope`), and the description lists the newer revisions. Without the setting, the
+head.
+
+```php
+namespace App\BlogV3;
+
+use Ark4ne\ApiRevisions\Schema\Schema;
+use Ark4ne\JsonApi\Http\Rules\Fields;
+use Ark4ne\JsonApi\Http\Rules\Includes;
+use Ark4ne\JsonApi\Resources\Attributes\JsonApiType;
+use Ark4ne\JsonApi\Resources\JsonApiResource;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
+final class Author extends Model {}
+
+final class Article extends Model {}
+
+/**
+ * @extends JsonApiResource<Author>
+ */
+#[JsonApiType('authors')]
+final class AuthorResource extends JsonApiResource
+{
+    public function toAttributes(Request $request): iterable
+    {
+        return ['name' => Schema::string()];
+    }
+}
+
+/**
+ * @extends JsonApiResource<Article>
+ */
+#[JsonApiType('articles')]
+final class ArticleResource extends JsonApiResource
+{
+    public function toAttributes(Request $request): iterable
+    {
+        return [
+            'title' => Schema::string()->max(120)->describe('The title.'),
+            'rating' => Schema::int()->min(1)->max(5)->nullable(),
+            'published_at' => Schema::dateTime(),
         ];
     }
 

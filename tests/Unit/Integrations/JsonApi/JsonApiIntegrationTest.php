@@ -11,6 +11,7 @@ use Ark4ne\OpenApi\Integrations\JsonApi\JsonApiErrorBodies;
 use Ark4ne\OpenApi\Integrations\JsonApi\JsonApiIntegration;
 use Ark4ne\OpenApi\Integrations\JsonApi\JsonApiResourceFormat;
 use Ark4ne\OpenApi\Integrations\JsonApiV2\JsonApiV2Integration;
+use Ark4ne\OpenApi\Integrations\JsonApiV3\JsonApiV3Integration;
 use Ark4ne\OpenApi\Tests\Support\Schemas;
 use Ark4ne\OpenApi\Tests\TestCase;
 use Ark4ne\OpenApiWriter\Objects\Schema;
@@ -33,9 +34,10 @@ final class JsonApiIntegrationTest extends TestCase
         self::assertEquals([new IncludesRuleMapper(), new FieldsRuleMapper()], $integration->ruleMappers());
     }
 
-    public function test_the_2_x_integration_is_not_available_with_1_x(): void
+    public function test_the_2_x_and_3_x_integrations_are_not_available_with_1_x(): void
     {
         self::assertFalse((new JsonApiV2Integration())->available());
+        self::assertFalse((new JsonApiV3Integration())->available());
     }
 
     public function test_the_json_api_errors_are_opt_in(): void
@@ -44,10 +46,10 @@ final class JsonApiIntegrationTest extends TestCase
         self::assertInstanceOf(JsonApiErrorBodies::class, (new JsonApiIntegration(errors: true))->errorBodies());
     }
 
-    public function test_the_built_in_integrations_list_both_json_api_integrations_with_their_options(): void
+    public function test_the_built_in_integrations_list_the_three_json_api_integrations_with_their_options(): void
     {
-        self::assertEquals([new JsonApiIntegration(), new JsonApiV2Integration()], BuiltInIntegrations::all());
-        self::assertEquals([new JsonApiIntegration(errors: true), new JsonApiV2Integration(errors: true)], BuiltInIntegrations::all(jsonApiErrors: true));
+        self::assertEquals([new JsonApiIntegration(), new JsonApiV2Integration(), new JsonApiV3Integration()], BuiltInIntegrations::all());
+        self::assertEquals([new JsonApiIntegration(errors: true), new JsonApiV2Integration(errors: true), new JsonApiV3Integration(errors: true)], BuiltInIntegrations::all(jsonApiErrors: true));
     }
 
     public function test_the_error_bodies_are_json_api_error_documents(): void

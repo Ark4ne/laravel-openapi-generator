@@ -178,14 +178,14 @@ unknown top-level key or an invalid value fails the command with the key, the ex
 | `documents.<name>.use_references` | `true` | Resources and enums as `components.schemas` referenced by `$ref` |
 | `documents.<name>.output` | | Overrides of the global `output` |
 | `documents.<name>.extensions` | `[]` | `x-*` extensions of the document |
-| `documents.<name>.integrations` | `[]` | Settings of the integrations for this document, by the key of a `DocumentIntegration`, each an array of named settings read by that integration only; one document per version of the API, each with its own `routes` and settings. A key no available integration reads is a warning. With `ark4ne/laravel-json-api` 2.1: `json_api.revision` (a case of the application's `Revision` enum, the head without it) documents that revision: its resources, `include` and `fields`, the rules of its form requests (`Revised` resolved), the newer revisions listed in the description; a resource absent from it is a warning |
+| `documents.<name>.integrations` | `[]` | Settings of the integrations for this document, by the key of a `DocumentIntegration`, each an array of named settings read by that integration only; one document per version of the API, each with its own `routes` and settings. A key no available integration reads is a warning. With `ark4ne/laravel-json-api` 2.1: `json_api.revision` (a case of the application's `Revision` enum, the head without it) documents that revision: its resources, `include` and `fields`, the rules of its form requests (`Revised` resolved), the newer revisions listed in the description; a resource absent from it is a warning. With 3.x: `json_api.revision` is a case of the enum of `revisions.enum` (`ark4ne/laravel-api-revisions`); every request the generator builds is read at it (the base revision of the `RevisionScope`) |
 | `servers` | `APP_URL` | `url`, `description`, `name` (3.2), `variables` (`default`, `enum`, `description`) |
 | `output` | | `disk` (`null`: the default disk), `directory` (`openapi`), `file` (`{document}.json`, with `{document}` and `{locale}`), `format` (`json`, `yaml`) |
 | `sampling` | | `transactions` (`true`), `connections` (drivers wrapped in a rolled back transaction), `collection_size` (`2`), `seed` (`1`), `examples` (`true`) |
 | `date_formats` | | PHP date format → OpenAPI format (`date`, `date-time`), for `date_format:` and the sampled values |
 | `middlewares` | `[]` | Middleware name or class → classes implementing `MiddlewareMapper`, replacing the built-in ones of that middleware |
 | `extensions` | `[]` | `operation_extractors`, `request_extractors`, `rule_mappers`, `response_extractors`, `samplers`, `passes`: classes or bound interfaces, built through the container |
-| `integrations` | | `json_api.errors` (`false`): error responses as JSON:API error documents (`ark4ne/laravel-json-api` 1.x or 2.x) |
+| `integrations` | | `json_api.errors` (`false`): error responses as JSON:API error documents (`ark4ne/laravel-json-api` 1.x, 2.x or 3.x) |
 | `exceptions` | | `read_throws` (`true`): read the `@throws` of the actions; `map`: exception class → status, or `['status' => …, 'description' => …]` |
 | `languages` | `[]` | One document per locale; summaries, descriptions and tags may be translation keys |
 

@@ -30,7 +30,7 @@ Optional:
 
 - `opis/json-schema` to validate the generated documents against the official OpenAPI schemas (recommended)
 - `symfony/yaml` to write YAML
-- `ark4ne/laravel-json-api` ^1.9 or ^2.0 to document JSON:API resources (^2.1 for its revisions)
+- `ark4ne/laravel-json-api` ^1.9, ^2.0 or ^3.0 to document JSON:API resources (^3.0 for its revisions)
 
 Upgrading from 0.6? See [UPGRADE.md](UPGRADE.md).
 
@@ -193,7 +193,7 @@ their `included` resources, its descriptors (`$this->string()`, `$this->date()`,
 the attributes, and its `Includes` and `Fields` rules give the `include` and `fields[type]` parameters. Set
 `integrations.json_api.errors` to `true` if the application renders its errors as JSON:API error documents.
 
-Both major versions are supported, the installed one is detected:
+Each major version is supported, the installed one is detected:
 
 - **1.x** (`^1.9`): the generator runs the hooks of the resources on the package's fake model.
 - **2.x** (`^2.0`): the generator reads the definition the package compiles (`PostResource::definition()`): the type of
@@ -220,6 +220,15 @@ Both major versions are supported, the installed one is detected:
 The resources, the `include` and `fields` parameters and the rules of the form requests (`Http\Rules\Revised`) are
 those of the revision, and the description lists the newer revisions. A resource that does not exist at the revision is
 a warning: exclude its routes from that document.
+
+- **3.x** (`^3.0`, on [`ark4ne/laravel-api-revisions`](https://github.com/Ark4ne/laravel-api-revisions)): the values
+  of a definition are the shapes of the base. Each field gives its type and its constraints (`min()`, `max()`,
+  `format()`, `pattern()`), its description, its first example and `deprecated`, under its name at the revision; an
+  attribute rendered only when the sparse fieldset names it (`whenInFields()`) says so, and the links of a resource
+  object are a URL or a link object by name. A value of unknown type, a custom type and a nested resource are typed by
+  rendering the resource on a sample of its model. One document per revision as above: `json_api.revision` is a case
+  of the enum the application configures (`revisions.enum`), and every request the generator builds (samples, form
+  requests) is read at that revision.
 
 ## Extending
 
@@ -298,7 +307,7 @@ the expected value and the received one (`openapi.documents.v1.openapi: expected
 | `documents.<name>.use_references` | `true` | Resources and enums as components referenced by `$ref` |
 | `documents.<name>.output` | | Overrides of the global `output` |
 | `documents.<name>.extensions` | `[]` | `x-*` extensions of the document |
-| `documents.<name>.integrations` | `[]` | Settings of the integrations for this document, by key (`json_api.revision` with `ark4ne/laravel-json-api` 2.1) |
+| `documents.<name>.integrations` | `[]` | Settings of the integrations for this document, by key (`json_api.revision` with `ark4ne/laravel-json-api` 2.1 or 3.x) |
 | `servers` | `APP_URL` | Default servers: `url`, `description`, `name` (3.2), `variables` |
 | `output` | | `disk` (`null`: the default disk), `directory`, `file` (`{document}`, `{locale}`), `format` (`json` or `yaml`) |
 | `sampling` | | `transactions`, `connections` (drivers), `collection_size`, `seed`, `examples` |

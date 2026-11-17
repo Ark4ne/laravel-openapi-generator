@@ -93,7 +93,7 @@ final class ArchitectureTest
     {
         return PHPat::rule()
             ->classes(Selector::inNamespace(self::ROOT))
-            ->excluding(Selector::inNamespace(self::ROOT . '\Integrations\JsonApi'), Selector::inNamespace(self::ROOT . '\Integrations\JsonApiV2'), Selector::inNamespace(self::TESTS))
+            ->excluding(Selector::inNamespace(self::ROOT . '\Integrations\JsonApi'), Selector::inNamespace(self::ROOT . '\Integrations\JsonApiV2'), Selector::inNamespace(self::ROOT . '\Integrations\JsonApiV3'), Selector::inNamespace(self::TESTS))
             ->shouldNotDependOn()
             ->classes(Selector::inNamespace('Ark4ne\JsonApi'))
             ->because('the generator works without ark4ne/laravel-json-api: only its integrations load its classes.');
@@ -115,6 +115,43 @@ final class ArchitectureTest
             ->shouldNotDependOn()
             ->classes(Selector::inNamespace(self::ROOT . '\Integrations\JsonApiV2'))
             ->because('each one documents its own major version of ark4ne/laravel-json-api, the other one is not loaded.');
+    }
+
+    public function test_only_the_json_api_3_x_integration_depends_on_laravel_api_revisions(): ArchitectureRule
+    {
+        return PHPat::rule()
+            ->classes(Selector::inNamespace(self::ROOT))
+            ->excluding(Selector::inNamespace(self::ROOT . '\Integrations\JsonApiV3'), Selector::inNamespace(self::TESTS))
+            ->shouldNotDependOn()
+            ->classes(Selector::inNamespace('Ark4ne\ApiRevisions'))
+            ->because('the generator works without ark4ne/laravel-api-revisions: only the integration of ark4ne/laravel-json-api 3.x, built on it, loads its classes.');
+    }
+
+    public function test_the_json_api_3_x_integration_does_not_depend_on_the_1_x_and_2_x_ones(): ArchitectureRule
+    {
+        return PHPat::rule()
+            ->classes(Selector::inNamespace(self::ROOT . '\Integrations\JsonApiV3'))
+            ->shouldNotDependOn()
+            ->classes(Selector::classname(self::JSON_API_1_X, true), Selector::inNamespace(self::ROOT . '\Integrations\JsonApiV2'))
+            ->because('each one documents its own major version of ark4ne/laravel-json-api, the other ones are not loaded.');
+    }
+
+    public function test_the_json_api_1_x_and_2_x_integrations_do_not_depend_on_the_3_x_one(): ArchitectureRule
+    {
+        return PHPat::rule()
+            ->classes(Selector::classname(self::JSON_API_1_X, true), Selector::inNamespace(self::ROOT . '\Integrations\JsonApiV2'))
+            ->shouldNotDependOn()
+            ->classes(Selector::inNamespace(self::ROOT . '\Integrations\JsonApiV3'))
+            ->because('each one documents its own major version of ark4ne/laravel-json-api, the other ones are not loaded.');
+    }
+
+    public function test_the_json_api_3_x_integration_reads_the_definitions_without_reflection(): ArchitectureRule
+    {
+        return PHPat::rule()
+            ->classes(Selector::inNamespace(self::ROOT . '\Integrations\JsonApiV3'))
+            ->shouldNotDependOn()
+            ->classes(Selector::classname('/^Reflection\\w*$/', true))
+            ->because('ark4ne/laravel-json-api 3.x exposes its definitions as a public contract: no reflection on its classes.');
     }
 
     public function test_the_json_api_2_x_integration_reads_the_definitions_without_reflection(): ArchitectureRule
