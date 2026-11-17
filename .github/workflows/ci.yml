@@ -63,13 +63,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # 2.0 has no revisions: the tests of the revisions are left out.
-          - json-api: '2.0'
+          # 2.x has no revisions: they are documented with 3.x (JsonApiV3).
+          - json-api: '2.x'
             constraint: '^2.0'
-            groups: '--exclude-group json-api --exclude-group json-api-v3 --exclude-group json-api-revisions --exclude-group benchmark'
-          # Revisions, until 2.1.0 is tagged: the branch of the package, then '^2.1'.
-          - json-api: '2.1'
-            constraint: 'dev-feat/versioned-resources as 2.1.0'
             groups: '--exclude-group json-api --exclude-group json-api-v3 --exclude-group benchmark'
     steps:
       - uses: actions/checkout@v4
@@ -89,8 +85,6 @@ jobs:
         run: vendor/bin/phpunit ${{ matrix.groups }}
 
       - name: PHPStan
-        # The integration reads the revisions of 2.1, which 2.0 does not have.
-        if: matrix.json-api == '2.1'
         run: vendor/bin/phpstan analyse -c phpstan-json-api-v2.neon.dist --memory-limit=1G --no-progress
 
   static:
@@ -143,8 +137,7 @@ jobs:
 
       - name: Install the JSON:API package 2.x
         if: matrix.json-api == '2.x'
-        # The revisions, until 2.1.0 is tagged: then '^2.1'.
-        run: composer require --dev "ark4ne/laravel-json-api:dev-feat/versioned-resources as 2.1.0" --with-all-dependencies --no-interaction
+        run: composer require --dev "ark4ne/laravel-json-api:^2.0" --with-all-dependencies --no-interaction
 
       - name: PHPUnit with coverage
         run: vendor/bin/phpunit ${{ matrix.groups }} --coverage-clover=build/coverage/clover.xml
@@ -187,8 +180,7 @@ jobs:
 
       - name: Install the JSON:API package 2.x
         if: matrix.json-api == '2.x'
-        # The revisions, until 2.1.0 is tagged: then '^2.1'.
-        run: composer require --dev "ark4ne/laravel-json-api:dev-feat/versioned-resources as 2.1.0" --with-all-dependencies --no-interaction
+        run: composer require --dev "ark4ne/laravel-json-api:^2.0" --with-all-dependencies --no-interaction
 
       - name: Infection
         run: infection --configuration=${{ matrix.configuration }} --threads=max --no-progress --show-mutations

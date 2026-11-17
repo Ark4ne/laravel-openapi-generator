@@ -21,8 +21,6 @@ parameters:
         - tests/Unit/Integrations/JsonApiV2/*
         - tests/Feature/JsonApiV2/*
         - tests/Fixtures/JsonApiV2/*
-        - tests/Feature/JsonApiRevisions/*
-        - tests/Fixtures/JsonApiRevisions/*
     ignoreErrors:
         # Always true with 3.x installed: the check tells 3.x from 1.x.
         -

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Ark4ne\OpenApi\Integrations\JsonApiV2;
 
 use Ark4ne\JsonApi\Definition\ResourceDefinition;
-use Ark4ne\JsonApi\Definition\Revision;
 use Ark4ne\JsonApi\Http\Rules\Includes;
 use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Context\Stage;
@@ -17,8 +16,7 @@ use Ark4ne\OpenApi\Extraction\Rules\RuleMapper;
  * `new Includes(UserResource::class)`: a string of relationship paths separated by commas (`posts,posts.comments`);
  * the description lists the paths the definitions reach through `related`, a relationship back to a resource of
  * its path (`parent`, `posts.user`) or to native resources ending its path; the example takes the first two
- * relationships it describes. The definitions are those of the revision of the rule (`revision()`, the head when
- * `null`): what it validates.
+ * relationships it describes.
  */
 final readonly class IncludesRuleMapper implements RuleMapper
 {
@@ -41,9 +39,8 @@ final readonly class IncludesRuleMapper implements RuleMapper
         $schema = $field->schema->type('string');
         $definitions = $this->definitions;
         $resource = $rule->rule instanceof Includes ? $rule->rule->resource() : null;
-        $revision = $rule->rule instanceof Includes && Revisions::supported() ? $rule->rule->revision() : null;
-        $definition = $resource === null ? self::unknown($rule, $context) : $definitions->of($resource, $context, Stage::Request, $rule->field, $revision);
-        $paths = $definition === null ? [] : self::paths($definition, [$definition->class], $definitions, $context, $rule->field, $revision);
+        $definition = $resource === null ? self::unknown($rule, $context) : $definitions->of($resource, $context, Stage::Request, $rule->field);
+        $paths = $definition === null ? [] : self::paths($definition, [$definition->class], $definitions, $context, $rule->field);
 
         if ($paths === []) {
             return $field->schema($schema);
@@ -69,7 +66,7 @@ final readonly class IncludesRuleMapper implements RuleMapper
      *
      * @return list<string>
      */
-    private static function paths(ResourceDefinition $definition, array $through, ResourceDefinitions $definitions, GenerationContext $context, string $field, ?Revision $revision, string $prefix = ''): array
+    private static function paths(ResourceDefinition $definition, array $through, ResourceDefinitions $definitions, GenerationContext $context, string $field, string $prefix = ''): array
     {
         $paths = [];
 
@@ -83,8 +80,8 @@ final readonly class IncludesRuleMapper implements RuleMapper
 
             // Listed but not followed back into a resource of the path, so that the paths stay finite.
             foreach (array_diff($relationship->related, $through) as $class) {
-                $known = $definitions->of($class, $context, Stage::Request, $field, $revision);
-                $nested = $known === null ? [] : self::paths($known, [...$through, $class], $definitions, $context, $field, $revision, "{$path}.");
+                $known = $definitions->of($class, $context, Stage::Request, $field);
+                $nested = $known === null ? [] : self::paths($known, [...$through, $class], $definitions, $context, $field, "{$path}.");
                 $paths = [...$paths, ...array_diff($nested, $paths)];
             }
         }

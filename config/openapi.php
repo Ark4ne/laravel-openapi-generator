@@ -139,7 +139,7 @@ return [
             | version of the API, each with its own `routes` and settings.
             */
             // 'integrations' => [
-            //     // ark4ne/laravel-json-api 2.1: the revision documented.
+            //     // ark4ne/laravel-json-api 3.x: the revision documented.
             //     'json_api' => ['revision' => App\Http\ApiRevision::Initial],
             // ],
         ],

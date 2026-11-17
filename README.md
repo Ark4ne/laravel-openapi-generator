@@ -201,8 +201,15 @@ Each major version is supported, the installed one is detected:
   their links and meta. `id` is a string and the documents carry the `jsonapi` member, as the package renders them.
   A value without descriptor (a closure) is typed by rendering the resource on a sample of its model. The error
   documents are those of `JsonApi::renderErrors()`.
-- **2.1** (`^2.1`): one document per revision of the API. The `json_api.revision` setting of a document names its
-  revision, and its `routes` choose its endpoints:
+- **3.x** (`^3.0`, on [`ark4ne/laravel-api-revisions`](https://github.com/Ark4ne/laravel-api-revisions)): the values
+  of a definition are the shapes of the base. Each field gives its type and its constraints (`min()`, `max()`,
+  `format()`, `pattern()`), its description, its first example and `deprecated`, under its name at the revision; an
+  attribute rendered only when the sparse fieldset names it (`whenInFields()`) says so, and the links of a resource
+  object are a URL or a link object by name. A nested resource has the members of its own shape at that revision. A
+  value of unknown type and a custom type are typed by rendering the resource on a sample of its model.
+
+With 3.x, each revision of the API is its own document. The `json_api.revision` setting of a document names its
+revision, a case of the enum the application configures (`revisions.enum`), and its `routes` choose its endpoints:
 
 ```php
 'documents' => [
@@ -217,19 +224,10 @@ Each major version is supported, the installed one is detected:
 ],
 ```
 
-The resources, the `include` and `fields` parameters and the rules of the form requests (`Http\Rules\Revised`) are
-those of the revision, and the description lists the newer revisions. A resource that does not exist at the revision is
-a warning: exclude its routes from that document.
-
-- **3.x** (`^3.0`, on [`ark4ne/laravel-api-revisions`](https://github.com/Ark4ne/laravel-api-revisions)): the values
-  of a definition are the shapes of the base. Each field gives its type and its constraints (`min()`, `max()`,
-  `format()`, `pattern()`), its description, its first example and `deprecated`, under its name at the revision; an
-  attribute rendered only when the sparse fieldset names it (`whenInFields()`) says so, and the links of a resource
-  object are a URL or a link object by name. A nested resource has the members of its own shape at that revision. A
-  value of unknown type and a custom type are typed by rendering the resource on a sample of its model. One document per revision as above: `json_api.revision` is a case
-  of the enum the application configures (`revisions.enum`), and every request the generator builds (samples, form
-  requests) is read at that revision. The resources of each document are checked at its revision, as `jsonapi:check`
-  does: its errors and warnings are warnings of the document (`--strict` fails on them).
+Every request the generator builds (samples, form requests) is read at that revision, and the description lists the
+newer revisions. A resource that does not exist at the revision is a warning: exclude its routes from that document.
+The resources of each document are checked at its revision, as `jsonapi:check` does: its errors and warnings are
+warnings of the document (`--strict` fails on them).
 
 ## Extending
 
@@ -308,7 +306,7 @@ the expected value and the received one (`openapi.documents.v1.openapi: expected
 | `documents.<name>.use_references` | `true` | Resources and enums as components referenced by `$ref` |
 | `documents.<name>.output` | | Overrides of the global `output` |
 | `documents.<name>.extensions` | `[]` | `x-*` extensions of the document |
-| `documents.<name>.integrations` | `[]` | Settings of the integrations for this document, by key (`json_api.revision` with `ark4ne/laravel-json-api` 2.1 or 3.x) |
+| `documents.<name>.integrations` | `[]` | Settings of the integrations for this document, by key (`json_api.revision` with `ark4ne/laravel-json-api` 3.x) |
 | `servers` | `APP_URL` | Default servers: `url`, `description`, `name` (3.2), `variables` |
 | `output` | | `disk` (`null`: the default disk), `directory`, `file` (`{document}`, `{locale}`), `format` (`json` or `yaml`) |
 | `sampling` | | `transactions`, `connections` (drivers), `collection_size`, `seed`, `examples` |

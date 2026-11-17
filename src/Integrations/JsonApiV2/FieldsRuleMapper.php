@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Ark4ne\OpenApi\Integrations\JsonApiV2;
 
 use Ark4ne\JsonApi\Definition\ResourceDefinition;
-use Ark4ne\JsonApi\Definition\Revision;
 use Ark4ne\JsonApi\Http\Rules\Fields;
 use Ark4ne\OpenApi\Context\GenerationContext;
 use Ark4ne\OpenApi\Context\Stage;
@@ -18,8 +17,7 @@ use Ark4ne\OpenApiWriter\Objects\Schema;
  * `new Fields(UserResource::class)`: an object with one property per type the definitions reach through `related`
  * (`fields[post]`), each a string of the fields of the definition (`fields()`) separated by commas; written as a
  * `deepObject` query parameter. A native resource has no known fields; one whose type cannot be read without model
- * opens the object to any type. The definitions are those of the revision of the rule (`revision()`, the head when
- * `null`): what it validates.
+ * opens the object to any type.
  */
 final readonly class FieldsRuleMapper implements RuleMapper
 {
@@ -46,8 +44,7 @@ final readonly class FieldsRuleMapper implements RuleMapper
             $context->diagnostics->warning(Stage::Request, "{$rule->field}: cannot read the resource of " . get_debug_type($rule->rule) . ', field described without its resource');
         }
 
-        $revision = $rule->rule instanceof Fields && Revisions::supported() ? $rule->rule->revision() : null;
-        $definition = $resource === null ? null : $definitions->of($resource, $context, Stage::Request, $rule->field, $revision);
+        $definition = $resource === null ? null : $definitions->of($resource, $context, Stage::Request, $rule->field);
 
         if ($definition === null) {
             return $field->schema($field->schema->type('object'));
@@ -56,7 +53,7 @@ final readonly class FieldsRuleMapper implements RuleMapper
         $untyped = false;
         $properties = [];
 
-        foreach (self::types($definition, $definitions, $context, $rule->field, $revision, untyped: $untyped) as $type => $fields) {
+        foreach (self::types($definition, $definitions, $context, $rule->field, untyped: $untyped) as $type => $fields) {
             $description = $fields === null
                 ? "Fields of `{$type}`, separated by commas."
                 : "Fields of `{$type}`, separated by commas: " . implode(', ', array_map(static fn(string $name): string => "`{$name}`", $fields)) . '.';
@@ -75,7 +72,7 @@ final readonly class FieldsRuleMapper implements RuleMapper
      *
      * @return array<string, list<string>|null>
      */
-    private static function types(ResourceDefinition $definition, ResourceDefinitions $definitions, GenerationContext $context, string $field, ?Revision $revision, array $types = [], bool &$untyped = false): array
+    private static function types(ResourceDefinition $definition, ResourceDefinitions $definitions, GenerationContext $context, string $field, array $types = [], bool &$untyped = false): array
     {
         if (array_key_exists($definition->type, $types)) {
             return $types;
@@ -94,8 +91,8 @@ final readonly class FieldsRuleMapper implements RuleMapper
             }
 
             foreach ($relationship->related as $related) {
-                $known = $definitions->of($related, $context, Stage::Request, $field, $revision);
-                $types = $known === null ? $types : self::types($known, $definitions, $context, $field, $revision, $types, $untyped);
+                $known = $definitions->of($related, $context, Stage::Request, $field);
+                $types = $known === null ? $types : self::types($known, $definitions, $context, $field, $types, $untyped);
             }
         }
 

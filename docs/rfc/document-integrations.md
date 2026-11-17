@@ -1,7 +1,8 @@
 # RFC — Integration settings per document
 
-Status: **delivered** (EI1 to EI3; replaces the RFC *Document variants*) · Target: 1.2.0 · Release blocked by: the
-`ark4ne/laravel-json-api` 2.1.0 tag (EI3 is developed on its branch `feat/versioned-resources`)
+Status: **delivered** (EI1, EI2; replaces the RFC *Document variants*) · Target: 1.2.0 · EI3 **withdrawn**
+(2026-11-17): `ark4ne/laravel-json-api` 2.1 is never tagged, its revisions are documented with 3.x
+(`Integrations\JsonApiV3`, [`api-revisions.md`](api-revisions.md)); the `JsonApiV2` revision support is removed.
 
 ## 1. Goal
 

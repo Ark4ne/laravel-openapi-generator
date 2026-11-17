@@ -81,7 +81,8 @@ setting, the `Revised` rules) is reworked on the new contract before 1.2.0.
   and `meta` objects), through the `SchemaProvider` and the decoder of EA1: `AttributeSchemas` is not ported.
 - **US 3.3** — A resource absent from the revision: warning, as EI3 US 3.3.
 - **US 3.4** — Remove from `JsonApiV2`: `Revisions`, the `json_api.revision` setting, `Revised` handling,
-  `prepareRules()` use; the fixtures `JsonApiRevisions` move to `JsonApiV3` on the new enum contract.
+  `prepareRules()` use; the fixtures `JsonApiRevisions` move to `JsonApiV3` on the new enum contract. **Done**
+  (2026-11-17): 2.1 is never tagged, the revisions are served by `JsonApiV3`; the CI 2.x job installs `^2.0`.
 
 Order: `EA1 → EA2`, and `EA3` after `laravel-json-api`'s epic EJ3. EI1 and EI2 are untouched.
 

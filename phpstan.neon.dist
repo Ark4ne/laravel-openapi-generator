@@ -8,8 +8,6 @@ parameters:
         - tests/Unit/Integrations/JsonApiV2/*
         - tests/Feature/JsonApiV2/*
         - tests/Fixtures/JsonApiV2/*
-        - tests/Feature/JsonApiRevisions/*
-        - tests/Fixtures/JsonApiRevisions/*
         # ark4ne/laravel-json-api 3.x: analysed by phpstan-json-api-v3.neon.dist, with 3.x installed.
         - src/Integrations/JsonApiV3/*
         - tests/Unit/Integrations/JsonApiV3/*
