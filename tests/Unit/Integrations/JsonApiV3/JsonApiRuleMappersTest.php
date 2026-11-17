@@ -37,12 +37,11 @@ final class JsonApiRuleMappersTest extends JsonApiV3TestCase
 
     public function test_the_fields_of_each_type_are_those_of_the_revision_of_the_rule(): void
     {
-        // The fields are those of the definition (`fields()`), as the package gives them: the members of `place` are
-        // those of the head (`city`), not of the schema of its `was()` (`town`).
+        // The members of `place` are those of the schema its `was()` puts in force at the revision (`town`).
         Schemas::assertSame([
             'type' => 'object',
             'properties' => [
-                'articles' => ['type' => 'string', 'description' => 'Fields of `articles`, separated by commas: `name`, `status`, `notes`, `place`, `place.city`, `writer`.'],
+                'articles' => ['type' => 'string', 'description' => 'Fields of `articles`, separated by commas: `name`, `status`, `notes`, `place`, `place.town`, `writer`.'],
                 'writers' => ['type' => 'string', 'description' => 'Fields of `writers`, separated by commas: `name`.'],
             ],
             'additionalProperties' => false,

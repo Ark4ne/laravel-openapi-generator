@@ -39,7 +39,7 @@
                             "type": "object",
                             "properties": {
                                 "articles": {
-                                    "description": "Fields of `articles`, separated by commas: `name`, `status`, `notes`, `place`, `place.city`, `writer`.",
+                                    "description": "Fields of `articles`, separated by commas: `name`, `status`, `notes`, `place`, `place.town`, `writer`.",
                                     "type": "string"
                                 },
                                 "writers": {

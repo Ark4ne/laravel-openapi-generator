@@ -15,7 +15,9 @@ use Ark4ne\OpenApi\Support\Patterns;
 use Ark4ne\OpenApi\Tests\Fixtures\JsonApiV3\ApiRevision;
 use Ark4ne\OpenApi\Tests\Fixtures\JsonApiV3\ArticleResource;
 use Ark4ne\OpenApi\Tests\Fixtures\JsonApiV3\ShowcaseResource;
-use Ark4ne\OpenApi\Tests\Fixtures\JsonApiV3\TagResource;
+use Ark4ne\OpenApi\Tests\Fixtures\JsonApiV3\Types\BrokenNestedResource;
+use Ark4ne\OpenApi\Tests\Fixtures\JsonApiV3\Types\NestingResource;
+use Ark4ne\OpenApi\Tests\Fixtures\JsonApiV3\Types\NodeResource;
 use Ark4ne\OpenApi\Tests\Support\Schemas;
 use Ark4ne\OpenApiWriter\Objects\Schema;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -45,12 +47,12 @@ final class ValueSchemasTest extends JsonApiV3TestCase
                 'profile' => ['type' => 'object', 'properties' => ['city' => ['type' => ['string', 'null']], 'zip' => ['type' => 'integer', 'minimum' => 0]]],
                 'price' => ['type' => 'string', 'description' => 'attributes.price'],
                 'anything' => ['type' => 'string', 'description' => 'attributes.anything'],
-                'tag' => ['type' => 'string', 'description' => 'attributes.tag'],
+                'tag' => ['type' => 'object', 'properties' => ['name' => ['type' => 'string']]],
             ],
         ], $this->schemas()->members(Definitions::for(ShowcaseResource::class)->attributes, 'attributes.') ?? Schema::create());
     }
 
-    public function test_a_custom_type_and_a_nested_resource_are_typed_by_the_sample_and_reported_once(): void
+    public function test_a_custom_type_is_typed_by_the_sample_and_reported_once(): void
     {
         $schemas = $this->schemas();
         $attributes = Definitions::for(ShowcaseResource::class)->attributes;
@@ -58,16 +60,35 @@ final class ValueSchemasTest extends JsonApiV3TestCase
         $schemas->members($attributes);
         $schemas->members($attributes);
 
-        self::assertSame(implode("\n", [
-            '[info] response: the custom type decimal is typed from a sample: its JSON Schema is not read',
-            '[info] response: the nested resource ' . TagResource::class . ' is typed from a sample: its shape is not given by the definition',
-        ]), $this->diagnostics());
+        self::assertSame('[info] response: the custom type decimal is typed from a sample: its JSON Schema is not read', $this->diagnostics());
+    }
+
+    public function test_a_nested_resource_has_the_members_of_its_shape_and_stops_where_it_nests_itself(): void
+    {
+        $node = self::at($this->schemas()->members(Definitions::for(NestingResource::class)->attributes, 'attributes.') ?? Schema::create(), 'node');
+
+        Schemas::assertSame([
+            'type' => 'object',
+            'properties' => [
+                'label' => ['type' => 'string'],
+                'parent' => ['type' => 'string', 'description' => 'attributes.node.parent'],
+            ],
+        ], $node);
+        self::assertStringContainsString('[info] response: the nested resource ' . NodeResource::class . ' nests itself: typed from a sample from there', $this->diagnostics());
+    }
+
+    public function test_a_nested_resource_whose_shape_cannot_be_compiled_is_typed_by_the_sample_with_a_warning(): void
+    {
+        $broken = self::at($this->schemas()->members(Definitions::for(NestingResource::class)->attributes, 'attributes.') ?? Schema::create(), 'broken');
+
+        Schemas::assertSame(['type' => 'string', 'description' => 'attributes.broken'], $broken);
+        self::assertMatchesRegularExpression('/^\\[warning\\] response: cannot read the shape of the nested resource ' . preg_quote(BrokenNestedResource::class, '/') . ': .*\\(no shape\\).*[^.]; typed from a sample$/m', $this->diagnostics());
     }
 
     public function test_the_first_example_is_written_when_the_examples_are_on(): void
     {
         $context = $this->context(sampling: new SamplingConfiguration(examples: true));
-        $schemas = new ValueSchemas($context, static fn(string $path): Schema => Schema::create());
+        $schemas = new ValueSchemas($context, static fn(string $path): Schema => Schema::create(), Definitions::projection()->shapes);
         $title = Definitions::for(ShowcaseResource::class)->attributes?->field('title');
         self::assertNotNull($title);
 
@@ -103,7 +124,7 @@ final class ValueSchemasTest extends JsonApiV3TestCase
     {
         $document = $this->ctx()->document;
         $context = GenerationContext::for(new Configuration([$document->name => $document], dateFormats: ['H:i:s' => 'time']), $document);
-        $schemas = new ValueSchemas($context, static fn(string $path): Schema => Schema::create());
+        $schemas = new ValueSchemas($context, static fn(string $path): Schema => Schema::create(), Definitions::projection()->shapes);
         $members = $schemas->members(Definitions::for(ShowcaseResource::class)->attributes);
 
         Schemas::assertSame(['type' => ['string', 'null'], 'format' => 'time'], self::at($members ?? Schema::create(), 'clock'));
@@ -124,6 +145,6 @@ final class ValueSchemasTest extends JsonApiV3TestCase
      */
     private function schemas(): ValueSchemas
     {
-        return new ValueSchemas($this->ctx(), static fn(string $path): Schema => Schema::string()->description($path));
+        return new ValueSchemas($this->ctx(), static fn(string $path): Schema => Schema::string()->description($path), Definitions::projection()->shapes);
     }
 }

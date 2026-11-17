@@ -29,8 +29,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   definitions are the shapes of the base (`ValueSchemas`). Each field gives its type and its constraints (`minLength`,
   `maxLength`, `format`, `pattern`, `minimum`, `maximum`, `minItems`, `maxItems`, the backed values of an enum), its
   description, its first example and `deprecated`, under its name at the revision; an object typed by the schema of a
-  `was()` has its members. A value of unknown type, a custom type (its JSON Schema fragment is not read) and a nested
-  resource are typed by rendering the resource on a sample, the last two with an info diagnostic. An attribute rendered
+  `was()` has its members, a nested resource those of its response shape at the revision of its field (`headAt`). A
+  value of unknown type and a custom type (its JSON Schema fragment is not read, an info diagnostic) are typed by
+  rendering the resource on a sample, so is a nested resource where it nests itself. An attribute rendered
   only when the sparse fieldset names it (`whenInFields()`) says so; the links of a resource object are a URL or a link
   object by name. `json_api.revision` is a case of the enum of `revisions.enum`; every request the generator builds is
   read at it (`RevisionScope::setBase()`, the head included, so that a document never inherits the revision of the

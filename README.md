@@ -225,8 +225,8 @@ a warning: exclude its routes from that document.
   of a definition are the shapes of the base. Each field gives its type and its constraints (`min()`, `max()`,
   `format()`, `pattern()`), its description, its first example and `deprecated`, under its name at the revision; an
   attribute rendered only when the sparse fieldset names it (`whenInFields()`) says so, and the links of a resource
-  object are a URL or a link object by name. A value of unknown type, a custom type and a nested resource are typed by
-  rendering the resource on a sample of its model. One document per revision as above: `json_api.revision` is a case
+  object are a URL or a link object by name. A nested resource has the members of its own shape at that revision. A
+  value of unknown type and a custom type are typed by rendering the resource on a sample of its model. One document per revision as above: `json_api.revision` is a case
   of the enum the application configures (`revisions.enum`), and every request the generator builds (samples, form
   requests) is read at that revision.
 

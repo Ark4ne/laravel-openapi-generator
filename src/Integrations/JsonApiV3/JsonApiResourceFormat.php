@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ark4ne\OpenApi\Integrations\JsonApiV3;
 
+use Ark4ne\JsonApi\Compilation\Definitions;
 use Ark4ne\JsonApi\Definition\Cardinality;
 use Ark4ne\JsonApi\Definition\RelationshipDefinition;
 use Ark4ne\JsonApi\Definition\ResourceDefinition;
@@ -371,7 +372,7 @@ final class JsonApiResourceFormat implements ResourceFormat
             }
 
             return $resources->inferrer()->infer($value, $context);
-        });
+        }, Definitions::projection()->shapes);
     }
 
     /**

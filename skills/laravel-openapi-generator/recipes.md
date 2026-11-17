@@ -534,9 +534,9 @@ With `ark4ne/laravel-json-api` 3.x (built on `ark4ne/laravel-api-revisions`) ins
 definition the package compiles, whose values are the shapes of the base: each field gives its type and its
 constraints (`min()`, `max()`, `format()`, `pattern()`), its description, its first example and `deprecated`, under its
 name at the revision of the document. An attribute rendered only when the sparse fieldset names it
-(`whenInFields()`) says so; the links of a resource object are a URL or a link object by name. A value of unknown type
-(`mixed()`), a custom type and a nested resource are typed by rendering the resource on a sample of its model (an info
-diagnostic for the last two). Each revision of the API is its own document: `json_api.revision`, a case of the enum
+(`whenInFields()`) says so; the links of a resource object are a URL or a link object by name. A nested resource
+(`Schema::resource()`) has the members of its own shape at that revision. A value of unknown type (`mixed()`) and a
+custom type are typed by rendering the resource on a sample of its model (an info diagnostic for the last). Each revision of the API is its own document: `json_api.revision`, a case of the enum
 the application configures (`revisions.enum`), names it; every request the generator builds is read at that revision
 (the base revision of the `RevisionScope`), and the description lists the newer revisions. Without the setting, the
 head.
