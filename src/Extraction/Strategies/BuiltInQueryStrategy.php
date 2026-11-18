@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Ark4ne\OpenApi\Extraction\Strategies;
 
 use Ark4ne\OpenApi\Context\GenerationContext;
+use Ark4ne\OpenApi\Context\Stage;
 use Ark4ne\OpenApi\Description\FieldDescription;
 use Ark4ne\OpenApi\Description\ParameterDescription;
 use Ark4ne\OpenApi\Extraction\Rules\FieldTree;
@@ -22,8 +23,11 @@ use Ark4ne\OpenApiWriter\Objects\Schema;
  *   `deepObject`;
  * - `querystring`: the whole query as one `querystring` parameter (3.2), `none` before.
  *
- * A query field without type is a string. A flattened field is required only when no list is above it; an object
- * left as one field (`fields[post]`) is a `deepObject`.
+ * A query field without type is a string. A flattened field is required only when no list is above it. With `all` and
+ * `last`, an object left as one field (`fields`, an object of one property per type) is flattened too: one parameter
+ * per property (`fields[posts]`), required when the object is and names it in `required`. An object whose keys are
+ * not all known (no `properties`, open `additionalProperties`, a property that is a reference) stays one `deepObject`
+ * parameter, with an info when it has properties.
  */
 final readonly class BuiltInQueryStrategy implements QueryStrategy
 {
@@ -42,7 +46,7 @@ final readonly class BuiltInQueryStrategy implements QueryStrategy
                 ParameterDescription::querystring('query', FieldTree::object($fields)),
             ],
             $this->by === 'none', $this->by === 'querystring' => self::objects($fields),
-            default => self::flattened($fields, $this->by === 'last'),
+            default => self::flattened($fields, $this->by === 'last', $context),
         };
     }
 
@@ -69,7 +73,7 @@ final readonly class BuiltInQueryStrategy implements QueryStrategy
      *
      * @return list<ParameterDescription>
      */
-    private static function flattened(array $fields, bool $keepLastList): array
+    private static function flattened(array $fields, bool $keepLastList, GenerationContext $context): array
     {
         $names = array_map(static fn(FieldDescription $field): string => $field->name, $fields);
         $parameters = [];
@@ -88,8 +92,39 @@ final readonly class BuiltInQueryStrategy implements QueryStrategy
             }
 
             $name = array_shift($segments) . implode('', array_map(static fn(string $segment): string => $segment === '*' ? '[]' : "[{$segment}]", $segments));
-            $parameter = ParameterDescription::query($name, $schema)->required($field->required && ! str_contains($field->name, '*'));
-            $parameters[] = SchemaTypes::of($schema) === 'object' ? $parameter->style(ParameterStyle::DeepObject)->explode() : $parameter;
+            array_push($parameters, ...self::flat($name, $schema, $field->required && ! str_contains($field->name, '*'), $context));
+        }
+
+        return $parameters;
+    }
+
+    /**
+     * The parameter of a flattened field, or one per property of the object it is when all its keys are known.
+     *
+     * @return list<ParameterDescription>
+     */
+    private static function flat(string $name, Schema $schema, bool $required, GenerationContext $context): array
+    {
+        if (SchemaTypes::of($schema) !== 'object') {
+            return [ParameterDescription::query($name, $schema)->required($required)];
+        }
+
+        $properties = $schema->properties ?? [];
+        $open = $schema->additionalProperties !== null && $schema->additionalProperties !== false;
+        $known = array_filter($properties, static fn(mixed $property): bool => $property instanceof Schema);
+
+        if ($properties === [] || $open || count($known) !== count($properties)) {
+            if ($properties !== []) {
+                $context->diagnostics->info(Stage::Request, "the query parameter {$name} accepts keys it does not name, written as a deepObject");
+            }
+
+            return [ParameterDescription::query($name, $schema)->required($required)->style(ParameterStyle::DeepObject)->explode()];
+        }
+
+        $parameters = [];
+
+        foreach ($known as $key => $property) {
+            array_push($parameters, ...self::flat("{$name}[{$key}]", self::typed($property), $required && in_array($key, $schema->required ?? [], true), $context));
         }
 
         return $parameters;

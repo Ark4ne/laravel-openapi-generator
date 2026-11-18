@@ -17,7 +17,6 @@ use BackedEnum;
 use DateTimeInterface;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Resources\MergeValue;
 use Illuminate\Http\Resources\PotentiallyMissing;
@@ -119,7 +118,6 @@ final readonly class SchemaInferrer
         $required = [];
 
         foreach ($model->toArray() as $key => $property) {
-            $key = (string) $key;
             $inferred = isset($declared[$key])
                 ? $this->example($declared[$key], is_scalar($property) ? $property : null, $context)
                 : $this->infer($property, $context);
@@ -142,7 +140,7 @@ final readonly class SchemaInferrer
         if ($name === null) {
             // Registered before its schema is inferred, so that a resource nested in itself is a reference.
             $name = $context->components->register($class, ComponentNames::of($class), Schema::object());
-            $context->components->register($class, $name, $this->infer($resource->toArray(Request::create('/')), $context));
+            $context->components->register($class, $name, $this->infer($resource->toArray($context->sampleRequest()), $context));
         }
 
         return $context->document->useReferences ? Schema::ref($name) : $context->components->get($name) ?? Schema::object();

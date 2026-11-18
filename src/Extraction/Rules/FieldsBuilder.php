@@ -13,7 +13,8 @@ use ReflectionProperty;
 
 /**
  * Applies the rules of each field: a rule describing itself (`DescribesRule`), `Rule::anyOf()` (one schema per set
- * of rules), else the RuleMapper of the rule. An unknown rule leaves the field as it is, with an info.
+ * of rules), else the RuleMapper of the rule. An unknown rule leaves the field as it is, with an info. An `enum` left
+ * without type is typed by its values (`SchemaTypes::enumerated()`).
  */
 final readonly class FieldsBuilder
 {
@@ -58,7 +59,7 @@ final readonly class FieldsBuilder
             }
         }
 
-        return $field;
+        return $field->schema(SchemaTypes::enumerated($field->schema));
     }
 
     /**

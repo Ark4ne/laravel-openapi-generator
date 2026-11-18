@@ -19,6 +19,7 @@ use Ark4ne\OpenApi\Integrations\JsonApiV2\JsonApiObjects;
 use Ark4ne\OpenApi\Integrations\JsonApiV2\JsonApiResourceFormat;
 use Ark4ne\OpenApi\Integrations\JsonApiV2\JsonApiV2Integration;
 use Ark4ne\OpenApi\Integrations\JsonApiV2\ResourceDefinitions;
+use Ark4ne\OpenApi\Integrations\JsonApiV3\JsonApiV3Integration;
 use Ark4ne\OpenApi\Tests\Fixtures\JsonApiV2\Types\RenamedHookResource;
 use Ark4ne\OpenApi\Tests\Support\Schemas;
 use Ark4ne\OpenApi\Tests\TestCase;
@@ -61,9 +62,10 @@ final class JsonApiV2IntegrationTest extends TestCase
         self::assertCount(1, $read);
     }
 
-    public function test_the_1_x_integration_is_not_available_with_2_x(): void
+    public function test_the_1_x_and_3_x_integrations_are_not_available_with_2_x(): void
     {
         self::assertFalse((new JsonApiIntegration())->available());
+        self::assertFalse((new JsonApiV3Integration())->available());
     }
 
     public function test_the_json_api_errors_are_opt_in(): void
@@ -72,10 +74,10 @@ final class JsonApiV2IntegrationTest extends TestCase
         self::assertInstanceOf(JsonApiErrorBodies::class, (new JsonApiV2Integration(errors: true))->errorBodies());
     }
 
-    public function test_the_built_in_integrations_list_both_json_api_integrations_with_their_options(): void
+    public function test_the_built_in_integrations_list_the_three_json_api_integrations_with_their_options(): void
     {
-        self::assertEquals([new JsonApiIntegration(), new JsonApiV2Integration()], BuiltInIntegrations::all());
-        self::assertEquals([new JsonApiIntegration(errors: true), new JsonApiV2Integration(errors: true)], BuiltInIntegrations::all(jsonApiErrors: true));
+        self::assertEquals([new JsonApiIntegration(), new JsonApiV2Integration(), new JsonApiV3Integration()], BuiltInIntegrations::all());
+        self::assertEquals([new JsonApiIntegration(errors: true), new JsonApiV2Integration(errors: true), new JsonApiV3Integration(errors: true)], BuiltInIntegrations::all(jsonApiErrors: true));
     }
 
     public function test_the_error_bodies_are_the_error_documents_of_the_package(): void

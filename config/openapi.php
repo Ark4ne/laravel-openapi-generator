@@ -84,7 +84,9 @@ return [
             | tags:         controller | uri | name (with an optional `pattern`)
             | groups:       null, or like tags (`Tag.parent` in 3.2, `x-tagGroups` before)
             | operation_id: name | action | method_path | method_name
-            | query:        all | last | none (how nested query fields are written)
+            | query:        all | last | none | querystring (how nested query
+            |               fields are written: one parameter per key, objects
+            |               such as `fields` included, or `deepObject`s)
             */
             'strategies' => [
                 'summary' => ['by' => 'doc'],
@@ -131,6 +133,17 @@ return [
             | `x-*` extensions of the document.
             */
             'extensions' => [],
+
+            /*
+            | Settings of the integrations for this document, by the key of a
+            | document integration: each one reads its own, and settings no
+            | available integration reads are a warning. One document per
+            | version of the API, each with its own `routes` and settings.
+            */
+            // 'integrations' => [
+            //     // ark4ne/laravel-json-api 3.x: the revision documented.
+            //     'json_api' => ['revision' => App\Http\ApiRevision::Initial],
+            // ],
         ],
     ],
 

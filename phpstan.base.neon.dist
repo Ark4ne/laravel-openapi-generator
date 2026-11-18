@@ -1,4 +1,5 @@
-# Shared by phpstan.neon.dist (ark4ne/laravel-json-api 1.x, the dev dependency) and phpstan-json-api-v2.neon.dist
+# Shared by phpstan.neon.dist (ark4ne/laravel-json-api 1.x, the dev dependency), phpstan-json-api-v2.neon.dist and
+# phpstan-json-api-v3.neon.dist
 # (2.x): each leaves out the integration of the other line, whose classes are not installed.
 includes:
     - vendor/larastan/larastan/extension.neon
@@ -59,6 +60,29 @@ parameters:
                 - 'print_r()'
                 - 'ray()'
             message: 'debug output must not be committed'
+
+    # The application renders its samples on the requests of the context: the integrations prepare them (docs/architecture.md §3.3).
+    disallowedStaticCalls:
+        -
+            method:
+                - 'Symfony\Component\HttpFoundation\Request::create()'
+                - 'Symfony\Component\HttpFoundation\Request::createFromGlobals()'
+                - 'Illuminate\Http\Request::createFrom()'
+                - 'Illuminate\Http\Request::createFromBase()'
+            message: 'use GenerationContext::sampleRequest(), or prepare the request with GenerationContext::prepareRequest()'
+            allowIn:
+                - src/Context/GenerationContext.php
+                - src/Extraction/Requests/RequestFactory.php
+                - tests/*
+    disallowedMethodCalls:
+        -
+            method: 'Symfony\Component\HttpFoundation\Request::__construct()'
+            message: 'use GenerationContext::sampleRequest(), or prepare the request with GenerationContext::prepareRequest()'
+            allowIn:
+                # The type of a native JSON:API resource, read on an empty JsonApiRequest: nothing is rendered.
+                - src/Integrations/JsonApiV2/ResourceDefinitions.php
+                - src/Integrations/JsonApiV3/ResourceDefinitions.php
+                - tests/*
 
 services:
     -

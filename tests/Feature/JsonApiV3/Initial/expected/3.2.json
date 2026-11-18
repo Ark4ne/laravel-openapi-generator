@@ -1,0 +1,614 @@
+{
+    "openapi": "3.2.0",
+    "info": {
+        "title": "Scenario",
+        "description": "Articles.\n\nNewer revisions:\n\n- 2026-12-01: Names become labels\n- 2027-01-15: Members replace writers",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/articles": {
+            "get": {
+                "tags": [
+                    "Article"
+                ],
+                "summary": "List the articles.",
+                "operationId": "articles.index",
+                "parameters": [
+                    {
+                        "name": "include",
+                        "in": "query",
+                        "schema": {
+                            "description": "Relationships to include, separated by commas: `writer`.",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "include_head",
+                        "in": "query",
+                        "schema": {
+                            "description": "Relationships to include, separated by commas: `author`.",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "fields[articles]",
+                        "in": "query",
+                        "schema": {
+                            "description": "Fields of `articles`, separated by commas: `name`, `status`, `notes`, `place`, `place.town`, `writer`.",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "fields[writers]",
+                        "in": "query",
+                        "schema": {
+                            "description": "Fields of `writers`, separated by commas: `name`.",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "jsonapi",
+                                        "data"
+                                    ],
+                                    "properties": {
+                                        "jsonapi": {
+                                            "$ref": "#/components/schemas/JsonApi"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Article"
+                                            }
+                                        },
+                                        "included": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Writer"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "catalog": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationFailed"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Article"
+                ],
+                "summary": "Create an article.",
+                "operationId": "articles.store",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "jsonapi",
+                                        "data"
+                                    ],
+                                    "properties": {
+                                        "jsonapi": {
+                                            "$ref": "#/components/schemas/JsonApi"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Article"
+                                        },
+                                        "included": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Writer"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "catalog": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationFailed"
+                    }
+                }
+            }
+        },
+        "/api/articles/{post}": {
+            "get": {
+                "tags": [
+                    "Article"
+                ],
+                "summary": "Show one article.",
+                "operationId": "articles.show",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "jsonapi",
+                                        "data"
+                                    ],
+                                    "properties": {
+                                        "jsonapi": {
+                                            "$ref": "#/components/schemas/JsonApi"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Article"
+                                        },
+                                        "included": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Writer"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "catalog": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "post",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ]
+        },
+        "/api/members/{user}": {
+            "get": {
+                "tags": [
+                    "Article"
+                ],
+                "summary": "Show one member: absent before Labels.",
+                "operationId": "members.show",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "jsonapi",
+                                        "data"
+                                    ],
+                                    "properties": {
+                                        "jsonapi": {
+                                            "$ref": "#/components/schemas/JsonApi"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Member"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "user",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ]
+        },
+        "/api/patterned/{post}": {
+            "get": {
+                "tags": [
+                    "Article"
+                ],
+                "summary": "Show the patterns of a post.",
+                "operationId": "patterned.show",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "jsonapi",
+                                        "data"
+                                    ],
+                                    "properties": {
+                                        "jsonapi": {
+                                            "$ref": "#/components/schemas/JsonApi"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Patterned"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "post",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ]
+        }
+    },
+    "components": {
+        "schemas": {
+            "Article": {
+                "type": "object",
+                "required": [
+                    "type",
+                    "id"
+                ],
+                "properties": {
+                    "type": {
+                        "const": "articles",
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "attributes": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "description": "The title.",
+                                "type": "string",
+                                "maxLength": 120
+                            },
+                            "status": {
+                                "enum": [
+                                    "draft",
+                                    "published"
+                                ],
+                                "type": "string"
+                            },
+                            "notes": {
+                                "description": "Only when the sparse fieldset names it (`fields[articles]`).",
+                                "type": "string"
+                            },
+                            "place": {
+                                "type": "object",
+                                "properties": {
+                                    "town": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "relationships": {
+                        "type": "object",
+                        "properties": {
+                            "writer": {
+                                "type": "object",
+                                "properties": {
+                                    "data": {
+                                        "type": [
+                                            "object",
+                                            "null"
+                                        ],
+                                        "required": [
+                                            "type",
+                                            "id"
+                                        ],
+                                        "properties": {
+                                            "type": {
+                                                "const": "writers",
+                                                "type": "string"
+                                            },
+                                            "id": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "links": {
+                        "type": "object",
+                        "properties": {
+                            "self": {
+                                "oneOf": [
+                                    {
+                                        "format": "uri-reference",
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "object",
+                                        "required": [
+                                            "href"
+                                        ],
+                                        "properties": {
+                                            "href": {
+                                                "format": "uri-reference",
+                                                "type": "string"
+                                            },
+                                            "meta": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "meta": {
+                        "type": "object",
+                        "properties": {
+                            "created_at": {
+                                "format": "date-time",
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            "JsonApi": {
+                "type": "object",
+                "required": [
+                    "version"
+                ],
+                "properties": {
+                    "version": {
+                        "const": "1.1",
+                        "type": "string"
+                    }
+                }
+            },
+            "Writer": {
+                "type": "object",
+                "required": [
+                    "type",
+                    "id"
+                ],
+                "properties": {
+                    "type": {
+                        "const": "writers",
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "attributes": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "Member": {
+                "type": "object",
+                "required": [
+                    "type",
+                    "id"
+                ],
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    }
+                }
+            },
+            "Patterned": {
+                "type": "object",
+                "required": [
+                    "type",
+                    "id"
+                ],
+                "properties": {
+                    "type": {
+                        "const": "patterned",
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "attributes": {
+                        "type": "object",
+                        "properties": {
+                            "slug": {
+                                "type": "string",
+                                "pattern": "^[a-z]+$"
+                            },
+                            "word": {
+                                "$comment": "PCRE /^abc$/i",
+                                "type": "string"
+                            },
+                            "day": {
+                                "format": "date",
+                                "type": "string"
+                            },
+                            "iso_day": {
+                                "format": "date",
+                                "type": "string"
+                            },
+                            "local_day": {
+                                "$comment": "PHP date format d/m/Y",
+                                "type": "string",
+                                "pattern": "^\\d{2}/\\d{2}/\\d{4}$"
+                            },
+                            "spoken_day": {
+                                "$comment": "PHP date format D, d M Y",
+                                "type": "string"
+                            },
+                            "at": {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            "at_extended": {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            "at_sql": {
+                                "$comment": "PHP date format Y-m-d H:i:s",
+                                "type": "string",
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$"
+                            },
+                            "described_day": {
+                                "$comment": "PHP date format d/m/Y",
+                                "description": "The day.",
+                                "type": "string",
+                                "pattern": "^\\d{2}/\\d{2}/\\d{4}$"
+                            }
+                        }
+                    }
+                }
+            },
+            "Error": {
+                "type": "object",
+                "required": [
+                    "message"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string"
+                    }
+                }
+            },
+            "ValidationError": {
+                "type": "object",
+                "required": [
+                    "message",
+                    "errors"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string"
+                    },
+                    "errors": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "responses": {
+            "NotFound": {
+                "description": "Not Found",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/Error"
+                        }
+                    }
+                }
+            },
+            "ValidationFailed": {
+                "description": "Validation failed",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Article"
+        }
+    ]
+}

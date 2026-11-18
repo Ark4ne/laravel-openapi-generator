@@ -81,8 +81,8 @@ final class JsonApiTest extends DocumentScenario
         $index = ['paths', '/api/users', 'get'];
 
         self::assertSame(['application/vnd.api+json'], array_keys((array) Schemas::at($written, ...$index, ...['responses', '200', 'content'])));
-        self::assertSame(['include', 'fields', 'filter[name]'], array_map(static fn(mixed $parameter): mixed => is_array($parameter) ? $parameter['name'] ?? null : null, (array) Schemas::at($written, ...$index, ...['parameters'])));
-        self::assertSame('deepObject', Schemas::at($written, ...$index, ...['parameters', '1', 'style']));
+        self::assertSame(['include', 'fields[user]', 'fields[post]', 'fields[comment]', 'filter[name]'], array_map(static fn(mixed $parameter): mixed => is_array($parameter) ? $parameter['name'] ?? null : null, (array) Schemas::at($written, ...$index, ...['parameters'])));
+        self::assertNull(Schemas::at($written, ...$index, ...['parameters', '1', 'style']));
         self::assertSame(['application/vnd.api+json'], array_keys((array) Schemas::at($written, 'components', 'responses', 'ValidationFailed', 'content')));
     }
 

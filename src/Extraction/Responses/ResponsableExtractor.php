@@ -17,7 +17,6 @@ use Ark4ne\OpenApi\Types\Type;
 use Ark4ne\OpenApiWriter\Objects\Schema;
 use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use ReflectionClass;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
@@ -64,7 +63,7 @@ final readonly class ResponsableExtractor implements ResponseExtractor
         try {
             $class = new ReflectionClass($type->name);
             $instance = ($class->getConstructor()?->getNumberOfRequiredParameters() ?? 0) === 0 ? $class->newInstance() : ($this->samplers->sample(new SampleRequest($type->name), $context)[0] ?? null);
-            $response = $instance instanceof Responsable ? $instance->toResponse(Request::create('/')) : null;
+            $response = $instance instanceof Responsable ? $instance->toResponse($context->sampleRequest()) : null;
         } catch (Throwable $error) {
             $context->diagnostics->warning(Stage::Response, "cannot run {$type->name}::toResponse(): {$error->getMessage()}", $operation->route->label());
 

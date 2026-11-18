@@ -36,6 +36,6 @@ final readonly class GeneratorFactory
         $translator = $this->container->bound(Translator::class) ? $this->container->make(Translator::class) : null;
         $extensions = (new ExtensionsResolver($this->container))->resolve($configuration->extensions);
 
-        return Generator::make($this->container->make(Router::class), $this->container, $session, $translator, BuiltInIntegrations::all($configuration->integrations->jsonApiErrors), $extensions);
+        return Generator::make($this->container->make(Router::class), $this->container, $session, $translator, BuiltInIntegrations::all($configuration->integrations->jsonApiErrors, $this->container), $extensions);
     }
 }

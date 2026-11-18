@@ -26,6 +26,8 @@ final readonly class DocumentConfiguration
      * @param string|null $self public URI of the generated document (`$self`, 3.2)
      * @param array<string, mixed> $extensions `x-*` extensions of the document
      * @param list<string> $security names of the security schemes required by default on every operation
+     * @param array<string, array<string, mixed>> $integrations integration key → its settings for this document
+     *        (`documents.<name>.integrations`), never interpreted by the core: each document integration reads its own
      */
     public function __construct(
         public string $name,
@@ -47,6 +49,7 @@ final readonly class DocumentConfiguration
         public ?string $self = null,
         public array $extensions = [],
         public array $security = [],
+        public array $integrations = [],
     ) {}
 
     /**
@@ -101,6 +104,7 @@ final readonly class DocumentConfiguration
             self: ConfigurationValues::nullableString("{$key}.self", $config['self'] ?? null),
             extensions: array_filter($extensions, static fn(int|string $name): bool => is_string($name), ARRAY_FILTER_USE_KEY),
             security: ConfigurationValues::strings("{$key}.security", $config['security'] ?? []),
+            integrations: self::integrations("{$key}.integrations", $config['integrations'] ?? []),
         );
     }
 
@@ -133,7 +137,47 @@ final readonly class DocumentConfiguration
             $this->self,
             $this->extensions,
             $this->security,
+            $this->integrations,
         );
+    }
+
+    /**
+     * The settings of an integration for this document, `[]` when it has none.
+     *
+     * @return array<string, mixed>
+     */
+    public function integration(string $key): array
+    {
+        return $this->integrations[$key] ?? [];
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     *
+     * @throws InvalidConfigurationException
+     */
+    private static function integrations(string $key, mixed $config): array
+    {
+        $integrations = [];
+
+        foreach (ConfigurationValues::array($key, $config) as $name => $settings) {
+            if (! is_string($name)) {
+                throw InvalidConfigurationException::forKey($key, 'string integration keys', $name);
+            }
+
+            $settings = ConfigurationValues::array("{$key}.{$name}", $settings);
+
+            foreach (array_keys($settings) as $setting) {
+                if (! is_string($setting)) {
+                    throw InvalidConfigurationException::forKey("{$key}.{$name}", 'named settings (string keys)', $setting);
+                }
+            }
+
+            /** @var array<string, mixed> $settings */
+            $integrations[$name] = $settings;
+        }
+
+        return $integrations;
     }
 
     /**

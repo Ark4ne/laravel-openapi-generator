@@ -14,7 +14,7 @@ use Illuminate\Contracts\Container\Container;
 
 /**
  * The passes, in their explicit order: exception responses → security → error responses → tags and groups →
- * operationId → components → path parameters → the application's → cleanup.
+ * operationId → components → path parameters → the application's → unused components → cleanup.
  */
 final class Passes
 {
@@ -45,7 +45,8 @@ final class Passes
 
     /**
      * The built-in chain; `middlewares` of the configuration replace the mappers of their middleware (built through the
-     * container when there is one), the other passes run after the built-in ones, before the cleanup.
+     * container when there is one), the other passes run after the built-in ones, before the unused components and the
+     * cleanup.
      */
     public static function default(?Configuration $configuration = null, ErrorBodies $errors = new LaravelErrorBodies(), ?Container $container = null, Pass ...$others): self
     {
@@ -71,6 +72,7 @@ final class Passes
             new Passes\EquivalentPathsPass(),
             new Passes\PathParametersPass(),
             ...$others,
+            new Passes\UnusedComponentsPass(),
             new Passes\CleanupPass(),
         ]);
     }

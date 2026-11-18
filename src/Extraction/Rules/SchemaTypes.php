@@ -36,6 +36,51 @@ final class SchemaTypes
     }
 
     /**
+     * An `enum` without type (`in`, `Rule::in()`, on the field or the items of its list) typed by its values when they
+     * share one: `string`, `integer`, `number` (integers and floats) or `boolean`; `null` among them is left to the
+     * nullability of the field.
+     */
+    public static function enumerated(Schema $schema): Schema
+    {
+        if (self::of($schema) === 'array' && $schema->items instanceof Schema) {
+            return $schema->items(self::enumerated($schema->items));
+        }
+
+        if (self::of($schema) !== null || $schema->enum === null) {
+            return $schema;
+        }
+
+        $types = [];
+
+        foreach ($schema->enum as $value) {
+            $type = match (true) {
+                $value === null => null,
+                is_string($value) => 'string',
+                is_int($value) => 'integer',
+                is_float($value) => 'number',
+                is_bool($value) => 'boolean',
+                default => 'unknown',
+            };
+
+            if ($type !== null) {
+                $types[$type] = true;
+            }
+        }
+
+        $type = match (true) {
+            array_keys($types) === ['string'], array_keys($types) === ['integer'], array_keys($types) === ['number'], array_keys($types) === ['boolean'] => array_key_first($types),
+            count($types) === 2 && isset($types['integer'], $types['number']) => 'number',
+            default => null,
+        };
+
+        if ($type === null) {
+            return $schema;
+        }
+
+        return $schema->type === null ? $schema->type($type) : $schema->addType($type);
+    }
+
+    /**
      * What a size (`min`, `max`, `size`…) counts for this field: `number`, `array`, `object`, `file` or `string`.
      */
     public static function size(FieldDescription $field): string

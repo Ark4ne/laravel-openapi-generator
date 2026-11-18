@@ -34,11 +34,17 @@ final readonly class JsonApiV2Integration implements Integration
     }
 
     /**
-     * Installed in 2.x: its resources expose their definition (`definition()`), which 1.x does not.
+     * A class of 2.x that 3.0 removed: its values, replaced in 3.0 by the shapes of `ark4ne/laravel-api-revisions`.
+     */
+    public const V2_CLASS = 'Ark4ne\JsonApi\Definition\AttributeDefinition';
+
+    /**
+     * Installed in 2.x: its resources expose their definition (`definition()`), which 1.x does not, and their values
+     * are its own (`AttributeDefinition`), which 3.0 does not have.
      */
     public function available(): bool
     {
-        return class_exists(self::PACKAGE_CLASS) && method_exists(self::PACKAGE_CLASS, 'definition');
+        return class_exists(self::PACKAGE_CLASS) && method_exists(self::PACKAGE_CLASS, 'definition') && class_exists(self::V2_CLASS);
     }
 
     public function resourceFormats(): array

@@ -30,7 +30,7 @@ Optional:
 
 - `opis/json-schema` to validate the generated documents against the official OpenAPI schemas (recommended)
 - `symfony/yaml` to write YAML
-- `ark4ne/laravel-json-api` ^1.9 or ^2.0 to document JSON:API resources
+- `ark4ne/laravel-json-api` ^1.9, ^2.0 or ^3.0 to document JSON:API resources (^3.0 for its revisions)
 
 Upgrading from 0.6? See [UPGRADE.md](UPGRADE.md).
 
@@ -122,7 +122,13 @@ a class. Every parameter is described in the [agent skill reference](skills/lara
 The rules of a form request give the fields: `required`, `nullable`, `sometimes`, `string`, `integer`, `numeric`,
 `boolean`, `array`, `in:`, `Rule::in()`, `Rule::enum()`, `min:`, `max:`, `size:`, `between:`, `regex:`, `email`,
 `url`, `uuid`, `date`, `date_format:`, `file`, `image`, `mimes:`, `File`, `Password`, `required_if:` and the other
-conditions (written in the description)… Unknown rules are reported as infos.
+conditions (written in the description)… Unknown rules are reported as infos. An `in:` or `Rule::in()` enum is typed
+by its values (`string`, `integer`…).
+
+In the query, every key is its own parameter by default (`strategies.query.by` = `all`): `filter.type` is
+`filter[type]`, and an object field such as the JSON:API `fields` is one parameter per type (`fields[posts]`), unless
+its keys are open (a `deepObject` then, with an info). `none` writes the opposite: one `deepObject` per top-level field
+(`filter`, `fields`).
 
 A request completes or replaces its rules with `DescribesRequest`; a rule object of the application describes
 itself with `DescribesRule`:
@@ -193,7 +199,7 @@ their `included` resources, its descriptors (`$this->string()`, `$this->date()`,
 the attributes, and its `Includes` and `Fields` rules give the `include` and `fields[type]` parameters. Set
 `integrations.json_api.errors` to `true` if the application renders its errors as JSON:API error documents.
 
-Both major versions are supported, the installed one is detected:
+Each major version is supported, the installed one is detected:
 
 - **1.x** (`^1.9`): the generator runs the hooks of the resources on the package's fake model.
 - **2.x** (`^2.0`): the generator reads the definition the package compiles (`PostResource::definition()`): the type of
@@ -201,6 +207,33 @@ Both major versions are supported, the installed one is detected:
   their links and meta. `id` is a string and the documents carry the `jsonapi` member, as the package renders them.
   A value without descriptor (a closure) is typed by rendering the resource on a sample of its model. The error
   documents are those of `JsonApi::renderErrors()`.
+- **3.x** (`^3.0`, on [`ark4ne/laravel-api-revisions`](https://github.com/Ark4ne/laravel-api-revisions)): the values
+  of a definition are the shapes of the base. Each field gives its type and its constraints (`min()`, `max()`,
+  `format()`, `pattern()`), its description, its first example and `deprecated`, under its name at the revision; an
+  attribute rendered only when the sparse fieldset names it (`whenInFields()`) says so, and the links of a resource
+  object are a URL or a link object by name. A nested resource has the members of its own shape at that revision. A
+  value of unknown type and a custom type are typed by rendering the resource on a sample of its model.
+
+With 3.x, each revision of the API is its own document. The `json_api.revision` setting of a document names its
+revision, a case of the enum the application configures (`revisions.enum`), and its `routes` choose its endpoints:
+
+```php
+'documents' => [
+    'v2026-09' => [
+        'info' => ['title' => 'API', 'version' => '2026-09-01'],
+        'integrations' => ['json_api' => ['revision' => App\Http\ApiRevision::Initial]],
+    ],
+    'v2026-12' => [
+        'info' => ['title' => 'API', 'version' => '2026-12-01'],
+        'integrations' => ['json_api' => ['revision' => App\Http\ApiRevision::Labels]],
+    ],
+],
+```
+
+Every request the generator builds (samples, form requests) is read at that revision, and the description lists the
+newer revisions. A resource that does not exist at the revision is a warning: exclude its routes from that document.
+The resources of each document are checked at its revision, as `jsonapi:check` does: its errors and warnings are
+warnings of the document (`--strict` fails on them).
 
 ## Extending
 
@@ -279,6 +312,7 @@ the expected value and the received one (`openapi.documents.v1.openapi: expected
 | `documents.<name>.use_references` | `true` | Resources and enums as components referenced by `$ref` |
 | `documents.<name>.output` | | Overrides of the global `output` |
 | `documents.<name>.extensions` | `[]` | `x-*` extensions of the document |
+| `documents.<name>.integrations` | `[]` | Settings of the integrations for this document, by key (`json_api.revision` with `ark4ne/laravel-json-api` 3.x) |
 | `servers` | `APP_URL` | Default servers: `url`, `description`, `name` (3.2), `variables` |
 | `output` | | `disk` (`null`: the default disk), `directory`, `file` (`{document}`, `{locale}`), `format` (`json` or `yaml`) |
 | `sampling` | | `transactions`, `connections` (drivers), `collection_size`, `seed`, `examples` |
