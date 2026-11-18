@@ -128,7 +128,7 @@ final class SkillTest extends SkillTestCase
         self::assertIsArray($operation);
 
         self::assertSame(['application/vnd.api+json'], array_keys((array) Schemas::at($operation, 'responses', '200', 'content')));
-        self::assertSame(['include', 'fields'], array_map(static fn(mixed $parameter): mixed => is_array($parameter) ? $parameter['name'] ?? null : null, (array) Schemas::at($operation, 'parameters')));
+        self::assertSame(['include', 'fields[article]', 'fields[author]'], array_map(static fn(mixed $parameter): mixed => is_array($parameter) ? $parameter['name'] ?? null : null, (array) Schemas::at($operation, 'parameters')));
     }
 
     #[Group('json-api-v2')]
@@ -138,7 +138,7 @@ final class SkillTest extends SkillTestCase
         self::assertIsArray($operation);
 
         self::assertSame(['application/vnd.api+json'], array_keys((array) Schemas::at($operation, 'responses', '200', 'content')));
-        self::assertSame(['include', 'fields'], array_map(static fn(mixed $parameter): mixed => is_array($parameter) ? $parameter['name'] ?? null : null, (array) Schemas::at($operation, 'parameters')));
+        self::assertSame(['include', 'fields[article]', 'fields[author]'], array_map(static fn(mixed $parameter): mixed => is_array($parameter) ? $parameter['name'] ?? null : null, (array) Schemas::at($operation, 'parameters')));
         self::assertSame(['jsonapi', 'data', 'included'], array_keys((array) Schemas::at($operation, 'responses', '200', 'content', 'application/vnd.api+json', 'schema', 'properties')));
     }
 
@@ -150,7 +150,7 @@ final class SkillTest extends SkillTestCase
         self::assertIsArray($operation);
 
         self::assertSame(['application/vnd.api+json'], array_keys((array) Schemas::at($operation, 'responses', '200', 'content')));
-        self::assertSame(['include', 'fields'], array_map(static fn(mixed $parameter): mixed => is_array($parameter) ? $parameter['name'] ?? null : null, (array) Schemas::at($operation, 'parameters')));
+        self::assertSame(['include', 'fields[articles]', 'fields[authors]'], array_map(static fn(mixed $parameter): mixed => is_array($parameter) ? $parameter['name'] ?? null : null, (array) Schemas::at($operation, 'parameters')));
         self::assertEquals(['type' => 'string', 'maxLength' => 120, 'description' => 'The title.'], Schemas::at($written, 'components', 'schemas', 'Article', 'properties', 'attributes', 'properties', 'title'));
         self::assertEquals(['type' => ['integer', 'null'], 'minimum' => 1, 'maximum' => 5], Schemas::at($written, 'components', 'schemas', 'Article', 'properties', 'attributes', 'properties', 'rating'));
     }

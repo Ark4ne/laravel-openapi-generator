@@ -46,6 +46,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   generation, each call getting its own copy, so a failing preparer is reported once; a failure while preparing a
   form request is reported at the `request` stage, with its route.
 
+### Changed
+
+- The `all` and `last` query strategies (`all` is the default) flatten an object field too: one parameter per
+  property (`fields[posts]`, `fields[authors]` for the JSON:API `Fields` rule, as `filter[type]`), required when the
+  object is and lists it in `required`, instead of one `deepObject` parameter. An object whose keys are not all known
+  (no `properties`, open `additionalProperties`, a reference) stays a `deepObject`, with an info when it has
+  properties. `none` still writes one `deepObject` per top-level field.
+- An `enum` left without type by the rules of a field (`in:`, `Rule::in()`, on the field or the items of its list) is
+  typed by its values when they share one (`string`, `integer`, `number`, `boolean`).
+
 ### Fixed
 
 - The schemas held by `patternProperties`, `dependentSchemas`, `$defs`, `propertyNames`, `unevaluatedProperties`,

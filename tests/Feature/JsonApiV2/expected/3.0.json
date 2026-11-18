@@ -22,27 +22,27 @@
                         }
                     },
                     {
-                        "name": "fields",
+                        "name": "fields[user]",
                         "in": "query",
-                        "style": "deepObject",
-                        "explode": true,
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "user": {
-                                    "description": "Fields of `user`, separated by commas: `name`, `email`, `profile`, `profile.name`, `profile.initials`, `profile.verified`, `profile.hidden`, `profile.scores`, `profile.scores.rank`, `profile.scores.ratio`, `posts`, `comments`.",
-                                    "type": "string"
-                                },
-                                "post": {
-                                    "description": "Fields of `post`, separated by commas: `title`, `content`, `status`, `user`, `comments`.",
-                                    "type": "string"
-                                },
-                                "comment": {
-                                    "description": "Fields of `comment`, separated by commas: `content`, `user`, `post`.",
-                                    "type": "string"
-                                }
-                            },
-                            "additionalProperties": false
+                            "description": "Fields of `user`, separated by commas: `name`, `email`, `profile`, `profile.name`, `profile.initials`, `profile.verified`, `profile.hidden`, `profile.scores`, `profile.scores.rank`, `profile.scores.ratio`, `posts`, `comments`.",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "fields[post]",
+                        "in": "query",
+                        "schema": {
+                            "description": "Fields of `post`, separated by commas: `title`, `content`, `status`, `user`, `comments`.",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "fields[comment]",
+                        "in": "query",
+                        "schema": {
+                            "description": "Fields of `comment`, separated by commas: `content`, `user`, `post`.",
+                            "type": "string"
                         }
                     },
                     {
@@ -304,27 +304,27 @@
                         }
                     },
                     {
-                        "name": "fields",
+                        "name": "fields[user]",
                         "in": "query",
-                        "style": "deepObject",
-                        "explode": true,
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "user": {
-                                    "description": "Fields of `user`, separated by commas: `name`, `email`, `profile`, `profile.name`, `profile.initials`, `profile.verified`, `profile.hidden`, `profile.scores`, `profile.scores.rank`, `profile.scores.ratio`, `posts`, `comments`.",
-                                    "type": "string"
-                                },
-                                "post": {
-                                    "description": "Fields of `post`, separated by commas: `title`, `content`, `status`, `user`, `comments`.",
-                                    "type": "string"
-                                },
-                                "comment": {
-                                    "description": "Fields of `comment`, separated by commas: `content`, `user`, `post`.",
-                                    "type": "string"
-                                }
-                            },
-                            "additionalProperties": false
+                            "description": "Fields of `user`, separated by commas: `name`, `email`, `profile`, `profile.name`, `profile.initials`, `profile.verified`, `profile.hidden`, `profile.scores`, `profile.scores.rank`, `profile.scores.ratio`, `posts`, `comments`.",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "fields[post]",
+                        "in": "query",
+                        "schema": {
+                            "description": "Fields of `post`, separated by commas: `title`, `content`, `status`, `user`, `comments`.",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "fields[comment]",
+                        "in": "query",
+                        "schema": {
+                            "description": "Fields of `comment`, separated by commas: `content`, `user`, `post`.",
+                            "type": "string"
                         }
                     },
                     {

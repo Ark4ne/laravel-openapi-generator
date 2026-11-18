@@ -13,7 +13,8 @@ use Ark4ne\OpenApiWriter\Objects\Schema;
 
 /**
  * `new Fields(UserResource::class)`: an object with one property per type the resource reaches (`fields[post]`),
- * each a string of fields separated by commas; written as a `deepObject` query parameter.
+ * each a string of fields separated by commas; the query strategy writes one parameter per type (`all`, `last`) or one
+ * `deepObject` (`none`).
  */
 final readonly class FieldsRuleMapper implements RuleMapper
 {

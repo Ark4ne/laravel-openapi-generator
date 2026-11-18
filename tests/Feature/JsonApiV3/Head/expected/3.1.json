@@ -31,23 +31,19 @@
                         }
                     },
                     {
-                        "name": "fields",
+                        "name": "fields[articles]",
                         "in": "query",
-                        "style": "deepObject",
-                        "explode": true,
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "articles": {
-                                    "description": "Fields of `articles`, separated by commas: `label`, `summary`, `notes`, `place`, `place.city`, `author`.",
-                                    "type": "string"
-                                },
-                                "members": {
-                                    "description": "Fields of `members`, separated by commas: `name`.",
-                                    "type": "string"
-                                }
-                            },
-                            "additionalProperties": false
+                            "description": "Fields of `articles`, separated by commas: `label`, `summary`, `notes`, `place`, `place.city`, `author`.",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "fields[members]",
+                        "in": "query",
+                        "schema": {
+                            "description": "Fields of `members`, separated by commas: `name`.",
+                            "type": "string"
                         }
                     }
                 ],

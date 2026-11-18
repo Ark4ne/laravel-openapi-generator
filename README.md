@@ -122,7 +122,13 @@ a class. Every parameter is described in the [agent skill reference](skills/lara
 The rules of a form request give the fields: `required`, `nullable`, `sometimes`, `string`, `integer`, `numeric`,
 `boolean`, `array`, `in:`, `Rule::in()`, `Rule::enum()`, `min:`, `max:`, `size:`, `between:`, `regex:`, `email`,
 `url`, `uuid`, `date`, `date_format:`, `file`, `image`, `mimes:`, `File`, `Password`, `required_if:` and the other
-conditions (written in the description)… Unknown rules are reported as infos.
+conditions (written in the description)… Unknown rules are reported as infos. An `in:` or `Rule::in()` enum is typed
+by its values (`string`, `integer`…).
+
+In the query, every key is its own parameter by default (`strategies.query.by` = `all`): `filter.type` is
+`filter[type]`, and an object field such as the JSON:API `fields` is one parameter per type (`fields[posts]`), unless
+its keys are open (a `deepObject` then, with an info). `none` writes the opposite: one `deepObject` per top-level field
+(`filter`, `fields`).
 
 A request completes or replaces its rules with `DescribesRequest`; a rule object of the application describes
 itself with `DescribesRule`:

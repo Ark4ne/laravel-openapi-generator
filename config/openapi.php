@@ -84,7 +84,9 @@ return [
             | tags:         controller | uri | name (with an optional `pattern`)
             | groups:       null, or like tags (`Tag.parent` in 3.2, `x-tagGroups` before)
             | operation_id: name | action | method_path | method_name
-            | query:        all | last | none (how nested query fields are written)
+            | query:        all | last | none | querystring (how nested query
+            |               fields are written: one parameter per key, objects
+            |               such as `fields` included, or `deepObject`s)
             */
             'strategies' => [
                 'summary' => ['by' => 'doc'],
