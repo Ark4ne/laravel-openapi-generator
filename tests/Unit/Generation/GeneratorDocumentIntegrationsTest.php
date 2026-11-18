@@ -51,7 +51,14 @@ final class GeneratorDocumentIntegrationsTest extends DocumentScenario
     {
         $written = $this->written($this->preparingGenerator(new TestDocumentIntegration('first'))->generate($this->configuration(), 'v1'));
 
-        self::assertSame(['name', 'prepared_first'], array_keys((array) Schemas::at($written, 'paths', '/api/prepared', 'post', 'requestBody', 'content', 'application/json', 'schema', 'properties')));
+        self::assertSame(['name', 'prepared_first', 'rules_first'], array_keys((array) Schemas::at($written, 'paths', '/api/prepared', 'post', 'requestBody', 'content', 'application/json', 'schema', 'properties')));
+    }
+
+    public function test_the_integrations_prepare_the_rules_of_the_form_requests_in_their_order(): void
+    {
+        $written = $this->written($this->preparingGenerator(new TestDocumentIntegration('first'), new TestDocumentIntegration('second'))->generate($this->configuration(), 'v1'));
+
+        self::assertSame(['name', 'prepared_first', 'prepared_second', 'rules_first', 'rules_second'], array_keys((array) Schemas::at($written, 'paths', '/api/prepared', 'post', 'requestBody', 'content', 'application/json', 'schema', 'properties')));
     }
 
     public function test_an_integration_describes_the_document(): void
@@ -74,6 +81,7 @@ final class GeneratorDocumentIntegrationsTest extends DocumentScenario
         self::assertContains('[warning] pass: the integration broken cannot describe the document v1: broken cannot describe', $diagnostics);
         self::assertCount(1, array_keys($diagnostics, '[warning] sampling: cannot prepare a sample request for the integration broken: broken cannot prepare', true));
         self::assertContains('[warning] request POST /api/prepared: cannot prepare the request ' . PreparedRequest::class . ' for the integration broken: broken cannot prepare', $diagnostics);
+        self::assertContains('[warning] request POST /api/prepared: cannot prepare the rules of ' . PreparedRequest::class . ' for the integration broken: broken cannot prepare the rules', $diagnostics);
     }
 
     public function test_the_document_is_described_inside_the_sampling_session(): void

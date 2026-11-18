@@ -9,6 +9,7 @@ use Ark4ne\OpenApi\Description\FieldDescription;
 use Ark4ne\OpenApi\Extraction\Rules\RuleInvocation;
 use Ark4ne\OpenApi\Extraction\Rules\RuleMapper;
 use Ark4ne\OpenApi\Extraction\Rules\SchemaTypes;
+use Ark4ne\OpenApi\Support\Patterns;
 
 /**
  * `regex`: its pattern, without delimiters (a sentence when it has flags, which OpenAPI cannot write);
@@ -30,13 +31,8 @@ final readonly class RegexRuleMapper implements RuleMapper
             return $field->addConditions("does not match {$expression}");
         }
 
-        $delimiter = $expression[0] ?? '/';
-        $end = strrpos($expression, $delimiter);
+        $pattern = Patterns::ecma($expression);
 
-        if ($end === false || $end === 0 || substr($expression, $end + 1) !== '') {
-            return $field->addConditions("matches {$expression}");
-        }
-
-        return $field->schema($field->schema->pattern(substr($expression, 1, $end - 1)));
+        return $pattern === null ? $field->addConditions("matches {$expression}") : $field->schema($field->schema->pattern($pattern));
     }
 }

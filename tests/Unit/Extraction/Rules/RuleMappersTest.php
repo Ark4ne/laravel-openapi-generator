@@ -192,11 +192,12 @@ final class RuleMappersTest extends TestCase
      */
     public static function sets(): iterable
     {
-        yield 'in' => ['in:a,b', ['schema' => ['enum' => ['a', 'b']]]];
+        yield 'in, typed by its values' => ['in:a,b', ['schema' => ['type' => 'string', 'enum' => ['a', 'b']]]];
         yield 'in on integer' => ['integer|in:1,2', ['schema' => ['type' => 'integer', 'enum' => [1, 2]]]];
         yield 'in on string' => ['string|in:1,2', ['schema' => ['type' => 'string', 'enum' => ['1', '2']]]];
-        yield 'Rule::in' => [[Rule::in(['a', 'b,c'])], ['schema' => ['enum' => ['a', 'b,c']]]];
-        yield 'in on an array applies to its items' => [['array', Rule::in(['admin', 'user'])], ['schema' => ['type' => 'array', 'items' => ['enum' => ['admin', 'user']]]]];
+        yield 'Rule::in' => [[Rule::in(['a', 'b,c'])], ['schema' => ['type' => 'string', 'enum' => ['a', 'b,c']]]];
+        yield 'nullable in' => ['nullable|in:a,b', ['schema' => ['type' => ['string', 'null'], 'enum' => ['a', 'b']]]];
+        yield 'in on an array applies to its items' => [['array', Rule::in(['admin', 'user'])], ['schema' => ['type' => 'array', 'items' => ['type' => 'string', 'enum' => ['admin', 'user']]]]];
         yield 'not_in on an array' => ['array|not_in:a', ['schema' => ['type' => 'array', 'items' => ['not' => ['enum' => ['a']]]]]];
         yield 'not_in' => ['not_in:a,b', ['schema' => ['not' => ['enum' => ['a', 'b']]]]];
         yield 'Rule::notIn' => [[Rule::notIn(['a'])], ['schema' => ['not' => ['enum' => ['a']]]]];

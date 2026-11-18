@@ -48,7 +48,7 @@ Support ← Types ← Attributes ← Configuration ← Description ← Context �
 | Extraction | `src/Extraction/` | Extractor registries: `Operations/`, `Requests/`, `Rules/`, `Responses/` |
 | Generation | `src/Generation/` | `Generator` (facade), `Pass` + `Passes/`, `DocumentBuilder` |
 | Output | `src/Output/` | `DocumentWriter` (disk, JSON / YAML), validation report |
-| Integrations | `src/Integrations/` | `JsonApi/` (`ark4ne/laravel-json-api` 1.x), `JsonApiV2/` (2.x), `Sanctum/`…: shipped extensions |
+| Integrations | `src/Integrations/` | `JsonApi/` (`ark4ne/laravel-json-api` 1.x), `JsonApiV2/` (2.x), `JsonApiV3/` (3.x), `Sanctum/`…: shipped extensions |
 | Laravel | `src/Laravel/` | `OpenApiServiceProvider`, Artisan commands, configuration loading |
 | Exceptions | `src/Exceptions/` | Single exception hierarchy |
 
@@ -64,19 +64,34 @@ Support ← Types ← Attributes ← Configuration ← Description ← Context �
   service provider, and its third-party package stays in `suggest`. It implements `Generation\Integration`
   (resource formats, rule mappers, error bodies), and `Generation\DocumentIntegration` when it changes what it
   documents per document. The `Generator` keeps only the available integrations: an
-  integration whose package is missing loads none of its classes. Only `Integrations\JsonApi` (1.x) and
-  `Integrations\JsonApiV2` (2.x) depend on `Ark4ne\JsonApi`, neither on the other (`phpat`), and the CI runs the
-  suite without that package.
+  integration whose package is missing loads none of its classes. Only `Integrations\JsonApi` (1.x),
+  `Integrations\JsonApiV2` (2.x) and `Integrations\JsonApiV3` (3.x) depend on `Ark4ne\JsonApi`, none on another
+  (`phpat`), and the CI runs the suite without that package. Only `Integrations\JsonApiV3` depends on
+  `Ark4ne\ApiRevisions`, the base 3.x is built on. Each one is available with its own line only: 2.x is told from
+  3.x by the values 3.0 removed (`Definition\AttributeDefinition`).
+- An integration on `ark4ne/laravel-api-revisions` reads the shapes of the base (`Shape`, `FieldDefinition`,
+  `TypeDefinition`), never its `@internal` classes, and writes them as the base exports them (`JsonSchemaExporter`,
+  with its public conversions `Export\RegexPattern` and `Export\DatePattern`, never a copy of them);
+  what it cannot read without a JSON Schema decoder (the fragment of a custom type, a field's own `schema([...])`
+  keywords) is typed by a sample, with an info diagnostic.
+- **The writer only writes OpenAPI.** Any conversion into writer objects (from raw JSON Schema, from another library's
+  model) belongs to the generator, never to `ark4ne/openapi-writer`; a JSON Schema decoder, when one is needed, lives
+  in this package. The check of the package (`ResourceChecker`) runs once per document in a pass, on the resources the
+  document read and at its revision, never on each definition read; the application's `Checker` is resolved from the
+  `Container` contract the Laravel layer gives to the built-in integrations. A nested resource is read from the shapes of the base (`Shapes::for()`, response, at the `headAt` of its
+  field), never by rendering it. The revision of a document is the base revision of the `RevisionScope`, set by `prepareRequest()` for
+  every document, the head (`null`) included: a document never inherits the revision of the previous one.
 - **One document configuration per version.** The core knows no versions, revisions or version headers: each
   document carries a free block of settings per integration (`documents.<name>.integrations.<key>`), which the core
   never interprets. A `DocumentIntegration` reads its own (`$context->document->integration($this->key())`) and
-  prepares the requests, describes the document and adds passes (after the built-in passes, before the
+  prepares the requests and the rules read from them, describes the document and adds passes (after the built-in passes, before the
   application's); settings no available integration reads are a warning. The endpoints of a version are chosen by
   its `routes`, never by attributes in the core.
 - Each line of `ark4ne/laravel-json-api` is checked with its own package installed, the integration of the other
   left out: 1.x, the dev dependency, by `phpstan.neon.dist`, the `json-api` test group and `infection.json5`; 2.x by
-  `phpstan-json-api-v2.neon.dist`, the `json-api-v2` group and `infection-json-api-v2.json5`. The coverage of each
-  line leaves out the other integration (`bin/coverage-check.php`).
+  `phpstan-json-api-v2.neon.dist`, the `json-api-v2` group and `infection-json-api-v2.json5`; 3.x by
+  `phpstan-json-api-v3.neon.dist` and the `json-api-v3` group. The coverage of each line leaves out the other
+  integrations (`bin/coverage-check.php`).
 
 ## 3. The description model
 

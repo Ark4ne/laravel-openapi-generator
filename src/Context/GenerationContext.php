@@ -24,6 +24,8 @@ final readonly class GenerationContext
      * @param array<array-key, Closure(Request, GenerationContext): void> $requestPreparers what prepares every request
      *        the generator builds for the application, in order: by integration key, named in the diagnostics (those of
      *        the available document integrations), or a list
+     * @param array<array-key, Closure(array<array-key, mixed>, Request, GenerationContext): array<array-key, mixed>> $rulesPreparers
+     *        what prepares the rules read from a request before they are parsed, in order, keyed as `$requestPreparers`
      */
     public function __construct(
         public Configuration $configuration,
@@ -32,6 +34,7 @@ final readonly class GenerationContext
         public ComponentRegistry $components = new ComponentRegistry(),
         public ?string $locale = null,
         public array $requestPreparers = [],
+        public array $rulesPreparers = [],
     ) {
         $this->sample = new SampleRequest();
     }
@@ -40,12 +43,13 @@ final readonly class GenerationContext
      * A context for the given document, in that locale, with its own diagnostics and components.
      *
      * @param array<array-key, Closure(Request, GenerationContext): void> $requestPreparers
+     * @param array<array-key, Closure(array<array-key, mixed>, Request, GenerationContext): array<array-key, mixed>> $rulesPreparers
      */
-    public static function for(Configuration $configuration, DocumentConfiguration $document, ?string $locale = null, array $requestPreparers = []): self
+    public static function for(Configuration $configuration, DocumentConfiguration $document, ?string $locale = null, array $requestPreparers = [], array $rulesPreparers = []): self
     {
         $diagnostics = new Diagnostics();
 
-        return new self($configuration, $document, $diagnostics, new ComponentRegistry($diagnostics), $locale, $requestPreparers);
+        return new self($configuration, $document, $diagnostics, new ComponentRegistry($diagnostics), $locale, $requestPreparers, $rulesPreparers);
     }
 
     /**
@@ -70,11 +74,40 @@ final readonly class GenerationContext
                 $prepare($request, $this);
             } catch (Throwable $error) {
                 $what = $stage === Stage::Sampling ? 'a sample request' : 'the request ' . $request::class;
-                $by = is_string($name) ? " for the integration {$name}" : '';
-                $this->diagnostics->warning($stage, "cannot prepare {$what}{$by}: {$error->getMessage()}", $route);
+                $this->diagnostics->warning($stage, "cannot prepare {$what}" . self::by($name) . ": {$error->getMessage()}", $route);
             }
         }
 
         return $request;
+    }
+
+    /**
+     * Prepares the rules read from a request before they are parsed: every rules preparer, in order, each given what
+     * the previous one returned. A preparer that throws is reported at the `request` stage, for `$route` when given,
+     * the rules it was given kept; the next ones still run.
+     *
+     * @param array<array-key, mixed> $rules
+     *
+     * @return array<array-key, mixed>
+     */
+    public function prepareRules(array $rules, Request $request, ?string $route = null): array
+    {
+        foreach ($this->rulesPreparers as $name => $prepare) {
+            try {
+                $rules = $prepare($rules, $request, $this);
+            } catch (Throwable $error) {
+                $this->diagnostics->warning(Stage::Request, 'cannot prepare the rules of ' . $request::class . self::by($name) . ": {$error->getMessage()}", $route);
+            }
+        }
+
+        return $rules;
+    }
+
+    /**
+     * ` for the integration json_api` for a preparer keyed by integration, nothing for one of a list.
+     */
+    private static function by(int|string $name): string
+    {
+        return is_string($name) ? " for the integration {$name}" : '';
     }
 }

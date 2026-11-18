@@ -17,7 +17,27 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   through `DocumentDescription::$notes`, inside the sampling session) and adds passes (`passes()`, after the built-in
   passes, before the application's). A method that throws, or a pass that throws (`IntegrationPass`: the document
   goes on as before that pass), is a warning naming the integration; what is not a pass is left out with a warning.
-  A later integration with the key of an earlier one is left out, with a warning.
+  A later integration with the key of an earlier one is left out, with a warning. `prepareRules()` prepares the rules
+  read from a form request before they are parsed (`GenerationContext::prepareRules()`, from `RequestFactory::rules()`).
+- `ark4ne/laravel-json-api` 3.x (`Integrations\JsonApiV3`, `^3.0`, on `ark4ne/laravel-api-revisions` `^1.0`): the
+  values of its definitions are the shapes of the base (`ValueSchemas`). Each field gives its type and its constraints
+  (`minLength`, `maxLength`, `format`, `pattern`, `minimum`, `maximum`, `minItems`, `maxItems`, the backed values of
+  an enum), its pattern and date format as the base exports them (`RegexPattern`, `DatePattern`: `format: date` or
+  `date-time` for the formats JSON Schema names, otherwise the pattern of the date and its PHP format, the PCRE JSON
+  Schema cannot carry, in `$comment`, in the description before 3.1), its description, its first example and
+  `deprecated`, under its name at the revision; an object typed by the schema of a `was()` has its members, a nested
+  resource those of its response shape at the revision of its field (`headAt`). A value of unknown type and a custom
+  type (its JSON Schema fragment is not read, an info diagnostic) are typed by rendering the resource on a sample, so
+  is a nested resource where it nests itself. An attribute rendered only when the sparse fieldset names it
+  (`whenInFields()`) says so; the links of a resource object are a URL or a link object by name. `json_api.revision`
+  is a case of the enum of `revisions.enum`; every request the generator builds is read at it
+  (`RevisionScope::setBase()`, the head included, so that a document never inherits the revision of the previous one),
+  and the description lists the newer revisions from their `#[Meta]`. The resources a document covers are checked once
+  per document at its revision (`ResourceCheckPass`: `Compilation\ResourceChecker`, the check of `jsonapi:check`, with
+  the application's `Checker`); its findings are diagnostics with their code and revision, each once. The 2.x
+  integration is no longer available with 3.x installed, and it documents no revision: 2.1 was never released, the
+  revisions of the API are documented with 3.x. The `regex` rule mapper turns its PCRE into a `pattern` with
+  `Support\Patterns::ecma()`.
 - `UnusedComponentsPass` (built-in, after the application's passes, before the cleanup): the component schemas no
   longer referenced, directly or through another component, are left out. A discriminator mapping (`mapping`,
   `defaultMapping`) counts as a reference.
@@ -25,6 +45,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   creating a request is forbidden elsewhere in `src/` (`disallowed-calls`). The sample request is prepared once per
   generation, each call getting its own copy, so a failing preparer is reported once; a failure while preparing a
   form request is reported at the `request` stage, with its route.
+
+### Changed
+
+- The `all` and `last` query strategies (`all` is the default) flatten an object field too: one parameter per
+  property (`fields[posts]`, `fields[authors]` for the JSON:API `Fields` rule, as `filter[type]`), required when the
+  object is and lists it in `required`, instead of one `deepObject` parameter. An object whose keys are not all known
+  (no `properties`, open `additionalProperties`, a reference) stays a `deepObject`, with an info when it has
+  properties. `none` still writes one `deepObject` per top-level field.
+- An `enum` left without type by the rules of a field (`in:`, `Rule::in()`, on the field or the items of its list) is
+  typed by its values when they share one (`string`, `integer`, `number`, `boolean`).
 
 ### Fixed
 

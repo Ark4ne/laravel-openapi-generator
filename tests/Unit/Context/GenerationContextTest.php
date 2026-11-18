@@ -113,6 +113,32 @@ final class GenerationContextTest extends TestCase
         self::assertDiagnostics(['[warning] sampling: cannot prepare a sample request for the integration json_api: no revision'], $context);
     }
 
+    public function test_the_rules_preparers_prepare_the_rules_in_order(): void
+    {
+        $context = $this->preparing(rules: [
+            'first' => static fn(array $rules): array => [...$rules, 'first' => 'string'],
+            'second' => static fn(array $rules, Request $request, GenerationContext $context): array => [...array_diff_key($rules, ['name' => true]), 'second' => $context->document->name],
+        ]);
+
+        self::assertSame(['first' => 'string', 'second' => 'v1'], $context->prepareRules(['name' => 'required'], Request::create('/')));
+    }
+
+    public function test_a_failing_rules_preparer_is_reported_and_its_rules_kept(): void
+    {
+        $context = $this->preparing(rules: [
+            'json_api' => static fn() => throw new RuntimeException('no revision'),
+            'second' => static fn(array $rules): array => [...$rules, 'second' => 'string'],
+        ]);
+
+        self::assertSame(['name' => 'required', 'second' => 'string'], $context->prepareRules(['name' => 'required'], Request::create('/'), 'POST /api/users'));
+        self::assertDiagnostics(['[warning] request POST /api/users: cannot prepare the rules of Illuminate\Http\Request for the integration json_api: no revision'], $context);
+    }
+
+    public function test_without_rules_preparer_the_rules_are_kept(): void
+    {
+        self::assertSame(['name' => 'required'], $this->preparing()->prepareRules(['name' => 'required'], Request::create('/')));
+    }
+
     public function test_every_sample_request_is_a_new_request(): void
     {
         $context = $this->preparing();
@@ -125,11 +151,12 @@ final class GenerationContextTest extends TestCase
 
     /**
      * @param array<array-key, Closure(Request, GenerationContext): void> $preparers
+     * @param array<array-key, Closure(array<array-key, mixed>, Request, GenerationContext): array<array-key, mixed>> $rules
      */
-    private function preparing(?string $locale = null, array $preparers = []): GenerationContext
+    private function preparing(?string $locale = null, array $preparers = [], array $rules = []): GenerationContext
     {
         $document = new DocumentConfiguration('v1', new InfoConfiguration('API', '1'));
 
-        return GenerationContext::for(new Configuration(['v1' => $document]), $document, $locale, $preparers);
+        return GenerationContext::for(new Configuration(['v1' => $document]), $document, $locale, $preparers, $rules);
     }
 }

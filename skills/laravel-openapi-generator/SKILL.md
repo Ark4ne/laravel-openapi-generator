@@ -15,7 +15,7 @@ Files of this skill:
 - [reference.md](reference.md): every attribute and its parameters, every configuration key, every extension point,
   the commands.
 - [recipes.md](recipes.md): complete, tested examples (CRUD, declared responses and exceptions, hand-described
-  requests, webhooks and callbacks, extensions, JSON:API, checking the documentation in tests).
+  requests, webhooks and callbacks, extensions, JSON:API and its revisions, checking the documentation in tests).
 
 The source is the final authority: `vendor/ark4ne/laravel-openapi-generator/src/` (`Attributes/` for the attributes,
 `config/openapi.php` for the configuration, documented key by key).

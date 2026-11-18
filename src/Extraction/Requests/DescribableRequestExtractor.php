@@ -16,6 +16,7 @@ use Ark4ne\OpenApi\Extraction\Rules\FieldTree;
 use Ark4ne\OpenApi\Extraction\Rules\RuleParser;
 use Ark4ne\OpenApiWriter\Enums\ParameterLocation;
 use Ark4ne\OpenApiWriter\Objects\Schema;
+use Illuminate\Http\Request;
 use Throwable;
 
 /**
@@ -54,7 +55,9 @@ final readonly class DescribableRequestExtractor implements RequestExtractor
 
         // The description runs application code: describe(), and the rules it gives.
         try {
-            return $this->describe($this->requests->make($class, $operation, $context)->describe(RequestDescriber::create()), $request, $operation, $context, $label);
+            $instance = $this->requests->make($class, $operation, $context);
+
+            return $this->describe($instance->describe(RequestDescriber::create()), $instance, $request, $operation, $context, $label);
         } catch (Throwable $error) {
             $context->diagnostics->warning(Stage::Request, "cannot read the description of {$class}: {$error->getMessage()}", $label);
 
@@ -62,19 +65,26 @@ final readonly class DescribableRequestExtractor implements RequestExtractor
         }
     }
 
-    private function describe(RequestDescriber $describer, RequestDescription $request, OperationContext $operation, GenerationContext $context, string $label): RequestDescription
+    /**
+     * @param Request $instance the request described, on which its rules are prepared
+     */
+    private function describe(RequestDescriber $describer, Request $instance, RequestDescription $request, OperationContext $operation, GenerationContext $context, string $label): RequestDescription
     {
         $parameters = [];
 
         foreach ($describer->headers as $entry) {
-            $parameters[] = $this->parameter($entry, $context, $label);
+            $parameter = $this->parameter($entry, $instance, $context, $label);
+
+            if ($parameter !== null) {
+                $parameters[] = $parameter;
+            }
         }
 
         $request = $request->parameters(...FieldPlacer::merge($request->parameters, [...$parameters, ...$describer->parameters]));
-        $request = $this->placer->place($request, $this->build($describer->query, $context, $label), $operation, $context, inQuery: true);
+        $request = $this->placer->place($request, $this->build($describer->query, $instance, $context, $label), $operation, $context, inQuery: true);
 
         foreach ($describer->bodies as $mediaType => $rules) {
-            $request = $this->placer->place($request, $this->build($rules, $context, $label), $operation, $context, false, $mediaType === '' ? null : $mediaType);
+            $request = $this->placer->place($request, $this->build($rules, $instance, $context, $label), $operation, $context, false, $mediaType === '' ? null : $mediaType);
         }
 
         $body = $request->body;
@@ -91,15 +101,23 @@ final readonly class DescribableRequestExtractor implements RequestExtractor
     }
 
     /**
+     * A header or cookie parameter; `null` when its rules are left out by the preparation of the rules (a parameter
+     * the document does not have).
+     *
      * @param array{in: ParameterLocation, name: string, rules: Schema|string|array<array-key, mixed>, description: string|null, required: bool} $entry
      */
-    private function parameter(array $entry, GenerationContext $context, string $label): ParameterDescription
+    private function parameter(array $entry, Request $instance, GenerationContext $context, string $label): ?ParameterDescription
     {
         $schema = $entry['rules'];
         $required = $entry['required'];
 
         if (! $schema instanceof Schema) {
-            $field = $this->build([$entry['name'] => $schema], $context, $label)[0];
+            $field = $this->build([$entry['name'] => $schema], $instance, $context, $label)[0] ?? null;
+
+            if ($field === null) {
+                return null;
+            }
+
             $schema = FieldTree::leaf($field);
             $required = $required || $field->required;
         }
@@ -112,12 +130,14 @@ final readonly class DescribableRequestExtractor implements RequestExtractor
     }
 
     /**
+     * The fields of rules the describer gives, prepared by the context first, as the rules of a form request.
+     *
      * @param array<array-key, mixed> $rules
      *
      * @return list<FieldDescription>
      */
-    private function build(array $rules, GenerationContext $context, string $label): array
+    private function build(array $rules, Request $instance, GenerationContext $context, string $label): array
     {
-        return $this->fields->build($this->parser->parse($rules, $context, $label), $context, $label);
+        return $this->fields->build($this->parser->parse($context->prepareRules($rules, $instance, $label), $context, $label), $context, $label);
     }
 }

@@ -15,8 +15,8 @@ use Ark4ne\OpenApiWriter\Objects\Schema;
 
 /**
  * `new Fields(UserResource::class)`: an object with one property per type the definitions reach through `related`
- * (`fields[post]`), each a string of the fields of the definition (`fields()`) separated by commas; written as a
- * `deepObject` query parameter. A native resource has no known fields; one whose type cannot be read without model
+ * (`fields[post]`), each a string of the fields of the definition (`fields()`) separated by commas; the query
+ * strategy writes one parameter per type (`all`, `last`) or one `deepObject` (`none`), and a `deepObject` when open. A native resource has no known fields; one whose type cannot be read without model
  * opens the object to any type.
  */
 final readonly class FieldsRuleMapper implements RuleMapper

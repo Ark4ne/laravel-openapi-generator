@@ -29,6 +29,16 @@ interface DocumentIntegration extends Integration
     public function prepareRequest(Request $request, GenerationContext $context): void;
 
     /**
+     * The rules read from a request (`rules()` of a form request), before they are parsed: what the integration
+     * resolves or adds for this document. Given the rules the previous integrations returned, in their order.
+     *
+     * @param array<array-key, mixed> $rules
+     *
+     * @return array<array-key, mixed>
+     */
+    public function prepareRules(array $rules, Request $request, GenerationContext $context): array;
+
+    /**
      * A markdown text appended to `info.description` of the document, `null` for none. Called inside the sampling
      * session: what it samples is rolled back.
      */

@@ -10,6 +10,7 @@ use Ark4ne\OpenApi\Output\DocumentValidator;
 use Ark4ne\OpenApi\Tests\Feature\Laravel\LaravelTestCase;
 use Ark4ne\OpenApiWriter\Enums\Version;
 use Ark4ne\OpenApiWriter\Validation\OpisJsonSchemaValidator;
+use Closure;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Support\Facades\Route;
 
@@ -63,7 +64,8 @@ abstract class SkillTestCase extends LaravelTestCase
      * validates its document in each line with the published configuration and the given overrides; returns the 3.1
      * one.
      *
-     * @param array<string, mixed> $config dotted keys under `openapi`
+     * @param array<string, mixed> $config dotted keys under `openapi`; a closure gives its value once the block ran (a
+     *        class the block declares)
      *
      * @return array<array-key, mixed>
      */
@@ -80,7 +82,7 @@ abstract class SkillTestCase extends LaravelTestCase
         $repository->set('openapi.sampling.transactions', false);
 
         foreach ($config as $key => $value) {
-            $repository->set("openapi.{$key}", $value);
+            $repository->set("openapi.{$key}", $value instanceof Closure ? $value() : $value);
         }
 
         $written = [];

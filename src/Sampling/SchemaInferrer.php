@@ -118,7 +118,6 @@ final readonly class SchemaInferrer
         $required = [];
 
         foreach ($model->toArray() as $key => $property) {
-            $key = (string) $key;
             $inferred = isset($declared[$key])
                 ? $this->example($declared[$key], is_scalar($property) ? $property : null, $context)
                 : $this->infer($property, $context);

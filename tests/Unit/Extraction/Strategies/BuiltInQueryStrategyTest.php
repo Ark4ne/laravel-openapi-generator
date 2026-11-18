@@ -70,13 +70,51 @@ final class BuiltInQueryStrategyTest extends TestCase
         self::assertSame(ParameterLocation::Query, $parameters[0]->in);
     }
 
-    public function test_a_flattened_object_field_is_a_deep_object(): void
+    public function test_all_and_last_write_each_property_of_an_object_field_as_its_own_parameter(): void
     {
-        $parameters = (new BuiltInQueryStrategy('all'))->parameters([FieldDescription::create('fields')->schema(Schema::object()->properties(Schema::string()->objectId('post')))], $this->context());
+        $fields = FieldDescription::create('fields')->required()->schema(Schema::object()->required('posts')->additionalProperties(false)->properties(
+            Schema::string()->description('Fields of `posts`.')->objectId('posts'),
+            Schema::object()->properties(Schema::string()->objectId('name'))->objectId('authors'),
+        ));
+
+        foreach (['all', 'last'] as $by) {
+            $parameters = (new BuiltInQueryStrategy($by))->parameters([$fields], $this->context());
+
+            self::assertSame(['fields[posts]', 'fields[authors][name]'], array_map(static fn(ParameterDescription $p): string => $p->name, $parameters));
+            Schemas::assertSame(['type' => 'string', 'description' => 'Fields of `posts`.'], $parameters[0]->schema);
+            self::assertTrue($parameters[0]->required);
+            self::assertFalse($parameters[1]->required);
+            self::assertNull($parameters[0]->style);
+        }
+    }
+
+    public function test_an_object_field_without_properties_stays_a_deep_object(): void
+    {
+        $parameters = (new BuiltInQueryStrategy('all'))->parameters([FieldDescription::create('fields')->schema(Schema::object())], $this->context());
 
         self::assertSame('fields', $parameters[0]->name);
         self::assertSame(ParameterStyle::DeepObject, $parameters[0]->style);
         self::assertTrue($parameters[0]->explode);
+    }
+
+    public function test_an_object_field_open_to_other_keys_stays_a_deep_object_with_an_info(): void
+    {
+        $context = $this->context();
+        $open = Schema::object()->properties(Schema::string()->objectId('posts'))->additionalProperties(Schema::string());
+        $parameters = (new BuiltInQueryStrategy('all'))->parameters([FieldDescription::create('fields')->schema($open)], $context);
+
+        self::assertSame(['fields'], array_map(static fn(ParameterDescription $p): string => $p->name, $parameters));
+        self::assertSame(ParameterStyle::DeepObject, $parameters[0]->style);
+        self::assertDiagnostics(['[info] request: the query parameter fields accepts keys it does not name, written as a deepObject'], $context);
+    }
+
+    public function test_none_keeps_an_object_field_as_a_deep_object(): void
+    {
+        $fields = FieldDescription::create('fields')->schema(Schema::object()->properties(Schema::string()->objectId('posts')));
+        $parameters = (new BuiltInQueryStrategy('none'))->parameters([$fields], $this->context());
+
+        self::assertSame('fields', $parameters[0]->name);
+        self::assertSame(ParameterStyle::DeepObject, $parameters[0]->style);
     }
 
     /**

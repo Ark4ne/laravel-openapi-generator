@@ -9,6 +9,7 @@ use Ark4ne\OpenApi\Generation\Generator;
 use Ark4ne\OpenApi\Generation\GeneratorExtensions;
 use Ark4ne\OpenApi\Integrations\JsonApi\JsonApiIntegration;
 use Ark4ne\OpenApi\Integrations\JsonApiV2\JsonApiV2Integration;
+use Ark4ne\OpenApi\Integrations\JsonApiV3\JsonApiV3Integration;
 use Ark4ne\OpenApi\Laravel\Commands\GenerateCommand;
 use Ark4ne\OpenApi\Laravel\Commands\InspectCommand;
 use Composer\InstalledVersions;
@@ -54,6 +55,7 @@ final class OpenApiServiceProvider extends ServiceProvider
                 'JSON:API' => match (true) {
                     (new JsonApiIntegration())->available() => '<fg=green;options=bold>ENABLED</> (1.x)',
                     (new JsonApiV2Integration())->available() => '<fg=green;options=bold>ENABLED</> (2.x)',
+                    (new JsonApiV3Integration())->available() => '<fg=green;options=bold>ENABLED</> (3.x)',
                     default => 'not installed',
                 },
             ];
