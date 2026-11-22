@@ -3,7 +3,7 @@
 1.0 is a rewrite. The configuration, the PHPDoc tags, the parser classes and the middleware transformers of 0.6 are
 replaced; the documented behaviour is kept and extended. Plan to regenerate your documents and review the diff.
 
-Coding agents: the package ships a migration skill, [`skills/laravel-openapi-generator-upgrade/`](skills/laravel-openapi-generator-upgrade/SKILL.md),
+Coding agents: the package ships a migration skill, [`skills/laravel-openapi-generator-upgrade/`](https://github.com/Ark4ne/laravel-openapi-generator/blob/master/skills/laravel-openapi-generator-upgrade/SKILL.md),
 with a step-by-step procedure, the complete mapping and tested before/after examples.
 
 ## Requirements

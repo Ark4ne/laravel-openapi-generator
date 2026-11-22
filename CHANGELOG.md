@@ -104,7 +104,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [1.0.0] - 2026-10-29
 
-A rewrite: see [UPGRADE.md](UPGRADE.md) to migrate from 0.6.
+A rewrite: see [the upgrade guide](https://github.com/Ark4ne/laravel-openapi-generator/blob/master/UPGRADE.md) to migrate from 0.6.
 
 ### Added
 

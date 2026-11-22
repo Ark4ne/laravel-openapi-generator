@@ -1,0 +1,13 @@
+# Identity of the library in the ark4ne documentation portal (see .claude/skills/ark4ne-docs).
+name: Laravel OpenAPI Generator
+package: ark4ne/laravel-openapi-generator
+tagline: Generates OpenAPI 3.0, 3.1 and 3.2 documents from a Laravel application, its routes, form requests and resources.
+icon: i-lucide-file-json
+color: emerald
+order: 30
+compatibility:
+  - { version: '1.x', php: '^8.3', laravel: '^13.0', status: active }
+  - { version: '0.6', php: '^8.1', laravel: '^10.0 || ^11.0 || ^12.0 || ^13.0', status: eol }
+related: [openapi-writer, laravel-json-api, laravel-api-revisions]
+links:
+  - { label: OpenAPI Specification, to: 'https://spec.openapis.org/oas/latest.html', icon: i-lucide-book-marked }
