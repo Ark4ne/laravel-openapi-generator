@@ -43,8 +43,9 @@ vendor/bin/phpstan analyse -c phpstan-json-api-v3.neon.dist --memory-limit=1G
 Every change follows the same cycle: **contract** (signatures and PHPDoc, neutral bodies) → **red tests** →
 **implementation**. Never implement behaviour that has no test yet.
 
-Every public change is documented in `CHANGELOG.md`, in the agent skills (`skills/`) and, when it introduces a new
-rule, in `docs/architecture.md`.
+Every public change is documented in `CHANGELOG.md`, in the agent skills (`skills/`), in the user documentation
+(`docs/site/`, rendered by the ark4ne documentation portal; use the `ark4ne-docs` skill) in the same change and, when
+it introduces a new rule, in `docs/architecture.md`.
 
 ## Architecture (details in `docs/architecture.md`)
 
