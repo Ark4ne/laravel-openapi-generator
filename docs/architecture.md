@@ -18,7 +18,12 @@ Router ──► Discovery ──► RouteDefinition[] ──► Extraction ─�
 ```
 
 1. **Discovery** reads the router and produces one `RouteDefinition` per kept route (URI, methods, action,
-   middlewares, `where` constraints, model bindings). Nothing else reads the router.
+   middlewares, `where` constraints, model bindings). Nothing else reads the router. `WebhookClassFinder` finds the
+   payload webhooks (`JsonResource` classes marked `#[Webhook]`, `webhooks.paths` and `webhooks.classes`); they have
+   no route and no `RouteDefinition`: `Extraction\Webhooks\PayloadWebhookExtractor` describes each from its class,
+   before the routes, and never builds a route for it. `#[Exclude]` leaves a payload class out of every document;
+   which webhooks a document has (payload and route webhooks) is chosen by configuration only
+   (`webhooks.include` / `exclude`, masks on their names), never by an attribute naming a document.
 2. **Extraction** turns each route into an `OperationDescription`: metadata (summary, tags, attributes), request
    (parameters, body, security), responses. Each aspect is handled by a registry of extractors.
 3. **Sampling** gives the response extractors representative instances (factories, enums, fake objects) and infers

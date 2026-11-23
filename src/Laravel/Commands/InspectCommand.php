@@ -24,14 +24,15 @@ use Symfony\Component\Console\Attribute\AsCommand;
  * What the generator understood of a route: its operation once the passes have run (metadata, parameters, body,
  * responses, security) and every diagnostic about it, whatever the verbosity.
  *
- * The route is its name, its URI (`api/users/{user}`), or its method and URI (`GET api/users`). Exit codes: 0 the route
- * is in the document; 1 it is not; 2 the configuration or the document is invalid.
+ * The route is its name, its URI (`api/users/{user}`), or its method and URI (`GET api/users`); the webhooks of that
+ * name (`order.paid`) are shown too. Exit codes: 0 the route is in the document; 1 it is not; 2 the configuration or
+ * the document is invalid.
  */
 #[AsCommand(name: 'openapi:inspect')]
 final class InspectCommand extends Command
 {
     protected $signature = 'openapi:inspect
-        {route : Name of the route, its URI, or its method and URI ("GET api/users")}
+        {route : Name of the route, its URI, its method and URI ("GET api/users"), or the name of a webhook}
         {--document= : Document to look in, the first one by default}';
 
     protected $description = 'Show what the generator understood of a route';
@@ -53,6 +54,7 @@ final class InspectCommand extends Command
         $route = is_string($route) ? $route : '';
         $targets = $this->targets($route);
         $operations = array_values(array_filter($generated->description->operations, static fn(OperationDescription $operation): bool => self::matches($operation, $targets)));
+        $operations = [...$operations, ...array_values(array_filter($generated->description->webhooks, static fn(OperationDescription $webhook): bool => $webhook->webhook === $route))];
 
         if ($operations === []) {
             $this->components->error("{$route} is not in the document {$document->name}");
@@ -61,7 +63,7 @@ final class InspectCommand extends Command
         }
 
         foreach ($operations as $operation) {
-            $label = RouteDefinition::labelOf($operation->method, $operation->path);
+            $label = RouteDefinition::labelOf($operation->method, $operation->webhook ?? $operation->path);
             $this->show($operation, $label, $generated->description);
             // The extraction labels a diagnostic with the route as it was (`route`), before a pass renamed its path.
             $labels = [$label, $operation->route ?? $label];

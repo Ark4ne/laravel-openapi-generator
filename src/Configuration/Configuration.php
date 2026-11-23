@@ -17,7 +17,7 @@ use Ark4ne\OpenApi\Exceptions\InvalidConfigurationException;
  */
 final readonly class Configuration
 {
-    public const KEYS = ['documents', 'servers', 'output', 'sampling', 'date_formats', 'middlewares', 'extensions', 'integrations', 'exceptions', 'languages'];
+    public const KEYS = ['documents', 'servers', 'output', 'sampling', 'date_formats', 'middlewares', 'extensions', 'integrations', 'exceptions', 'languages', 'webhooks'];
 
     /**
      * @param array<string, DocumentConfiguration> $documents
@@ -61,6 +61,8 @@ final readonly class Configuration
 
         $output = ConfigurationValues::array('output', $config['output'] ?? []);
         OutputConfiguration::fromArray('output', $output);
+        $webhooks = ConfigurationValues::array('webhooks', $config['webhooks'] ?? []);
+        WebhooksConfiguration::fromArray('webhooks', $webhooks);
         $documents = [];
 
         foreach ($entries as $name => $entry) {
@@ -68,7 +70,7 @@ final readonly class Configuration
                 throw InvalidConfigurationException::forKey("documents.{$name}", 'an array', $entry);
             }
 
-            $documents[(string) $name] = DocumentConfiguration::fromArray((string) $name, $entry, $output, $servers);
+            $documents[(string) $name] = DocumentConfiguration::fromArray((string) $name, $entry, $output, $servers, $webhooks);
         }
 
         $exceptions = $config['exceptions'] ?? [];

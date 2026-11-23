@@ -104,11 +104,13 @@ final class SkillTest extends SkillTestCase
 
     public function test_the_webhooks_recipe(): void
     {
-        $document = $this->recipe('Webhooks and callbacks');
+        // A class declared by eval() is in no file: the recipe's payload class is listed instead of found.
+        $document = $this->example('recipes.md', 'Webhooks and callbacks', ['webhooks.classes' => static fn(): array => ['App\\Orders\\OrderPaid']]);
 
         self::assertSame(['/api/orders'], array_keys((array) Schemas::at($document, 'paths')));
         self::assertSame(['order.paid'], array_keys((array) Schemas::at($document, 'webhooks')));
-        $this->post('/api/webhooks/orders/paid', ['id' => 1, 'total' => 10, 'status' => 'paid'])->assertNotFound();
+        self::assertSame(['id', 'total', 'status'], array_keys((array) Schemas::at($document, 'components', 'schemas', 'OrderPaid', 'properties')));
+        self::assertSame('X-Signature', Schemas::at($document, 'webhooks', 'order.paid', 'post', 'parameters', '0', 'name'));
         self::assertSame(['orderPaid'], array_keys((array) Schemas::at($document, 'paths', '/api/orders', 'post', 'callbacks')));
     }
 

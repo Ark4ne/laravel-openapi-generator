@@ -28,6 +28,7 @@ final readonly class DocumentConfiguration
      * @param list<string> $security names of the security schemes required by default on every operation
      * @param array<string, array<string, mixed>> $integrations integration key → its settings for this document
      *        (`documents.<name>.integrations`), never interpreted by the core: each document integration reads its own
+     * @param WebhooksConfiguration $webhooks where the payload webhooks of the document are found
      */
     public function __construct(
         public string $name,
@@ -50,16 +51,18 @@ final readonly class DocumentConfiguration
         public array $extensions = [],
         public array $security = [],
         public array $integrations = [],
+        public WebhooksConfiguration $webhooks = new WebhooksConfiguration(),
     ) {}
 
     /**
      * @param array<array-key, mixed> $config the document entry
      * @param array<array-key, mixed> $output the global `output` entry, overridden by the document's
      * @param list<ServerConfiguration> $servers the global servers, used when the document has none
+     * @param array<array-key, mixed> $webhooks the global `webhooks` entry, overridden key by key by the document's
      *
      * @throws InvalidConfigurationException
      */
-    public static function fromArray(string $name, array $config, array $output = [], array $servers = []): self
+    public static function fromArray(string $name, array $config, array $output = [], array $servers = [], array $webhooks = []): self
     {
         $key = "documents.{$name}";
         $routes = $config['routes'] ?? [];
@@ -105,6 +108,7 @@ final readonly class DocumentConfiguration
             extensions: array_filter($extensions, static fn(int|string $name): bool => is_string($name), ARRAY_FILTER_USE_KEY),
             security: ConfigurationValues::strings("{$key}.security", $config['security'] ?? []),
             integrations: self::integrations("{$key}.integrations", $config['integrations'] ?? []),
+            webhooks: WebhooksConfiguration::fromArray("{$key}.webhooks", [...$webhooks, ...ConfigurationValues::array("{$key}.webhooks", $config['webhooks'] ?? [])]),
         );
     }
 
@@ -138,6 +142,7 @@ final readonly class DocumentConfiguration
             $this->extensions,
             $this->security,
             $this->integrations,
+            $this->webhooks,
         );
     }
 

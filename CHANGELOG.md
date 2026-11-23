@@ -4,6 +4,32 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Payload webhooks: a `JsonResource` marked `#[Webhook('order.paid')]` declares a webhook without a route. The
+  resource is the required body, described like a returned resource (sampled, a `$ref` component, the media type of
+  its format); the PHPDoc of the class gives the summary and the description; `#[Operation]`, `#[Tag]`, `#[Header]`
+  and `#[Response]` on the class complete it. Tagged `Webhooks` unless `#[Operation(tags:)]` or a `#[Tag]` tags it,
+  answered `200` unless `#[Response]`, its operationId is its name. A class without a name is left out with a warning.
+  The same class is what the application sends (`OrderPaid::make($order)->resolve()`, or
+  `->response()->getData(true)` for a resource with a format, documented as its document).
+- `#[Webhook(method:)]`: the HTTP method of a payload webhook, `POST` by default.
+- `webhooks` in the configuration, overridable per document key by key (`documents.<name>.webhooks`): `paths`
+  (published: `[app_path()]`) are scanned for the payload classes, reading only the files that mention `Webhook`; a
+  class that cannot be loaded is skipped with a warning. `classes` lists payload classes; one that is not a concrete
+  `JsonResource` marked `#[Webhook]` is an invalid configuration (exit code `2`).
+- `webhooks.include` / `webhooks.exclude`: shell masks on the names of the webhooks of a document (payload and route
+  webhooks), `exclude` over `include`; `#[Exclude]` on a payload class leaves it out of every document.
+- `openapi:inspect <name>` also shows the webhooks of that name.
+- A payload webhook and a route webhook of the same name and method keep the payload webhook, with a warning.
+
+### Deprecated
+
+- Route webhooks (`#[Webhook]` on an action or a controller, on a route registered only to be documented): declare
+  the payload class instead. They keep working in 1.x.
+
 ## [v1.2.0] - 2026-11-18
 
 ### Added
@@ -157,7 +183,8 @@ A rewrite: see [the upgrade guide](https://github.com/Ark4ne/laravel-openapi-gen
 - `#[Response(statusText: 'Created')]` wrote a 200; the 422 had no schema; optional path parameters (`{id?}`) were
   ignored; state was shared between the documents of one run.
 
-[Unreleased]: https://github.com/Ark4ne/laravel-openapi-generator/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/Ark4ne/laravel-openapi-generator/compare/v1.2.0...HEAD
+[v1.2.0]: https://github.com/Ark4ne/laravel-openapi-generator/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/Ark4ne/laravel-openapi-generator/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/Ark4ne/laravel-openapi-generator/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/Ark4ne/laravel-openapi-generator/compare/v0.6.1...v1.0.0

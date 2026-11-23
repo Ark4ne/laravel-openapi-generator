@@ -15,6 +15,7 @@ use Ark4ne\OpenApi\Configuration\RouteMasks;
 use Ark4ne\OpenApi\Configuration\RouteOrder;
 use Ark4ne\OpenApi\Configuration\SamplingConfiguration;
 use Ark4ne\OpenApi\Configuration\ServerConfiguration;
+use Ark4ne\OpenApi\Configuration\WebhooksConfiguration;
 use Ark4ne\OpenApi\Exceptions\InvalidConfigurationException;
 use Ark4ne\OpenApi\Generation\Pass;
 use Ark4ne\OpenApi\Tests\Fixtures\Extensions\StampPass;
@@ -39,6 +40,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 #[CoversClass(ExtensionsConfiguration::class)]
 #[CoversClass(IntegrationsConfiguration::class)]
 #[CoversClass(ConfigurationValues::class)]
+#[CoversClass(WebhooksConfiguration::class)]
 final class ConfigurationTest extends TestCase
 {
     public function test_the_published_configuration_is_read(): void
@@ -60,6 +62,26 @@ final class ConfigurationTest extends TestCase
         self::assertTrue($configuration->exceptions->readThrows);
         self::assertSame(2, $configuration->sampling->collectionSize);
         self::assertSame('date', $configuration->dateFormats['Y-m-d'] ?? null);
+        self::assertEquals(new WebhooksConfiguration([app_path()]), $document->webhooks);
+        self::assertSame(['paths', 'classes', 'include', 'exclude'], array_keys((array) ($config['webhooks'] ?? [])));
+    }
+
+    public function test_the_webhooks_of_a_document_override_the_global_ones_key_by_key(): void
+    {
+        $configuration = Configuration::fromArray([
+            'documents' => ['v1' => [], 'v2' => ['webhooks' => ['paths' => []]], 'v3' => ['webhooks' => ['classes' => [StampPass::class]]]],
+            'webhooks' => ['paths' => ['app/Webhooks']],
+        ]);
+
+        self::assertEquals(new WebhooksConfiguration(['app/Webhooks']), $configuration->document('v1')->webhooks);
+        self::assertEquals(new WebhooksConfiguration(), $configuration->document('v2')->webhooks);
+        self::assertEquals(new WebhooksConfiguration(['app/Webhooks'], [StampPass::class]), $configuration->document('v3')->webhooks);
+        self::assertEquals(new WebhooksConfiguration(['app/Webhooks']), $configuration->document('v1')->withFormat(OutputFormat::Yaml)->webhooks);
+        self::assertEquals(new WebhooksConfiguration(), Configuration::fromArray(['documents' => ['v1' => []]])->document('v1')->webhooks);
+        self::assertEquals(new WebhooksConfiguration(['app/Webhooks'], include: ['order.*'], exclude: ['order.draft']), Configuration::fromArray([
+            'documents' => ['v1' => ['webhooks' => ['include' => ['order.*'], 'exclude' => ['order.draft']]]],
+            'webhooks' => ['paths' => ['app/Webhooks']],
+        ])->document('v1')->webhooks);
     }
 
     public function test_what_the_writing_needs_is_read(): void
@@ -180,13 +202,17 @@ final class ConfigurationTest extends TestCase
      */
     public static function invalidEntries(): iterable
     {
-        yield 'v0.6 key' => [['versions' => []], 'openapi: expected the keys documents, servers, output, sampling, date_formats, middlewares, extensions, integrations, exceptions, languages, got "versions"'];
+        yield 'v0.6 key' => [['versions' => []], 'openapi: expected the keys documents, servers, output, sampling, date_formats, middlewares, extensions, integrations, exceptions, languages, webhooks, got "versions"'];
         yield 'middleware mappers not a list' => [['middlewares' => ['tenant' => TenantMiddlewareMapper::class]], 'openapi.middlewares.tenant: expected a list of classes'];
         yield 'missing middleware mapper' => [['middlewares' => ['tenant' => ['App\\Missing']]], 'openapi.middlewares.tenant: expected existing classes or interfaces, got "App\\Missing"'];
         yield 'unknown registry' => [['extensions' => ['parsers' => []]], 'openapi.extensions: expected the keys operation_extractors, request_extractors, rule_mappers, response_extractors, samplers, passes, got "parsers"'];
         yield 'missing extension' => [['extensions' => ['passes' => ['App\\Missing']]], 'openapi.extensions.passes: expected existing classes or interfaces, got "App\\Missing"'];
         yield 'unknown integration' => [['integrations' => ['sanctum' => []]], 'openapi.integrations: expected the keys json_api, got "sanctum"'];
         yield 'json api errors' => [['integrations' => ['json_api' => ['errors' => 'yes']]], 'openapi.integrations.json_api.errors: expected a boolean, got "yes"'];
+        yield 'unknown webhooks key' => [['webhooks' => ['path' => []]], 'openapi.webhooks: expected the keys paths, classes, include, exclude, got "path"'];
+        yield 'webhooks include not strings' => [['documents' => ['v1' => ['webhooks' => ['include' => 'order.*']]]], 'openapi.documents.v1.webhooks.include: expected a list of strings'];
+        yield 'webhooks paths not strings' => [['webhooks' => ['paths' => [1]]], 'openapi.webhooks.paths: expected a list of strings'];
+        yield 'missing webhook class' => [['documents' => ['v1' => ['webhooks' => ['classes' => ['App\\Missing']]]]], 'openapi.documents.v1.webhooks.classes: expected existing classes or interfaces, got "App\\Missing"'];
         yield 'use references' => [['documents' => ['v1' => ['use_references' => 'no']]], 'openapi.documents.v1.use_references: expected a boolean, got "no"'];
     }
 

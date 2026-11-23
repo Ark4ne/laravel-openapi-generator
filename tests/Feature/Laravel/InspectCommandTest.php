@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Ark4ne\OpenApi\Tests\Feature\Laravel;
 
 use Ark4ne\OpenApi\Laravel\Commands\InspectCommand;
+use Ark4ne\OpenApi\Tests\Fixtures\PayloadWebhooks\ArticlePublished;
+use Ark4ne\OpenApi\Tests\Fixtures\PayloadWebhooks\Unnamed;
 use Ark4ne\OpenApi\Tests\Fixtures\Responses\ResponseController;
 use Ark4ne\OpenApi\Tests\Fixtures\Types\UntypedController;
 use Illuminate\Contracts\Config\Repository;
@@ -68,6 +70,44 @@ final class InspectCommandTest extends LaravelTestCase
             ->expectsOutputToContain('PUT /api/items/{item}')
             ->expectsOutputToContain('no return type, declare the responses with #[Response]')
             ->assertExitCode(0);
+    }
+
+    public function test_a_payload_webhook_is_found_by_its_name(): void
+    {
+        $config = $this->app?->make(Repository::class);
+        self::assertInstanceOf(Repository::class, $config);
+        $config->set('openapi.webhooks.classes', [ArticlePublished::class, Unnamed::class]);
+
+        $this->command('openapi:inspect', ['route' => 'article.published'])
+            ->expectsOutputToContain('POST article.published')
+            ->expectsOutputToContain('An article was published.')
+            ->expectsOutputToContain('X-Signature (header, required)')
+            ->expectsOutputToContain('Body (required)')
+            ->assertExitCode(0);
+    }
+
+    public function test_a_route_and_a_webhook_of_the_same_name_are_both_shown(): void
+    {
+        $config = $this->app?->make(Repository::class);
+        self::assertInstanceOf(Repository::class, $config);
+        $config->set('openapi.webhooks.classes', [ArticlePublished::class]);
+        $this->router()->post('api/published', [UntypedController::class, 'ping'])->name('article.published');
+
+        $this->command('openapi:inspect', ['route' => 'article.published'])
+            ->expectsOutputToContain('POST /api/published')
+            ->expectsOutputToContain('POST article.published')
+            ->assertExitCode(0);
+    }
+
+    public function test_an_invalid_payload_class_is_an_invalid_call(): void
+    {
+        $config = $this->app?->make(Repository::class);
+        self::assertInstanceOf(Repository::class, $config);
+        $config->set('openapi.webhooks.classes', [ResponseController::class]);
+
+        $this->command('openapi:inspect', ['route' => 'article.published'])
+            ->expectsOutputToContain('openapi.documents.v1.webhooks.classes')
+            ->assertExitCode(2);
     }
 
     public function test_a_route_out_of_the_document_is_reported(): void

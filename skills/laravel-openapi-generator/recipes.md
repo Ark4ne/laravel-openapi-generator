@@ -228,54 +228,53 @@ Route::get('catalogs/{catalog}/search', [SearchController::class, 'search'])->na
 
 ## Webhooks and callbacks
 
-A webhook is a request the application sends. Describe it on a route whose action reads it as it would be received
-(its form request is the payload) and mark it `#[Webhook]`; the route is documented under `webhooks` (3.1+,
-`x-webhooks` with `redoc` before), never under `paths`. `#[Callback]` documents a request sent back to a URL the
-client gave, reusing a webhook or describing its own payload.
+A webhook is a request the application sends. Declare it by its payload: a `JsonResource` marked
+`#[Webhook('order.paid')]`. No route: the generator finds the class under `webhooks.paths` (`app_path()` by
+default, only the files that mention `Webhook` are read) or in `webhooks.classes`, and documents it under `webhooks`
+(3.1+, `x-webhooks` with `redoc` before), never under `paths`. The resource is described as a returned one (sampled,
+a `$ref` component); the same class is what the application sends:
+`Http::post($url, OrderPaid::make($order)->resolve())`, or the `payload()` of any webhook library. A resource with
+a format (JSON:API) is documented as its document (`{data: …}`, `application/vnd.api+json`): send
+`->response()->getData(true)`, not `resolve()`.
 
-The webhook routes exist only to be documented: like any route, they must match `routes.include` (here under `api/`),
-and a middleware must keep them from answering. Do not register them conditionally (`runningInConsole()`): the
-console also builds the route cache (`route:cache`), so they would be served anyway.
+`#[Callback]` documents a request sent back to a URL the client gave, reusing a webhook or describing its own payload.
 
 ```php
 namespace App\Orders;
 
 use Ark4ne\OpenApi\Attributes\Callback;
 use Ark4ne\OpenApi\Attributes\Header;
+use Ark4ne\OpenApi\Attributes\ResourceFactory;
 use Ark4ne\OpenApi\Attributes\Webhook;
-use Closure;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Route;
 
+final class SampleOrder
+{
+    public function __invoke(): array
+    {
+        return ['id' => 1, 'total' => 10.5, 'status' => 'paid'];
+    }
+}
+
 /**
- * Keeps the routes that describe the webhooks from answering.
+ * An order was paid.
  */
-final class DocumentedOnly
+#[Webhook('order.paid')]
+#[Header('X-Signature', required: true, description: 'HMAC of the body')]
+#[ResourceFactory(SampleOrder::class)]
+final class OrderPaid extends JsonResource
 {
-    public function handle(Request $request, Closure $next): never
+    public function toArray(Request $request): array
     {
-        abort(404);
+        return [
+            'id' => $this->resource['id'],
+            'total' => $this->resource['total'],
+            'status' => $this->resource['status'],
+        ];
     }
-}
-
-final class OrderPayload extends FormRequest
-{
-    public function rules(): array
-    {
-        return ['id' => 'required|integer', 'total' => 'required|numeric', 'status' => 'required|in:paid,refunded'];
-    }
-}
-
-#[Webhook('order')]
-final class OrderWebhooks
-{
-    /**
-     * An order was paid.
-     */
-    #[Header('X-Signature', type: 'string', required: true, description: 'HMAC of the body')]
-    public function paid(OrderPayload $payload): void {}
 }
 
 final class OrderController
@@ -290,12 +289,12 @@ final class OrderController
     }
 }
 
-Route::middleware(DocumentedOnly::class)->group(static function (): void {
-    Route::post('webhooks/orders/paid', [OrderWebhooks::class, 'paid']);
-});
-
 Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
 ```
+
+A webhook declared on a route (`#[Webhook]` on an action, a route kept from answering) still works and is deprecated:
+declare the payload class instead. A payload class and a route webhook of the same name and method keep the payload
+class, with a warning.
 
 ## Extending the generator
 
