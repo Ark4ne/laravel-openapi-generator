@@ -68,9 +68,12 @@ composer require --dev opis/json-schema           # validation against the offic
     `DescribesRequest`.
 11. **Description objects are immutable**: every method returns a copy; always use the return value
     (`$field = $field->schema(...)`). Schemas are `Ark4ne\OpenApiWriter\Objects\Schema`.
-12. **Webhook routes are documented, not served**: a `#[Webhook]` action is a real route describing the request the
-    application sends. It must match `routes.include` like any route, and a middleware must refuse every request
-    (`abort(404)`); registering it only in the console does not work, `route:cache` runs in the console too.
+12. **A webhook is declared by its payload, not by a route**: a `JsonResource` marked `#[Webhook('order.paid')]`,
+    found under `webhooks.paths` (`app_path()` by default) or listed in `webhooks.classes`. The same class is what the
+    application sends (`OrderPaid::make($order)->resolve()`; `->response()->getData(true)` for a JSON:API resource,
+    documented as its `{data: …}` document). `#[Exclude]` leaves a class out of every document;
+    `documents.<name>.webhooks.include` / `exclude` (masks on the names) choose the webhooks of one document.
+    `#[Webhook]` on an action (a route kept from answering) is deprecated: move the payload to a resource class.
 
 ## Workflow to document an endpoint
 

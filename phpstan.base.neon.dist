@@ -21,6 +21,8 @@ parameters:
         - tests/Fixtures/Types/*
         # Declares in @throws the exceptions it documents, without throwing them.
         - tests/Fixtures/Responses/ResponseController.php
+        # A deliberately invalid #[Operation], reported by the PayloadWebhookExtractor tests.
+        - tests/Fixtures/Webhooks/Payloads/TranslatedPayload.php
     ignoreErrors:
         # Description::copy() rebuilds the final subclass from its promoted properties, passed by name.
         -

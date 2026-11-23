@@ -1,0 +1,264 @@
+{
+    "openapi": "3.1.2",
+    "info": {
+        "title": "Scenario",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/subscriptions": {
+            "post": {
+                "tags": [
+                    "Subscription"
+                ],
+                "operationId": "subscriptions.store",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "callbacks": {
+                    "published": {
+                        "{$request.body#/callbackUrl}": {
+                            "post": {
+                                "tags": [
+                                    "Webhooks"
+                                ],
+                                "summary": "An article was published.",
+                                "description": "Sent once, when the article goes live.",
+                                "parameters": [
+                                    {
+                                        "name": "X-Signature",
+                                        "in": "header",
+                                        "description": "HMAC of the body",
+                                        "required": true,
+                                        "schema": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    {
+                                        "name": "X-Attempt",
+                                        "in": "header",
+                                        "schema": {
+                                            "type": "integer",
+                                            "minimum": 1,
+                                            "example": 1
+                                        }
+                                    }
+                                ],
+                                "requestBody": {
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/ArticlePublished"
+                                            }
+                                        }
+                                    },
+                                    "required": true
+                                },
+                                "responses": {
+                                    "200": {
+                                        "description": "OK"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "webhooks": {
+        "article.archived": {
+            "put": {
+                "tags": [
+                    "Articles"
+                ],
+                "summary": "An article was archived",
+                "operationId": "articleArchived",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ArticleArchived"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "204": {
+                        "description": "Received"
+                    },
+                    "410": {
+                        "description": "The subscription is cancelled"
+                    }
+                },
+                "deprecated": true
+            }
+        },
+        "article.published": {
+            "post": {
+                "tags": [
+                    "Webhooks"
+                ],
+                "summary": "An article was published.",
+                "description": "Sent once, when the article goes live.",
+                "operationId": "article.published",
+                "parameters": [
+                    {
+                        "name": "X-Signature",
+                        "in": "header",
+                        "description": "HMAC of the body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "X-Attempt",
+                        "in": "header",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ArticlePublished"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "article.reviewed": {
+            "post": {
+                "tags": [
+                    "Reviews"
+                ],
+                "summary": "An article was reviewed.",
+                "operationId": "article.reviewed",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ArticleReviewed"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ArticleArchived": {
+                "type": "object",
+                "required": [
+                    "id"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "ArticlePublished": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "title"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "author": {
+                        "type": "object",
+                        "required": [
+                            "id",
+                            "name",
+                            "born_at",
+                            "active",
+                            "score",
+                            "tags"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "born_at": {
+                                "format": "date",
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "active": {
+                                "type": "boolean"
+                            },
+                            "score": {
+                                "type": "number"
+                            },
+                            "tags": {
+                                "type": "array"
+                            }
+                        }
+                    }
+                }
+            },
+            "ArticleReviewed": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "title"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "title": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Subscription"
+        },
+        {
+            "name": "Articles"
+        },
+        {
+            "name": "Webhooks"
+        },
+        {
+            "name": "Reviews",
+            "description": "The editorial reviews"
+        }
+    ]
+}

@@ -112,15 +112,25 @@ those of the class and of the middlewares.
 
 ### `#[Exclude]`
 
-On a controller, an action or a closure route: left out of every document.
+On a controller, an action, a closure route or a payload webhook class: left out of every document.
 
 ### `#[Webhook]`
 
-The route is documented under `webhooks` (3.1+; `x-webhooks` before with `redoc`), not under `paths`.
+Documented under `webhooks` (3.1+; `x-webhooks` before with `redoc`), not under `paths`.
+
+On a `JsonResource` found under `webhooks.paths` or listed in `webhooks.classes`: a **payload webhook**, no route. The
+resource is the required body (sampled like a returned resource); the PHPDoc of the class gives the summary and the
+description; `#[Operation]`, `#[Tag]`, `#[Header]` and `#[Response]` on the class complete it (only the class's own
+attributes). Tagged `Webhooks` unless `#[Operation(tags:)]` or a `#[Tag]` tags it; answered `200` unless
+`#[Response]`; its operationId is its name. Without a name: a warning, no webhook. An abstract class is skipped.
+
+On an action or a controller: a **route webhook** (deprecated), the route documented as the request sent. A payload
+class and a route webhook of the same name and method keep the payload class, with a warning.
 
 | Parameter | Effect |
 | --- | --- |
-| `name` | on an action: the key of the webhook (the route name by default); on a controller: the prefix of the keys of its actions (`order` + `paid` gives `order.paid`) |
+| `name` | on a payload class: the key of the webhook, required; on an action: the key of the webhook (the route name by default); on a controller: the prefix of the keys of its actions (`order` + `paid` gives `order.paid`) |
+| `method` | on a payload class: the HTTP method of the request sent (`POST` by default); ignored on a route webhook |
 
 ### `#[Callback]`
 
@@ -179,6 +189,8 @@ unknown top-level key or an invalid value fails the command with the key, the ex
 | `documents.<name>.output` | | Overrides of the global `output` |
 | `documents.<name>.extensions` | `[]` | `x-*` extensions of the document |
 | `documents.<name>.integrations` | `[]` | Settings of the integrations for this document, by the key of a `DocumentIntegration`, each an array of named settings read by that integration only; one document per version of the API, each with its own `routes` and settings. A key no available integration reads is a warning. With `ark4ne/laravel-json-api` 3.x: `json_api.revision` (a case of the enum of `revisions.enum`, `ark4ne/laravel-api-revisions`; the head without it) documents that revision: its resources, `include` and `fields`, every request the generator builds read at it (the base revision of the `RevisionScope`), the newer revisions listed in the description; a resource absent from it is a warning; the resources of the document are checked at it (the findings of `jsonapi:check`, as diagnostics) |
+| `documents.<name>.webhooks` | | Overrides of the global `webhooks`, key by key (`'paths' => []`: no payload webhook found by scanning) |
+| `webhooks` | | `paths` (`[app_path()]`: directories or files scanned for the `JsonResource` classes marked `#[Webhook]`; only the files that mention `Webhook` are read, a class that cannot be loaded is a warning), `classes` (`[]`: payload classes listed; one that is not a concrete `JsonResource` marked `#[Webhook]` fails the command; `#[Exclude]` leaves a class out), `include` (`[]`: every webhook) and `exclude` (`[]`): shell masks on the names of the webhooks of a document, route webhooks included, `exclude` over `include` |
 | `servers` | `APP_URL` | `url`, `description`, `name` (3.2), `variables` (`default`, `enum`, `description`) |
 | `output` | | `disk` (`null`: the default disk), `directory` (`openapi`), `file` (`{document}.json`, with `{document}` and `{locale}`), `format` (`json`, `yaml`) |
 | `sampling` | | `transactions` (`true`), `connections` (drivers wrapped in a rolled back transaction), `collection_size` (`2`), `seed` (`1`), `examples` (`true`) |

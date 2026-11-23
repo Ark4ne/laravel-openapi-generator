@@ -113,7 +113,10 @@ final readonly class AttributeOperationExtractor implements OperationExtractor
         return $description->webhook($name)->operationId($operationId ?? $name);
     }
 
-    private static function operation(Operation $attribute, OperationDescription $description): OperationDescription
+    /**
+     * The fields an `#[Operation]` gives, over those of the description; shared with the payload webhooks.
+     */
+    public static function operation(Operation $attribute, OperationDescription $description): OperationDescription
     {
         $description = $description
             ->summary($attribute->summary ?? $description->summary)
@@ -164,7 +167,10 @@ final readonly class AttributeOperationExtractor implements OperationExtractor
         return $attribute->tags === [] ? $description : $description->tags(...$attribute->tags);
     }
 
-    private static function tag(Tag $tag): TagDescription
+    /**
+     * The details of a `#[Tag]`; shared with the payload webhooks.
+     */
+    public static function tag(Tag $tag): TagDescription
     {
         return TagDescription::create($tag->name)
             ->description($tag->description)

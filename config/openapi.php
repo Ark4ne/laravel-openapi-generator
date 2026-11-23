@@ -185,6 +185,26 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Webhooks
+    |--------------------------------------------------------------------------
+    |
+    | The payload webhooks: the JsonResource classes marked #[Webhook], found
+    | in the PHP files under `paths` (directories or files) and listed in
+    | `classes` (#[Exclude] leaves one out). Only the files that mention
+    | `Webhook` are read. `include` / `exclude`: shell masks on the names of
+    | the webhooks of a document (`order.*`; include empty: all of them). A
+    | document overrides these keys in its own `webhooks`.
+    |
+    */
+    'webhooks' => [
+        'paths' => [app_path()],
+        'classes' => [],
+        'include' => [],
+        'exclude' => [],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Sampling
     |--------------------------------------------------------------------------
     |

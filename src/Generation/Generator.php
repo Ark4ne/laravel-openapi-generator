@@ -12,17 +12,20 @@ use Ark4ne\OpenApi\Description\DocumentDescription;
 use Ark4ne\OpenApi\Discovery\MiddlewareResolver;
 use Ark4ne\OpenApi\Discovery\PathParameterResolver;
 use Ark4ne\OpenApi\Discovery\RouteCollector;
+use Ark4ne\OpenApi\Discovery\WebhookClassFinder;
 use Ark4ne\OpenApi\Exceptions\InvalidConfigurationException;
 use Ark4ne\OpenApi\Extraction\Callbacks\DeclaredCallbacks;
 use Ark4ne\OpenApi\Extraction\Exceptions\ErrorBodies;
 use Ark4ne\OpenApi\Extraction\Exceptions\LaravelErrorBodies;
 use Ark4ne\OpenApi\Extraction\OperationContextFactory;
 use Ark4ne\OpenApi\Extraction\Operations\OperationExtractors;
+use Ark4ne\OpenApi\Extraction\Operations\TranslationOperationExtractor;
 use Ark4ne\OpenApi\Extraction\Requests\RequestExtractors;
 use Ark4ne\OpenApi\Extraction\Responses\OperationResponses;
 use Ark4ne\OpenApi\Extraction\Rules\RuleMappers;
 use Ark4ne\OpenApi\Extraction\Strategies\BuiltInStrategies;
 use Ark4ne\OpenApi\Extraction\Strategies\QueryStrategy;
+use Ark4ne\OpenApi\Extraction\Webhooks\PayloadWebhookExtractor;
 use Ark4ne\OpenApi\Generation\Passes\IntegrationPass;
 use Ark4ne\OpenApi\Sampling\Samplers;
 use Ark4ne\OpenApi\Sampling\SamplingSession;
@@ -34,8 +37,8 @@ use Illuminate\Routing\Router;
 use Throwable;
 
 /**
- * Generates the documents of the configuration: for each document and each language, the routes, their
- * metadata, requests and responses inside one sampling session, the passes, then the writer's object.
+ * Generates the documents of the configuration: for each document and each language, its payload webhooks, then the
+ * routes, their metadata, requests and responses inside one sampling session, the passes, then the writer's object.
  *
  * The available integrations add their resource formats and rule mappers, and the last one that has error bodies
  * replaces Laravel's; the extensions of the application join the registries, and its strategy classes come from the
@@ -56,6 +59,7 @@ final readonly class Generator
         private DocumentBuilder $builder = new DocumentBuilder(),
         private array $integrations = [],
         private GeneratorExtensions $extensions = new GeneratorExtensions(),
+        private WebhookClassFinder $webhooks = new WebhookClassFinder(),
     ) {}
 
     /**
@@ -112,6 +116,7 @@ final readonly class Generator
     {
         $this->operations($document);
         $this->query($document);
+        $this->webhooks->listed($document);
         Passes::default($configuration, new LaravelErrorBodies(), $this->container);
     }
 
@@ -294,6 +299,14 @@ final readonly class Generator
             ->with(...$this->extensions->requestExtractors);
         $callbacks = new DeclaredCallbacks($responses->declared());
         $document = DocumentDescription::create();
+        $payloads = new PayloadWebhookExtractor($responses->resources(), $responses->declared(), $this->types, $this->translator === null ? null : new TranslationOperationExtractor($this->translator));
+
+        // The payload webhooks come first: a route webhook of the same name and method is left out by WebhookPass.
+        foreach ($this->webhooks->find($context) as $class) {
+            $webhook = $payloads->extract($class, $context);
+            $kept = $webhook?->webhook !== null && $this->webhooks->keeps($webhook->webhook, $context);
+            $document = $kept ? $document->addWebhooks($webhook) : $document;
+        }
 
         foreach ($this->routes->collect($context) as $route) {
             $operation = $factory->create($route, $context);
@@ -306,7 +319,7 @@ final readonly class Generator
             // A webhook is filed apart from the start: the passes tied to the routes never see it.
             $document = match (true) {
                 $description->excluded => $document,
-                $description->webhook !== null => $document->addWebhooks($description),
+                $description->webhook !== null => $this->webhooks->keeps($description->webhook, $context) ? $document->addWebhooks($description) : $document,
                 default => $document->addOperations($description),
             };
         }

@@ -34,6 +34,15 @@ final readonly class TranslationOperationExtractor implements OperationExtractor
 
     public function extract(OperationContext $operation, OperationDescription $description, GenerationContext $context): OperationDescription
     {
+        return $this->translated($description, $context);
+    }
+
+    /**
+     * The summary, the description and the tags of the description, translated; shared with the payload webhooks,
+     * which have no route.
+     */
+    public function translated(OperationDescription $description, GenerationContext $context): OperationDescription
+    {
         $translate = fn(?string $text): ?string => $this->translate($text, $context->locale);
 
         return $description
